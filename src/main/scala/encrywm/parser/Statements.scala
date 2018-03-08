@@ -4,20 +4,19 @@ import fastparse.noApi._
 import WsApi._
 import Expressions._
 import Scanner.kwd
+import fastparse.noApi
 
 object Statements extends Statements(0)
 
 /**
-  * Python's statement grammar. This can only be used in statement-blocks,
+  * Statement grammar. This can only be used in statement-blocks,
   * and is sensitive to newlines and indentation to determine nesting
-  *
-  * Manually transcribed from https://docs.python.org/2/reference/grammar.html
   */
 class Statements(indent: Int){
 
-  val space = P( CharIn(" \n") )
-  val NEWLINE: P0 = P( "\n" | End )
-  val ENDMARKER: P0 = P( End )
+  val SPACE: noApi.Parser[Unit] = P( CharIn(" \n") )
+  val NEWLINE: P0 =               P( "\n" | End )
+  val ENDMARKER: P0 =             P( End )
 
   val single_input: P[Seq[Ast.STMT]] = P(
     NEWLINE.map(_ => Nil) |
@@ -44,7 +43,7 @@ class Statements(indent: Int){
       Ast.EXPR.Call(x, args, keywords, starargs, kwargs)
   }
 
-  val decorators = P( decorator.rep )
+  val decorators: noApi.Parser[Seq[Ast.EXPR]] = P( decorator.rep )
   val decorated: P[Ast.STMT] = P( decorators ~ (classdef | funcdef) ).map{case (a, b) => b(a)}
   val classdef: P[Seq[Ast.EXPR] => Ast.STMT.ClassDef] =
     P( kwd("class") ~/ NAME ~ ("(" ~ testlist.? ~ ")").?.map(_.toSeq.flatten.flatten) ~ ":" ~~ suite ).map{
