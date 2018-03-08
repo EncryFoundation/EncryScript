@@ -60,12 +60,11 @@ class Statements(indent: Int){
 
   val simple_stmt: P[Seq[Ast.STMT]] = P( small_stmt.rep(1, sep = ";") ~ ";".? )
   val small_stmt: P[Ast.STMT] = P(
-    print_stmt  | del_stmt | pass_stmt | flow_stmt |
-      import_stmt | global_stmt | exec_stmt | assert_stmt | expr_stmt
+    print_stmt | pass_stmt | flow_stmt | global_stmt | exec_stmt | assert_stmt | expr_stmt
   )
   val expr_stmt: P[Ast.STMT] = {
-    val aug = P( testlist ~ augassign ~ (yield_expr | testlist.map(tuplize)) )
-    val assign = P( testlist ~ ("=" ~ (yield_expr | testlist.map(tuplize))).rep )
+    val aug = P(testlist ~ augassign ~ testlist.map(tuplize))
+    val assign = P(testlist ~ ("=" ~ testlist.map(tuplize)).rep)
 
     P(
       aug.map{case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
@@ -76,6 +75,7 @@ class Statements(indent: Int){
     )
   }
 
+  // TODO: Remove binary operations?
   val augassign: P[Ast.OPERATOR] = P(
     "+=".!.map(_ => Ast.OPERATOR.Add) |
       "-=".!.map(_ => Ast.OPERATOR.Sub) |
@@ -93,32 +93,20 @@ class Statements(indent: Int){
 
   val print_stmt: P[Ast.STMT.Print] = {
     val noDest = P( test.rep(sep = ",") ~ ",".?).map(Ast.STMT.Print(None, _, true))
-    val dest = P( ">>" ~ test ~ ("," ~ test).rep ~ ",".?).map{case (dest, exprs) => Ast.STMT.Print(Some(dest), exprs, true)}
-    P( "print" ~~ " ".rep ~~ (noDest | dest) )
+    val dest = P( ">>" ~ test ~ ("," ~ test).rep ~ ",".?).map {case (d, exprs) => Ast.STMT.Print(Some(d), exprs, true)}
+    P("print" ~~ " ".rep ~~ (noDest | dest))
   }
-  val del_stmt = P( kwd("del") ~~ " ".rep ~~ exprlist ).map(Ast.STMT.Delete)
-  val pass_stmt = P( kwd("pass") ).map(_ => Ast.STMT.Pass)
-  val flow_stmt: P[Ast.STMT] = P( break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt )
-  val break_stmt = P( kwd("break") ).map(_ => Ast.STMT.Break)
-  val continue_stmt = P( kwd("continue") ).map(_ => Ast.STMT.Continue)
-  val return_stmt = P( kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
+  val pass_stmt = P(kwd("pass") ).map(_ => Ast.STMT.Pass)
+  val flow_stmt: P[Ast.STMT] = P( break_stmt | continue_stmt | return_stmt | raise_stmt )
+  val break_stmt = P(kwd("break") ).map(_ => Ast.STMT.Break)
+  val continue_stmt = P(kwd("continue") ).map(_ => Ast.STMT.Continue)
+  val return_stmt = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 
-  val yield_stmt = P( yield_expr ).map(Ast.STMT.Expr)
   val raise_stmt: P[Ast.STMT.Raise] = P( kwd("raise") ~~ " ".rep ~~test.? ~ ("," ~ test).? ~ ("," ~ test).? ).map(Ast.STMT.Raise.tupled)
-  val import_stmt: P[Ast.STMT] = P( import_name | import_from )
-  val import_name: P[Ast.STMT.Import] = P( kwd("import") ~ dotted_as_names ).map(Ast.STMT.Import)
-  val import_from: P[Ast.STMT.ImportFrom] = {
-    val named = P( ".".rep(1).!.? ~ dotted_name.!.map(Some(_)) )
-    val unNamed = P( ".".rep(1).!.map(x => (Some(x), None)) )
-    val star = P( "*".!.map(_ => Seq(Ast.alias(Ast.Identifier("*"), None))) )
-    P( kwd("from") ~ (named | unNamed) ~ kwd("import") ~ (star | "(" ~ import_as_names ~ ")" | import_as_names) ).map{
-      case (dots, module, names) => Ast.STMT.ImportFrom(module.map(Ast.Identifier), names, dots.map(_.length))
-    }
-  }
-  val import_as_name: P[Ast.alias] = P( NAME ~ (kwd("as") ~ NAME).? ).map(Ast.alias.tupled)
-  val dotted_as_name: P[Ast.alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? ).map(Ast.alias.tupled)
-  val import_as_names = P( import_as_name.rep(1, ",") ~ (",").? )
-  val dotted_as_names = P( dotted_as_name.rep(1, ",") )
+
+  val dotted_as_name: P[Ast.alias] = P(dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).?)
+    .map(Ast.alias.tupled)
+  val dotted_as_names = P(dotted_as_name.rep(1, ","))
   val dotted_name = P( NAME.rep(1, ".") )
   val global_stmt: P[Ast.STMT.Global] = P( kwd("global") ~ NAME.rep(sep = ",") ).map(Ast.STMT.Global)
   val exec_stmt: P[Ast.STMT.Exec] = P( kwd("exec") ~ expr ~ (kwd("in") ~ test ~ ("," ~ test).?).? ).map {
@@ -128,9 +116,9 @@ class Statements(indent: Int){
   }
   val assert_stmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
-  val compound_stmt: P[Ast.STMT] = P( if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | decorated )
+  val compound_stmt: P[Ast.STMT] = P(if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | decorated)
   val if_stmt: P[Ast.STMT.If] = {
-    val firstIf = P( kwd("if") ~/ test ~ ":" ~~ suite )
+    val firstIf = P(kwd("if") ~/ test ~ ":" ~~ suite)
     val elifs = P( (space_indents ~~ kwd("elif") ~/ test ~ ":" ~~ suite).repX )
     val lastElse = P( (space_indents ~~ kwd("else") ~/ ":" ~~ suite).? )
     P( firstIf ~~ elifs ~~ lastElse ).map{
@@ -142,14 +130,16 @@ class Statements(indent: Int){
         }
     }
   }
-  val space_indents = P( spaces.repX ~~ " ".repX(indent) )
-  val while_stmt = P( kwd("while") ~/ test ~ ":" ~~ suite ~~ (space_indents ~~ kwd("else") ~/ ":" ~~ suite).?.map(_.toSeq.flatten) ).map(Ast.STMT.While.tupled)
-  val for_stmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ suite ~~ (space_indents ~ kwd("else") ~/ ":" ~~ suite).? ).map {
-    case (itervars, generator, body, orelse) =>
-      Ast.STMT.For(tuplize(itervars), tuplize(generator), body, orelse.toSeq.flatten)
-  }
+  val space_indents = P(spaces.repX ~~ " ".repX(indent))
+  val while_stmt = P(kwd("while") ~/ test ~ ":" ~~ suite ~~ (space_indents ~~ kwd("else") ~/ ":" ~~ suite).?
+    .map(_.toSeq.flatten) ).map(Ast.STMT.While.tupled)
+  val for_stmt: P[Ast.STMT.For] = P(kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ suite
+    ~~ (space_indents ~ kwd("else") ~/ ":" ~~ suite).? ).map {
+      case (itervars, generator, body, orelse) =>
+        Ast.STMT.For(tuplize(itervars), tuplize(generator), body, orelse.toSeq.flatten)
+    }
   val try_stmt: P[Ast.STMT]= {
-    val `try` = P( kwd("try") ~/ ":" ~~ suite )
+    val `try` = P(kwd("try") ~/ ":" ~~ suite)
     val excepts: P[Seq[Ast.EXCP_HANDLER]] = P( (except_clause ~ ":" ~~ suite).map{
       case (None, body) => Ast.EXCP_HANDLER.ExceptHandler(None, None, body)
       case (Some((x, None)), body) => Ast.EXCP_HANDLER.ExceptHandler(Some(x), None, body)

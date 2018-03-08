@@ -18,7 +18,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   }
 
   property("Simple expression parsing (1)") {
-    val source = "def main(a, b):\nprint 2 * 10"
+    val source = "def main(a, b):\nprint a * b"
     val parsed = (Statements.file_input ~ End).parse(source)
 
     println(parsed)
@@ -26,12 +26,28 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
-  property("Invalid expression parsing (2)") {
+  property("Invalid simple expression parsing") {
     val source = "def main:\npass"
     val parsed = (Statements.file_input ~ End).parse(source)
 
     println(parsed)
 
     parsed.isInstanceOf[Parsed.Failure] shouldBe true
+  }
+
+  property("Complicated expression parsing (1)") {
+    val source =
+      """
+        |a = 4
+        |if (a < 5):
+        |  print a
+        |else:
+        |  print "string"
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    println(parsed)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 }

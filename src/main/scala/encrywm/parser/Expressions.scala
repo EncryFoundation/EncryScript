@@ -20,26 +20,26 @@ object Expressions {
 
   val NAME: P[Ast.Identifier] = Scanner.identifier
   val NUMBER: P[Ast.EXPR.Num] = P( Scanner.floatnumber | Scanner.longinteger | Scanner.integer | Scanner.imagnumber ).map(Ast.EXPR.Num)
-  val STRING: P[Ast.string] = Scanner.stringliteral
+  val STRING: P[String] = Scanner.stringliteral
 
   val test: P[Ast.EXPR] = {
-    val ternary = P( orTest ~ (kwd("if") ~ orTest ~ kwd("else") ~ test).? ).map{
+    val ternary = P(orTest ~ (kwd("if") ~ orTest ~ kwd("else") ~ test).?).map {
       case (x, None) => x
-      case (x, Some((test, neg))) => Ast.EXPR.IfExp(test, x, neg)
+      case (x, Some((t, neg))) => Ast.EXPR.IfExp(t, x, neg)
     }
-    P( ternary | lambdef )
+    P(ternary | lambdef)
   }
-  val orTest: core.Parser[Ast.EXPR, Char, String] = P( andTest.rep(1, kwd("or")) ).map{
+  val orTest: core.Parser[Ast.EXPR, Char, String] = P(andTest.rep(1, kwd("or")) ).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.Or, xs)
   }
-  val andTest: core.Parser[Ast.EXPR, Char, String] = P( notTest.rep(1, kwd("and")) ).map{
+  val andTest: core.Parser[Ast.EXPR, Char, String] = P(notTest.rep(1, kwd("and")) ).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.And, xs)
   }
   val notTest: P[Ast.EXPR] = P( ("not" ~ notTest).map(Ast.EXPR.UnaryOp(Ast.UNARY_OP.Not, _)) | comparison )
 
-  val comparison: P[Ast.EXPR] = P( expr ~ (comp_op ~ expr).rep ).map{
+  val comparison: P[Ast.EXPR] = P(expr ~ (comp_op ~ expr).rep).map {
     case (lhs, Nil) => lhs
     case (lhs, chunks) =>
       val (ops, vals) = chunks.unzip
@@ -115,8 +115,8 @@ object Expressions {
       empty_tuple  |
         empty_list |
         empty_dict |
-        "(" ~ (yield_expr | generator | tuple | test) ~ ")" |
-        "[" ~ (list_comp | list) ~ "]" |
+        "(" ~ (tuple | test) ~ ")" |
+        "[" ~ list ~ "]" |
         "{" ~ dictorsetmaker ~ "}" |
         "`" ~ testlist1.map(x => Ast.EXPR.Repr(Ast.EXPR.Tuple(x, Ast.EXPR_CTX.Load))) ~ "`" |
         STRING.rep(1).map(_.mkString).map(Ast.EXPR.Str) |
@@ -128,13 +128,10 @@ object Expressions {
   val list = P( list_contents ).map(Ast.EXPR.List(_, Ast.EXPR_CTX.Load))
   val tuple_contents = P( test ~ "," ~ list_contents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
   val tuple = P( tuple_contents).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Load))
-  val list_comp_contents = P( test ~ comp_for.rep(1) )
-  val list_comp = P( list_comp_contents ).map(Ast.EXPR.ListComp.tupled)
-  val generator = P( list_comp_contents ).map(Ast.EXPR.GeneratorExp.tupled)
 
   val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ varargslist ~ ":" ~ test ).map(Ast.EXPR.Lambda.tupled)
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
-    val call = P("(" ~ arglist ~ ")").map{ case (args, (keywords, starargs, kwargs)) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords, starargs, kwargs)}
+    val call = P("(" ~ arglist ~ ")").map { case (args, (keywords, starargs, kwargs)) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords, starargs, kwargs)}
     val slice = P("[" ~ subscriptlist ~ "]").map(args => (lhs: Ast.EXPR) => Ast.EXPR.Subscript(lhs, args, Ast.EXPR_CTX.Load))
     val attr = P("." ~ NAME).map(id => (lhs: Ast.EXPR) => Ast.EXPR.Attribute(lhs, id, Ast.EXPR_CTX.Load))
     P( call | slice | attr )
@@ -156,49 +153,33 @@ object Expressions {
     P( ellipses | multi | single )
   }
 
-  val sliceop = P( ":" ~ test.? )
-  val exprlist: P[Seq[Ast.EXPR]] = P( expr.rep(1, sep = ",") ~ ",".? )
-  val testlist: P[Seq[Ast.EXPR]] = P( test.rep(1, sep = ",") ~ ",".? )
+  val sliceop = P(":" ~ test.?)
+  val exprlist: P[Seq[Ast.EXPR]] = P(expr.rep(1, sep = ",") ~ ",".?)
+  val testlist: P[Seq[Ast.EXPR]] = P(test.rep(1, sep = ",") ~ ",".?)
   val dictorsetmaker: P[Ast.EXPR] = {
-    val dict_item = P( test ~ ":" ~ test )
+    val dict_item = P(test ~ ":" ~ test)
     val dict: P[Ast.EXPR.Dict] = P(
-      (dict_item.rep(1, ",") ~ ",".?).map{x =>
+      (dict_item.rep(1, ",") ~ ",".?).map { x =>
         val (keys, values) = x.unzip
         Ast.EXPR.Dict(keys, values)
       }
     )
-    val dict_comp = P(
-      (dict_item ~ comp_for.rep(1)).map(Ast.EXPR.DictComp.tupled)
-    )
-    val set: P[Ast.EXPR.Set] = P( test.rep(1, ",") ~ ",".? ).map(Ast.EXPR.Set)
-    val set_comp = P( test ~ comp_for.rep(1) ).map(Ast.EXPR.SetComp.tupled)
-    P( dict_comp | dict | set_comp | set)
+
+    val set: P[Ast.EXPR.Set] = P(test.rep(1, ",") ~ ",".?).map(Ast.EXPR.Set)
+    P(dict | set)
   }
 
+  val plain_argument: core.Parser[EXPR, Char, String] = P(test)
+
+  val named_argument: core.Parser[Ast.keyword, Char, String] = P(NAME ~ "=" ~ test ).map(Ast.keyword.tupled)
+
   val arglist = {
-    val inits = P( (plain_argument ~ !"=").rep(0, ",") )
-    val later = P( named_argument.rep(0, ",") ~ ",".? ~ ("*" ~ test).? ~ ",".? ~ ("**" ~ test).? )
+    val inits = P((plain_argument ~ !"=").rep(0, ","))
+    val later = P(named_argument.rep(0, ",") ~ ",".? ~ ("*" ~ test).? ~ ",".? ~ ("**" ~ test).?)
     P( inits ~ ",".? ~ later )
   }
 
-  val plain_argument = P( test ~ comp_for.rep ).map{
-    case (x, Nil) => x
-    case (x, gens) => Ast.EXPR.GeneratorExp(x, gens)
-  }
-
-  val named_argument = P( NAME ~ "=" ~ test  ).map(Ast.keyword.tupled)
-
-  val comp_for: P[Ast.comprehension] = P( "for" ~ exprlist ~ "in" ~ orTest ~ comp_if.rep ).map{
-    case (targets, test, ifs) => Ast.comprehension(tuplize(targets), test, ifs)
-  }
-  val comp_if: P[Ast.EXPR] = P( "if" ~ test )
-
-  val testlist1: P[Seq[Ast.EXPR]] = P( test.rep(1, sep = ",") )
-
-  // not used in grammar, but may appear in "node" passed from Parser to Compiler
-  //  val encoding_decl: P0 = P( NAME )
-
-  val yield_expr: P[Ast.EXPR.Yield] = P( kwd("yield") ~ testlist.map(tuplize).? ).map(Ast.EXPR.Yield)
+  val testlist1: P[Seq[Ast.EXPR]] = P(test.rep(1, sep = ","))
 
   val varargslist: P[Ast.arguments] = {
     val named_arg = P( fpdef ~ ("=" ~ test).? )

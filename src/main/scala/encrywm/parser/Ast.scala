@@ -65,12 +65,7 @@ object Ast {
     case class IfExp(test: EXPR, body: EXPR, orelse: EXPR) extends EXPR
     case class Dict(keys: Seq[EXPR], values: Seq[EXPR]) extends EXPR
     case class Set(elts: Seq[EXPR]) extends EXPR
-    case class ListComp(elt: EXPR, generators: Seq[comprehension]) extends EXPR
-    case class SetComp(elt: EXPR, generators: Seq[comprehension]) extends EXPR
-    case class DictComp(key: EXPR, value: EXPR, generators: Seq[comprehension]) extends EXPR
-    case class GeneratorExp(elt: EXPR, generators: Seq[comprehension]) extends EXPR
-    // the grammar constrains where yield expressions can occur
-    case class Yield(value: Option[EXPR]) extends EXPR
+
     // need sequences for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR
