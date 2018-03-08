@@ -14,7 +14,6 @@ object Ast {
   sealed trait STMT
   object STMT {
     case class FunctionDef(name: Identifier, args: arguments, body: Seq[STMT], decorator_list: Seq[EXPR]) extends STMT
-    case class ClassDef(name: Identifier, bases: Seq[EXPR], body: Seq[STMT], decorator_list: Seq[EXPR]) extends STMT
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Delete(targets: Seq[EXPR]) extends STMT
@@ -23,6 +22,8 @@ object Ast {
 
     // not sure if bool allowed: is, can always use int
     case class Print(dest: Option[EXPR], values: Seq[EXPR], nl: Boolean) extends STMT
+
+    case class CheckSig(msg: EXPR, sig: EXPR, pubKey: EXPR) extends STMT
 
     // use 'orelse' because else is a keyword in target languages
     case class For(target: EXPR, iter: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
@@ -50,7 +51,6 @@ object Ast {
     case object Break extends STMT
     case object Continue extends STMT
 
-    // XXX Jython will be different
     // col_offset is the byte offset in the utf8 string the parser uses
     case class attributes(lineno: Int, col_offset: Int)
   }
@@ -83,14 +83,13 @@ object Ast {
     case class Tuple(elts: Seq[EXPR], ctx: EXPR_CTX) extends EXPR
   }
   // col_offset is the byte offset in the utf8 string the parser uses
-  case class attributes(lineno: Int, col_offset: Int)
+  case class Attributes(lineno: Int, col_offset: Int)
 
   sealed trait EXPR_CTX
   object EXPR_CTX {
 
     case object Load extends EXPR_CTX
     case object Store extends EXPR_CTX
-    case object Del extends EXPR_CTX
     case object AugLoad extends EXPR_CTX
     case object AugStore extends EXPR_CTX
     case object Param extends EXPR_CTX

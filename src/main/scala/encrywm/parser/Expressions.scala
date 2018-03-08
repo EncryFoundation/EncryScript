@@ -19,7 +19,7 @@ object Expressions {
   }
 
   val NAME: P[Ast.Identifier] = Scanner.identifier
-  val NUMBER: P[Ast.EXPR.Num] = P( Scanner.floatnumber | Scanner.longinteger | Scanner.integer | Scanner.imagnumber ).map(Ast.EXPR.Num)
+  val NUMBER: P[Ast.EXPR.Num] = P(Scanner.floatnumber | Scanner.longinteger | Scanner.integer | Scanner.imagnumber ).map(Ast.EXPR.Num)
   val STRING: P[String] = Scanner.stringliteral
 
   val test: P[Ast.EXPR] = {
@@ -29,15 +29,15 @@ object Expressions {
     }
     P(ternary | lambdef)
   }
-  val orTest: core.Parser[Ast.EXPR, Char, String] = P(andTest.rep(1, kwd("or")) ).map {
+  val orTest: core.Parser[Ast.EXPR, Char, String] = P(andTest.rep(1, kwd("or"))).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.Or, xs)
   }
-  val andTest: core.Parser[Ast.EXPR, Char, String] = P(notTest.rep(1, kwd("and")) ).map {
+  val andTest: core.Parser[Ast.EXPR, Char, String] = P(notTest.rep(1, kwd("and"))).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.And, xs)
   }
-  val notTest: P[Ast.EXPR] = P( ("not" ~ notTest).map(Ast.EXPR.UnaryOp(Ast.UNARY_OP.Not, _)) | comparison )
+  val notTest: P[Ast.EXPR] = P(("not" ~ notTest).map(Ast.EXPR.UnaryOp(Ast.UNARY_OP.Not, _)) | comparison)
 
   val comparison: P[Ast.EXPR] = P(expr ~ (comp_op ~ expr).rep).map {
     case (lhs, Nil) => lhs
@@ -93,13 +93,13 @@ object Expressions {
   val and_expr: P[Ast.EXPR] = P( Chain(shift_expr, BitAnd) )
   val shift_expr: P[Ast.EXPR] = P( Chain(arith_expr, LShift | RShift) )
 
-  val arith_expr: P[Ast.EXPR] = P( Chain(term, Add | Sub) )
-  val term: P[Ast.EXPR] = P( Chain(factor, Mult | Div | Mod | FloorDiv) )
+  val arith_expr: P[Ast.EXPR] = P(Chain(term, Add | Sub))
+  val term: P[Ast.EXPR] = P(Chain(factor, Mult | Div | Mod | FloorDiv))
   // NUMBER appears here and below in `atom` to give it precedence.
   // This ensures that "-2" will parse as `Num(-2)` rather than
   // as `UnaryOp(USub, Num(2))`.
-  val factor: P[Ast.EXPR] = P( NUMBER | Unary(factor) | power )
-  val power: P[Ast.EXPR] = P( atom ~ trailer.rep ~ (Pow ~ factor).? ).map{
+  val factor: P[Ast.EXPR] = P(NUMBER | Unary(factor) | power)
+  val power: P[Ast.EXPR] = P(atom ~ trailer.rep ~ (Pow ~ factor).? ).map {
     case (lhs, trailers, rhs) =>
       val left = trailers.foldLeft(lhs)((l, t) => t(l))
       rhs match{
@@ -129,20 +129,20 @@ object Expressions {
   val tuple_contents = P( test ~ "," ~ list_contents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
   val tuple = P( tuple_contents).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Load))
 
-  val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ varargslist ~ ":" ~ test ).map(Ast.EXPR.Lambda.tupled)
+  val lambdef: P[Ast.EXPR.Lambda] = P(kwd("lambda") ~ varargslist ~ ":" ~ test ).map(Ast.EXPR.Lambda.tupled)
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
     val call = P("(" ~ arglist ~ ")").map { case (args, (keywords, starargs, kwargs)) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords, starargs, kwargs)}
     val slice = P("[" ~ subscriptlist ~ "]").map(args => (lhs: Ast.EXPR) => Ast.EXPR.Subscript(lhs, args, Ast.EXPR_CTX.Load))
     val attr = P("." ~ NAME).map(id => (lhs: Ast.EXPR) => Ast.EXPR.Attribute(lhs, id, Ast.EXPR_CTX.Load))
-    P( call | slice | attr )
+    P(call | slice | attr)
   }
   val subscriptlist = P( subscript.rep(1, ",") ~ ",".? ).map{
     case Seq(x) => x
     case xs => Ast.SLICE.ExtSlice(xs)
   }
   val subscript: P[Ast.SLICE] = {
-    val ellipses = P( ("." ~ "." ~ ".").map(_ => Ast.SLICE.Ellipsis) )
-    val single = P( test.map(Ast.SLICE.Index) )
+    val ellipses = P(("." ~ "." ~ ".").map(_ => Ast.SLICE.Ellipsis))
+    val single = P(test.map(Ast.SLICE.Index))
     val multi = P(test.? ~ ":" ~ test.? ~ sliceop.?).map { case (lower, upper, step) =>
       Ast.SLICE.Slice(
         lower,
@@ -191,6 +191,6 @@ object Expressions {
     P( x )
   }
 
-  val fpdef: P[Ast.EXPR] = P( NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Param)) | "(" ~ fplist ~ ")" )
-  val fplist: P[Ast.EXPR] = P( fpdef.rep(sep = ",") ~ ",".? ).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Param))
+  val fpdef: P[Ast.EXPR] = P(NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Param)) | "(" ~ fplist ~ ")")
+  val fplist: P[Ast.EXPR] = P(fpdef.rep(sep = ",") ~ ",".? ).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Param))
 }

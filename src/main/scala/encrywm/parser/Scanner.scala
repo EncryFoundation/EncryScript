@@ -22,11 +22,11 @@ object Scanner {
   val digit: all.Parser[Unit] =         P( CharIn('0' to '9') )
 
   val keywordList = Set(
-    "and",       "del",       "from",      "not",       "while",
-    "as",        "elif",      "global",    "or",        "with",
-    "assert",    "else",      "if",        "pass",      "yield",
+    "and",       "checksig",  "from",      "not",       "while",
+    "as",        "elif",      "global",    "or",
+    "assert",    "else",      "if",        "pass",
     "break",     "except",    "import",    "print",
-    "class",     "exec",      "in",        "raise",
+    "with",      "exec",      "in",        "raise",
     "continue",  "finally",   "is",        "return",
     "def",       "for",       "lambda",    "try"
   )

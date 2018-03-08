@@ -39,10 +39,27 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     val source =
       """
         |a = 4
-        |if (a < 5):
+        |if a < 5:
+        |  if a >= 1:
+        |    print false
         |  print a
         |else:
         |  print "string"
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    println(parsed)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Special expression parsing") {
+    val source =
+      """
+        |msg = "11Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p"
+        |sig = "5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9"
+        |pk = "11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i"
+        |checksig(msg, sig, pk)
       """.stripMargin
     val parsed = (Statements.file_input ~ End).parse(source)
 
