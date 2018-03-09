@@ -1,11 +1,14 @@
 # EncryScript Specification
 
 ## Available data types
+    * Boolean
     * String
     * Byte
     * Bytes
     * Long
     * Int
+    * Dict
+    * List
     * <type>?               // Option[<type>]
 
 ## Predefined data structures
@@ -30,12 +33,13 @@
        
 ## Built-in functions
     
-    checkProofType(proof, type): bool
-    checkSig(msg, sig, pk): bool
-    pkFromAddress(addr): Bytes
+    checkProofType(proof: Bytes, type: Byte): Boolean
+    checkSig(msg: Bytes, sig: Bytes, pk: Bytes): Boolean
+    pkFromAddress(addr: String): Bytes
+    unixTime(ts: String): Long
 
 ## Use cases
-Threshold signature (2 of 3)
+Threshold signature (2 of 3):
 
     contract:
     
@@ -44,10 +48,30 @@ Threshold signature (2 of 3)
                       'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
     
         if checkProofType(proof, MultiProof) and proof.proofs.size >= 2:
-            sigFlag1 = if checkSig(ctx.transaction.bytes, proof.proofs['Ivan']?.sig, publicKeys[0]) 1 else 0
-            sigFlag2 = if checkSig(ctx.transaction.bytes, proof.proofs['Marina']?.sig, publicKeys[1]) 1 else 0
-            sigFlag3 = if checkSig(ctx.transaction.bytes, proof.proofs['Alice']?.sig, publicKeys[2]) 1 else 0
+            sigFlag1 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0]) 1 else 0
+            sigFlag2 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) 1 else 0
+            sigFlag3 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) 1 else 0
             
             return (sigFlag1 + sigFlag2 + sigFlag3) >= 2
         return false
         
+Time-window lock:
+
+    contract:
+    
+        unlockedFrom = unixTime('16-00-00:22-12-2018')
+        unlockedUntil = unixTime('16-00-00:25-12-2018')
+        
+        if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil:
+            return true
+        return false
+        
+State height lock:
+
+    contract:
+    
+        unlockedFrom = 100000
+        
+        if ctx.state.height >= unlockedFrom:
+            return true
+        return false
