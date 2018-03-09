@@ -93,7 +93,7 @@ class Statements(indent: Int){
     P("print" ~~ " ".rep ~~ (noDest | dest))
   }
 
-  val checksigStmt: core.Parser[STMT.CheckSig, Char, String] = P("checksig" ~ "(" ~ (plain_argument ~ !"=").rep(3, ",".?) ~ ")").map {
+  val checksigStmt: core.Parser[STMT.CheckSig, Char, String] = P(kwd("checksig") ~ "(" ~ (plain_argument ~ !"=").rep(3, ",".?) ~ ")").map {
     case (args) if args.size == 3 => Ast.STMT.CheckSig(args(0), args(1), args(2))
   }
 
