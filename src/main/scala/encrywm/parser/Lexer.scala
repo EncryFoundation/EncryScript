@@ -1,19 +1,19 @@
 package encrywm.parser
 
-import fastparse.{all, core}
 import fastparse.all._
+import fastparse.{all, core}
 
-object  WsApi extends fastparse.WhitespaceApi.Wrapper(Scanner.wsComment)
+object  WsApi extends fastparse.WhitespaceApi.Wrapper(Lexer.wsComment)
 
-object Scanner {
+object Lexer {
 
   def kwd(s: String): core.Parser[Unit, Char, String] = s ~ !(letter | digit | "_")
 
   val comment: all.Parser[Unit] =       P( "#" ~ CharsWhile(_ != '\n', min = 0) )
-  val wsComment: all.Parser[Unit] =     P( (CharsWhileIn(" \n") | Scanner.comment | "\\\n").rep )
-  val nnlWsComment: all.Parser[Unit] =  P( (CharsWhileIn(" ") | Scanner.comment | "\\\n").rep )
+  val wsComment: all.Parser[Unit] =     P( (CharsWhileIn(" \n") | Lexer.comment | "\\\n").rep )
+  val nnlWsComment: all.Parser[Unit] =  P( (CharsWhileIn(" ") | Lexer.comment | "\\\n").rep )
 
-  val identifier: P[Ast.Identifier] =   P( (letter|"_") ~ (letter | digit | "_").rep ).!.filter(!keywordList.contains(_))
+  val identifier: P[Ast.Identifier] =   P( (letter|"_") ~ (letter | digit | "_").rep ).!.filter(!keywords.contains(_))
     .map(Ast.Identifier)
 
   val letter: all.Parser[Unit] =        P( lowercase | uppercase )
@@ -21,13 +21,13 @@ object Scanner {
   val uppercase: all.Parser[Unit] =     P( CharIn('A' to 'Z') )
   val digit: all.Parser[Unit] =         P( CharIn('0' to '9') )
 
-  val keywordList = Set(
-    "and",       "checksig",  "from",      "not",       "while",
-    "as",        "elif",      "global",    "or",
+  val keywords = Set(
+    "and",       "var",       "val",       "not",
+    "as",        "elif",      "abort",     "or",
     "assert",    "else",      "if",        "pass",
-    "break",     "except",    "import",    "print",
+    "break",     "except",    "unlock",    "print",
     "with",      "exec",      "in",        "raise",
-    "continue",  "finally",   "is",        "return",
+    "continue",  "let",       "is",        "return",
     "def",       "for",       "lambda",    "try"
   )
 
@@ -52,8 +52,9 @@ object Scanner {
     case (_, i) => i
   }
 
-  val longinteger: P[BigInt] = P( integer ~ ("l" | "L") )
-  val integer: P[BigInt] = negatable[BigInt](P( octinteger | hexinteger | bininteger | decimalinteger))
+  val integer: P[Int] = negatable[Int](P( CharIn('0' to '9').rep(min = 1).!.map(t => t.toInt) ))
+  val longinteger: P[Long] = P( (integer ~ ("l" | "L")).map(t => t.toLong) )
+
   val decimalinteger: P[BigInt] = P( nonzerodigit ~ digit.rep | "0" ).!.map(scala.BigInt(_))
   val octinteger: P[BigInt] = P( "0" ~ ("o" | "O") ~ octdigit.rep(1).! | "0" ~ octdigit.rep(1).! ).map(scala.BigInt(_, 8))
   val hexinteger: P[BigInt] = P( "0" ~ ("x" | "X") ~ hexdigit.rep(1).! ).map(scala.BigInt(_, 16))
@@ -63,14 +64,12 @@ object Scanner {
   val bindigit: P0 = P( "0" | "1" )
   val hexdigit: P0 = P( digit | CharIn('a' to 'f', 'A' to 'F') )
 
-
   val floatnumber: P[BigDecimal] = negatable[BigDecimal](P( pointfloat | exponentfloat ))
   val pointfloat: P[BigDecimal] = P( intpart.? ~ fraction | intpart ~ "." ).!.map(BigDecimal(_))
   val exponentfloat: P[BigDecimal] = P( (intpart | pointfloat) ~ exponent ).!.map(BigDecimal(_))
   val intpart: P[BigDecimal] = P( digit.rep(1) ).!.map(BigDecimal(_))
   val fraction: P0 = P( "." ~ digit.rep(1) )
   val exponent: P0 = P( ("e" | "E") ~ ("+" | "-").? ~ digit.rep(1) )
-
 
   val imagnumber: all.Parser[BigDecimal] = P( (floatnumber | intpart) ~ ("j" | "J") )
 }

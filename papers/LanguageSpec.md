@@ -1,17 +1,20 @@
 # EncryScript Specification
 
 ## Available data types
-    * Boolean
-    * String
-    * Byte
-    * Bytes
-    * Long
-    * Int
-    * Dict
-    * List
+
+    * any
+    * bool
+    * str
+    * byte
+    * bytes
+    * long
+    * int
+    * dict
+    * list
     * <type>?               // Option[<type>]
 
 ## Predefined data structures
+
     * Context
         
         Transaction
@@ -33,45 +36,37 @@
        
 ## Built-in functions
     
-    checkProofType(proof: Bytes, type: Byte): Boolean
+    checkType(proof: Bytes, type: Any): Boolean
     checkSig(msg: Bytes, sig: Bytes, pk: Bytes): Boolean
     pkFromAddress(addr: String): Bytes
     unixTime(ts: String): Long
 
 ## Use cases
 Threshold signature (2 of 3):
-
-    contract:
     
-        publicKeys = {'Ivan' : pkFromAddress('5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9'), 
+    let publicKeys = {'Ivan' : pkFromAddress('5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9'), 
                       'Marina' : pkFromAddress('11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i'), 
                       'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
-    
-        if checkProofType(proof, MultiProof) and proof.proofs.size >= 2:
-            sigFlag1 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0]) 1 else 0
-            sigFlag2 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) 1 else 0
-            sigFlag3 = if proof.proofs['Ivan'].isDefined && checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) 1 else 0
-            
-            return (sigFlag1 + sigFlag2 + sigFlag3) >= 2
-        return false
+
+    if checkType(proof, MultiProof) and proof.proofs.size >= 2:
+        sigFlag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0])) else 0
+        sigFlag2 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) else 0
+        sigFlag3 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) else 0
+        
+        if (sigFlag1 + sigFlag2 + sigFlag3) >= 2:
+            unlock
         
 Time-window lock:
 
-    contract:
+    unlockedFrom: long = unixTime('16-00-00:22-12-2018')
+    unlockedUntil: long = unixTime('16-00-00:25-12-2018')
     
-        unlockedFrom = unixTime('16-00-00:22-12-2018')
-        unlockedUntil = unixTime('16-00-00:25-12-2018')
-        
-        if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil:
-            return true
-        return false
+    if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil:
+        unlock
         
 State height lock:
 
-    contract:
+    let unlockedFrom: int = 100000
     
-        unlockedFrom = 100000
-        
-        if ctx.state.height >= unlockedFrom:
-            return true
-        return false
+    if ctx.state.height >= unlockedFrom:
+        unlock
