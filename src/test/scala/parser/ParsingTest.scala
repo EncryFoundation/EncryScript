@@ -11,67 +11,102 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   def stmt(expected: Seq[Ast.STMT], s: String*): Seq[Ast.STMT] =
     s.map(check(Statements.file_input, expected, _)).head
 
-  property("Simple expression parsing") {
-    val source = "3 + 9 / 10"
+  property("Simple expression") {
+    val source = "3 + 9"
     val parsed = (Statements.file_input ~ End).parse(source)
-
-    println(parsed)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
-  property("Complex expression parsing") {
+  property("Function definition") {
     val source =
       """
-        |def main(a, b) -> unit:
-        | let a: int = 900 / 8 if a > b && a == b else 0
-        | let b = 0
-        | print a + b
+        |def func(a: int, b: int) -> int:
+        |  a + b
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Assignment") {
+    val source =
+      """
+        |let a: str = 'string'
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Dictionary") {
+    val source =
+      """
+        |let d = {'Alice' : 100,
+        |         'Bob' : 1000,
+        |         'Tom' : 50}
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("List") {
+    val source =
+      """
+        |let l = ['Tom', 'Bob', 'Alice']
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Conditional assignment") {
+    val source =
+      """
+        |let a = 1 if true and true else 0
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Dot-notation") {
+    val source =
+      """
+        |let a = obj.attr0.attr1
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Subscription") {
+    val source =
+      """
+        |let a = list[0]
+        |let b = list[:2]
+        |let c = list[4:]
+      """.stripMargin
+    val parsed = (Statements.file_input ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Complex expression") {
+    val source =
+      """
+        |let publicKeys = {'Ivan' : pkFromAddress('5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9'),
+        |                  'Marina' : pkFromAddress('11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i'),
+        |                  'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
         |
-        |main(1, b=9)
-      """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
-
-    println(parsed)
-
-    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-  }
-
-  property("Invalid simple expression parsing") {
-    val source = "def main:\npass"
-    val parsed = (Statements.file_input ~ End).parse(source)
-
-    println(parsed)
-
-    parsed.isInstanceOf[Parsed.Failure] shouldBe true
-  }
-
-  property("Complicated expression parsing (1)") {
-    val source =
-      """
-        |let a: int = 4
-        |if a < 5:
-        |  if a >= 1:
-        |    print false
-        |  print a
-        |else:
-        |  print "string"
-      """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
-
-    println(parsed)
-
-    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-  }
-
-  property("Special expression parsing") {
-    val source =
-      """
-        |let p: int = 9000
-        |let s: bool = True if p < 900 and p == 0 else False
-        |let sig: str = "5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9"
-        |let pk: str = "11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i"
-        |checksig(ctx.transaction.bytes, proof.sig, ctx.transaction.pk)
+        |if checkType(proof, MultiProof) and proof.proofs.size >= 2:
+        |    let flag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan'], publicKeys[0]) else 0
+        |    let flag2 = 1 if proof.proofs['Marina'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina'], publicKeys[1]) else 0
+        |    let flag3 = 1 if proof.proofs['Alice'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice'], publicKeys[2]) else 0
+        |
+        |    if (flag1 + flag2 + flag3) >= 2:
+        |        unlock
       """.stripMargin
     val parsed = (Statements.file_input ~ End).parse(source)
 

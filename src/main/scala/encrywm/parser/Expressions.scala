@@ -171,7 +171,8 @@ object Expressions {
 
   val varargslist: P[Ast.Arguments] = {
     val named_arg = P( fpdef )
-    val x = P( named_arg.rep(sep = ",") ).map(args => Ast.Arguments(args))
+    val x = P( (named_arg ~ Statements.typeDecl).rep(sep = ",") ).map(args => Ast.Arguments(args.map {
+      case (a, t) => Ast.EXPR.Decl(a, Some(t)) }))
     P( x )
   }
 

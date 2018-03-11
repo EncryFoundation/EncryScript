@@ -21,6 +21,7 @@ object Lexer {
   val uppercase: all.Parser[Unit] =     P( CharIn('A' to 'Z') )
   val digit: all.Parser[Unit] =         P( CharIn('0' to '9') )
 
+  // TODO: Cleanup.
   val keywords = Set(
     "and",       "var",       "val",       "not",
     "as",        "elif",      "abort",     "or",

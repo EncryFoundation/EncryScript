@@ -35,13 +35,13 @@ class Statements(indent: Int){
   }
 
   val retTypeDecl: P[Ast.Identifier] = P( "->" ~ NAME )
-  val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ parameters ~ retTypeDecl.? ~ ":" ~~ block ).map {
+  val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ fnParameters ~ retTypeDecl.? ~ ":" ~~ block ).map {
     case (name, args, typeOpt, blc) => Ast.STMT.FunctionDef(name, args, blc, typeOpt)
   }
 
   val typeDecl: P[Ast.Identifier] = P( ":" ~ NAME )
 
-  val parameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
+  val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
 
   val stmt: P[Seq[Ast.STMT]] = P( compound_stmt.map(Seq(_)) | simpleStmt )
 
@@ -80,7 +80,7 @@ class Statements(indent: Int){
     P("print" ~~ " ".rep ~~ (noDest | dest))
   }
 
-  val flowStmt: P[Ast.STMT] = P( returnStmt )
+  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | unlockStmt )
 
   // Those statements are under discussion now.
   val unlockStmt = P(kwd("unlock") ).map(_ => Ast.STMT.Unlock)
