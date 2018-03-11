@@ -1,5 +1,15 @@
 # EncryScript Specification
 
+* Strong-typed
+* Statically-typed
+
+Language abilities:
+* Binary operations
+* Accessing fields of the predefined data structures via dot-notation.
+* Control-flow (if, for .. in)
+* Variable (? Constants) definition
+* ? Functions definition (Prohibit recursive calls?) 
+
 ## Available data types
 
     * any

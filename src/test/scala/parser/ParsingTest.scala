@@ -22,7 +22,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     val source =
       """
         |def func(a: int, b: int) -> int:
-        |  a + b
+        |  a + b + c
       """.stripMargin
     val parsed = (Statements.file_input ~ End).parse(source)
 
@@ -64,7 +64,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   property("Conditional assignment") {
     val source =
       """
-        |let a = 1 if true and true else 0
+        |let a: long = 1 if true and true else 0
       """.stripMargin
     val parsed = (Statements.file_input ~ End).parse(source)
 
@@ -109,8 +109,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |        unlock
       """.stripMargin
     val parsed = (Statements.file_input ~ End).parse(source)
-
-    println(parsed)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }

@@ -13,7 +13,7 @@ object Ast {
   sealed trait STMT
   object STMT {
 
-    case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnTypeOpr: Option[Identifier]) extends STMT
+    case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnTypeOpt: Option[Identifier]) extends STMT
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Assign(target: EXPR, value: EXPR) extends STMT
@@ -52,8 +52,11 @@ object Ast {
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR
     case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[keyword]) extends EXPR
-    case class IntConst(n: Int) extends EXPR
-    case class LongConst(n: Int) extends EXPR
+
+    sealed trait Num extends EXPR
+    case class IntConst(n: Int) extends Num
+    case class LongConst(n: Long) extends Num
+
     case class Str(s: String) extends EXPR
 
     // the following expression can appear in assignment context

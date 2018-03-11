@@ -50,7 +50,7 @@ class Statements(indent: Int){
     print_stmt | flowStmt | assert_stmt | exprStmt
   )
   val exprStmt: P[Ast.STMT] = {
-    val aug = P(testlist ~ augassign ~ testlist.map(tuplize))
+    val aug = P( testlist ~ augassign ~ testlist.map(tuplize) )
     val tstl = P( testlist )
     val let = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ testlist.map(tuplize)) )
 
@@ -75,7 +75,7 @@ class Statements(indent: Int){
 
   // TODO: For debug?
   val print_stmt: P[Ast.STMT.Print] = {
-    val noDest = P(test.rep(sep = ",") ~ ",".?).map(Ast.STMT.Print(None, _, nl = true))
+    val noDest = P( test.rep(sep = ",") ~ ",".? ).map(Ast.STMT.Print(None, _, nl = true))
     val dest = P( ">>" ~ test ~ ("," ~ test).rep ~ ",".?).map { case (d, exprs) => Ast.STMT.Print(Some(d), exprs, nl = true) }
     P("print" ~~ " ".rep ~~ (noDest | dest))
   }
@@ -89,10 +89,10 @@ class Statements(indent: Int){
   val returnStmt = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 
 
-  val dotted_as_name: P[Ast.alias] = P(dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).?)
+  val dotted_as_name: P[Ast.alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
     .map(Ast.alias.tupled)
-  val dotted_as_names = P(dotted_as_name.rep(1, ","))
-  val dotted_name = P(NAME.rep(1, "."))
+  val dotted_as_names = P( dotted_as_name.rep(1, ",") )
+  val dotted_name = P( NAME.rep(1, ".") )
 
   val assert_stmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
@@ -101,18 +101,18 @@ class Statements(indent: Int){
     val firstIf = P( kwd("if") ~/ test ~ ":" ~~ block )
     val elifs = P( (spaceIndents ~~ kwd("elif") ~/ test ~ ":" ~~ block).repX )
     val lastElse = P( (spaceIndents ~~ kwd("else") ~/ ":" ~~ block).? )
-    P( firstIf ~~ elifs ~~ lastElse ).map{
+    P( firstIf ~~ elifs ~~ lastElse ).map {
       case (test, body, elifs, orelse) =>
         val (init :+ last) = (test, body) +: elifs
         val (last_test, last_body) = last
         init.foldRight(Ast.STMT.If(last_test, last_body, orelse.toSeq.flatten)){
-          case ((test, body), rhs) => Ast.STMT.If(test, body, Seq(rhs))
+          case ((t, b), rhs) => Ast.STMT.If(t, b, Seq(rhs))
         }
     }
   }
-  val spaceIndents = P(spaces.repX ~~ " ".repX(indent))
+  val spaceIndents: P0 = P( spaces.repX ~~ " ".repX(indent) )
 
-  val for_stmt: P[Ast.STMT.For] = P(kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
+  val for_stmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
     ~~ (spaceIndents ~ kwd("else") ~/ ":" ~~ block).? ).map {
       case (itervars, generator, body, orelse) =>
         Ast.STMT.For(tuplize(itervars), tuplize(generator), body, orelse.toSeq.flatten)
@@ -120,13 +120,13 @@ class Statements(indent: Int){
 
   val block: P[Seq[Ast.STMT]] = {
     val deeper: P[Int] = {
-      val commentLine = P("\n" ~~ Lexer.nnlWsComment.?.map(_ => 0)).map((_, Some("")))
-      val endLine = P("\n" ~~ (" "|"\t").repX(indent + 1).!.map(_.length) ~~ Lexer.comment.!.? )
-      P( Lexer.nnlWsComment.? ~~ ( endLine | commentLine ).repX(1) ).map{
-        _.collectFirst{ case (s, None) => s}
+      val commentLine = P( "\n" ~~ Lexer.nnlWsComment.?.map(_ => 0) ).map((_, Some("")))
+      val endLine = P( "\n" ~~ (" " | "\t").repX(indent + 1).!.map(_.length) ~~ Lexer.comment.!.? )
+      P( Lexer.nnlWsComment.? ~~ ( endLine | commentLine ).repX(1) ).map {
+        _.collectFirst{ case (s, None) => s }
       }.filter(_.isDefined).map(_.get)
     }
-    val indented = P( deeper.flatMap{ nextIndent =>
+    val indented = P( deeper.flatMap { nextIndent =>
       new Statements(nextIndent).stmt.repX(1, spaces.repX(1) ~~ (" " * nextIndent | "\t" * nextIndent)).map(_.flatten)
     } )
     P( indented | " ".rep ~ simpleStmt )
