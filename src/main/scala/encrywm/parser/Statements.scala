@@ -19,14 +19,14 @@ class Statements(indent: Int){
   val ENDMARKER: P0 = P( End )
 
   val single_input: P[Seq[Ast.STMT]] = P(
-    NEWLINE.map(_ => Nil) | simpleStmt | compound_stmt.map(Seq(_)) ~ NEWLINE
+    NEWLINE.map(_ => Nil) | simpleStmt | compoundStmt.map(Seq(_)) ~ NEWLINE
   )
 
   val indents = P( "\n" ~~ " ".repX(indent) )
 
   val spaces = P( (Lexer.nnlWsComment.? ~~ "\n").repX(1) )
-  val file_input: P[Seq[Ast.STMT]] = P( spaces.? ~ stmt.repX(0, spaces) ~ spaces.? ).map(_.flatten)
-  val eval_input: P[Ast.EXPR] = P( testlist ~ NEWLINE.rep ~ ENDMARKER ).map(tuplize)
+  val fileInput: P[Seq[Ast.STMT]] = P( spaces.? ~ stmt.repX(0, spaces) ~ spaces.? ).map(_.flatten)
+  val evalInput: P[Ast.EXPR] = P( testlist ~ NEWLINE.rep ~ ENDMARKER ).map(tuplize)
 
   def collapse_dotted_name(name: Seq[Ast.Identifier]): Ast.EXPR = {
     name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head, Ast.EXPR_CTX.Load))(
@@ -43,11 +43,11 @@ class Statements(indent: Int){
 
   val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
 
-  val stmt: P[Seq[Ast.STMT]] = P( compound_stmt.map(Seq(_)) | simpleStmt )
+  val stmt: P[Seq[Ast.STMT]] = P( compoundStmt.map(Seq(_)) | simpleStmt )
 
   val simpleStmt: P[Seq[Ast.STMT]] = P( smallStmt.rep(1, sep = ";") ~ ";".? )
   val smallStmt: P[Ast.STMT] = P(
-    print_stmt | flowStmt | assert_stmt | exprStmt
+    printStmt | flowStmt | assertStmt | exprStmt
   )
   val exprStmt: P[Ast.STMT] = {
     val aug = P( testlist ~ augassign ~ testlist.map(tuplize) )
@@ -58,7 +58,7 @@ class Statements(indent: Int){
       aug.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
         tstl.map(a => Ast.STMT.Expr(tuplize(a))) |
         let.map {
-          case (a, t, b) => Ast.STMT.Assign(Ast.EXPR.Decl(Ast.EXPR.Name(a, Ast.EXPR_CTX.Load), t), b)
+          case (a, t, b) => Ast.STMT.Assign(Ast.EXPR.Decl(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
         }
     )
   }
@@ -74,7 +74,7 @@ class Statements(indent: Int){
   )
 
   // TODO: For debug?
-  val print_stmt: P[Ast.STMT.Print] = {
+  val printStmt: P[Ast.STMT.Print] = {
     val noDest = P( test.rep(sep = ",") ~ ",".? ).map(Ast.STMT.Print(None, _, nl = true))
     val dest = P( ">>" ~ test ~ ("," ~ test).rep ~ ",".?).map { case (d, exprs) => Ast.STMT.Print(Some(d), exprs, nl = true) }
     P("print" ~~ " ".rep ~~ (noDest | dest))
@@ -89,15 +89,15 @@ class Statements(indent: Int){
   val returnStmt = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 
 
-  val dotted_as_name: P[Ast.alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
-    .map(Ast.alias.tupled)
+  val dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
+    .map(Ast.Alias.tupled)
   val dotted_as_names = P( dotted_as_name.rep(1, ",") )
   val dotted_name = P( NAME.rep(1, ".") )
 
-  val assert_stmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
+  val assertStmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
-  val compound_stmt: P[Ast.STMT] = P( if_stmt | for_stmt | funcDef )
-  val if_stmt: P[Ast.STMT.If] = {
+  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef )
+  val ifStmt: P[Ast.STMT.If] = {
     val firstIf = P( kwd("if") ~/ test ~ ":" ~~ block )
     val elifs = P( (spaceIndents ~~ kwd("elif") ~/ test ~ ":" ~~ block).repX )
     val lastElse = P( (spaceIndents ~~ kwd("else") ~/ ":" ~~ block).? )
@@ -112,7 +112,7 @@ class Statements(indent: Int){
   }
   val spaceIndents: P0 = P( spaces.repX ~~ " ".repX(indent) )
 
-  val for_stmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
+  val forStmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
     ~~ (spaceIndents ~ kwd("else") ~/ ":" ~~ block).? ).map {
       case (itervars, generator, body, orelse) =>
         Ast.STMT.For(tuplize(itervars), tuplize(generator), body, orelse.toSeq.flatten)

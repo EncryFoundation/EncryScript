@@ -163,7 +163,7 @@ object Expressions {
 
   val plain_argument: core.Parser[EXPR, Char, String] = P( test )
 
-  val named_argument: core.Parser[Ast.keyword, Char, String] = P( NAME ~ "=" ~ test ).map(Ast.keyword.tupled)
+  val named_argument: core.Parser[Ast.Keyword, Char, String] = P( NAME ~ "=" ~ test ).map(Ast.Keyword.tupled)
 
   val arglist = {
     val inits = P((plain_argument ~ !"=").rep(0, ","))

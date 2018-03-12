@@ -9,11 +9,11 @@ import utils.ExprChecker
 class ParsingTest extends PropSpec with Matchers with ExprChecker {
 
   def stmt(expected: Seq[Ast.STMT], s: String*): Seq[Ast.STMT] =
-    s.map(check(Statements.file_input, expected, _)).head
+    s.map(check(Statements.fileInput, expected, _)).head
 
   property("Simple expression") {
     val source = "3 + 9"
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -24,7 +24,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |def func(a: int, b: int) -> int:
         |  a + b + c
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -34,7 +34,18 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """
         |let a: str = 'string'
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Variable referencing") {
+    val source =
+      """
+        |a + b
+        |main()
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -46,7 +57,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |         'Bob' : 1000,
         |         'Tom' : 50}
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -56,7 +67,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """
         |let l = ['Tom', 'Bob', 'Alice']
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -66,7 +77,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """
         |let a: long = 1 if true and true else 0
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -76,7 +87,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """
         |let a = obj.attr0.attr1
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -88,7 +99,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |let b = list[:2]
         |let c = list[4:]
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
@@ -108,7 +119,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |    if (flag1 + flag2 + flag3) >= 2:
         |        unlock
       """.stripMargin
-    val parsed = (Statements.file_input ~ End).parse(source)
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }

@@ -19,7 +19,6 @@ object Ast {
     case class Assign(target: EXPR, value: EXPR) extends STMT
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT
 
-    // not sure if bool allowed: is, can always use int
     case class Print(dest: Option[EXPR], values: Seq[EXPR], nl: Boolean) extends STMT
 
     case class For(target: EXPR, iter: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
@@ -51,7 +50,7 @@ object Ast {
     // Sequences are required for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR
-    case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[keyword]) extends EXPR
+    case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword]) extends EXPR
 
     sealed trait Num extends EXPR
     case class IntConst(n: Int) extends Num
@@ -76,9 +75,11 @@ object Ast {
 
     case object Load extends EXPR_CTX
     case object Store extends EXPR_CTX
+    case object Param extends EXPR_CTX
+
+    // TODO: Do we need those?
     case object AugLoad extends EXPR_CTX
     case object AugStore extends EXPR_CTX
-    case object Param extends EXPR_CTX
   }
 
   sealed trait SLICE
@@ -142,8 +143,8 @@ object Ast {
   case class Arguments(args: Seq[EXPR])
 
   // keyword arguments supplied to call
-  case class keyword(arg: Identifier, value: EXPR)
+  case class Keyword(arg: Identifier, value: EXPR)
 
   // import name with optional 'as' alias.
-  case class alias(name: Identifier, asname: Option[Identifier])
+  case class Alias(name: Identifier, asname: Option[Identifier])
 }
