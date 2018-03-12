@@ -1,4 +1,4 @@
-package encrywm.interpreter
+package encrywm.semantics
 
 trait Symbol {
 

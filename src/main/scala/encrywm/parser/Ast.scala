@@ -1,8 +1,27 @@
 package encrywm.parser
 
+import encrywm.builtins.ESObject
+
 object Ast {
 
   case class Identifier(name: String)
+
+  sealed trait TYPE { type Underlying }
+  object TYPE {
+
+    // Primitives
+    case object UNIT extends TYPE { override type Underlying = Unit }
+    case object INT extends TYPE { override type Underlying = Int }
+    case object LONG extends TYPE { override type Underlying = Long }
+    case object FLOAT extends TYPE { override type Underlying = Float }
+    case object STRING extends TYPE { override type Underlying = String }
+    case object BYTE_VECTOR extends TYPE { override type Underlying = Array[Byte] }
+
+    // Complex types
+    case class LIST(valT: TYPE) extends TYPE { override type Underlying = List[valT.Underlying] }
+    case class DICT(keyT: TYPE, valT: TYPE) extends TYPE { override type Underlying = Map[keyT.Underlying, valT.Underlying] }
+    case class TYPE_REF(name: String) extends TYPE { override type Underlying = ESObject }
+  }
 
   sealed trait MOD
   object MOD {
@@ -39,6 +58,7 @@ object Ast {
   sealed trait EXPR
   object EXPR {
 
+    // TODO: Divide EXPRs into two categories (typed and untyped).
     case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends EXPR
     case class BinOp(left: EXPR, op: OPERATOR, right: EXPR) extends EXPR
     case class UnaryOp(op: UNARY_OP, operand: EXPR) extends EXPR

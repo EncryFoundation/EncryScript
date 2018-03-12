@@ -27,17 +27,17 @@ object Expressions {
     }
     P(ternary | lambdef)
   }
-  val orTest: core.Parser[Ast.EXPR, Char, String] = P(andTest.rep(1, kwd("or") | "||")).map {
+  val orTest: core.Parser[Ast.EXPR, Char, String] = P( andTest.rep(1, kwd("or") | "||") ).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.Or, xs)
   }
-  val andTest: core.Parser[Ast.EXPR, Char, String] = P(notTest.rep(1, kwd("and") | "&&")).map {
+  val andTest: core.Parser[Ast.EXPR, Char, String] = P( notTest.rep(1, kwd("and") | "&&") ).map {
     case Seq(x) => x
     case xs => Ast.EXPR.BoolOp(Ast.BOOL_OP.And, xs)
   }
-  val notTest: P[Ast.EXPR] = P((("not" | "!") ~ notTest).map(Ast.EXPR.UnaryOp(Ast.UNARY_OP.Not, _)) | comparison)
+  val notTest: P[Ast.EXPR] = P( (("not" | "!") ~ notTest).map(Ast.EXPR.UnaryOp(Ast.UNARY_OP.Not, _)) | comparison )
 
-  val comparison: P[Ast.EXPR] = P(arith_expr ~ (comp_op ~ arith_expr).rep).map {
+  val comparison: P[Ast.EXPR] = P( arith_expr ~ (comp_op ~ arith_expr).rep ).map {
     case (lhs, Nil) => lhs
     case (lhs, chunks) =>
       val (ops, vals) = chunks.unzip
@@ -72,12 +72,12 @@ object Expressions {
 
 
   def Unary(p: P[Ast.EXPR]): core.Parser[EXPR.UnaryOp, Char, String] =
-    (unary_op ~ p).map{ case (op, operand) => Ast.EXPR.UnaryOp(op, operand) }
+    (unary_op ~ p).map { case (op, operand) => Ast.EXPR.UnaryOp(op, operand) }
 
   def Chain(p: P[Ast.EXPR], op: P[Ast.OPERATOR]): core.Parser[EXPR, Char, String] =
     P( p ~ (op ~ p).rep ).map {
       case (lhs, chunks) =>
-        chunks.foldLeft(lhs){case (lhs, (op, rhs)) =>
+        chunks.foldLeft(lhs) { case (lhs, (op, rhs)) =>
           Ast.EXPR.BinOp(lhs, op, rhs)
         }
     }
@@ -113,24 +113,21 @@ object Expressions {
         NUMBER
     )
   }
-  val list_contents = P( test.rep(1, ",") ~ ",".? )
-  val list = P( list_contents ).map(Ast.EXPR.List(_, Ast.EXPR_CTX.Load))
-  val tuple_contents = P( test ~ "," ~ list_contents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
-  val tuple = P( tuple_contents).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Load))
+  val listContents = P( test.rep(1, ",") ~ ",".? )
+  val list = P( listContents ).map(Ast.EXPR.List(_, Ast.EXPR_CTX.Load))
+  val tupleContents = P( test ~ "," ~ listContents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
+  val tuple = P( tupleContents).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Load))
 
   // TODO: Do we need lambdas?
   val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ varargslist ~ ":" ~ test ).map(Ast.EXPR.Lambda.tupled )
 
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
-    val call = P("(" ~ arglist ~ ")").map { case (args, keywords) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords)}
+    val call = P("(" ~ arglist ~ ")").map { case (args, keywords) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords) }
     val slice = P("[" ~ subscriptlist ~ "]").map(args => (lhs: Ast.EXPR) => Ast.EXPR.Subscript(lhs, args, Ast.EXPR_CTX.Load))
     val attr = P("." ~ NAME).map(id => (lhs: Ast.EXPR) => Ast.EXPR.Attribute(lhs, id, Ast.EXPR_CTX.Load))
     P(call | slice | attr)
   }
-  val subscriptlist = P( subscript.rep(1, ",") ~ ",".? ).map{
-    case Seq(x) => x
-    case xs => Ast.SLICE.ExtSlice(xs)
-  }
+
   val subscript: P[Ast.SLICE] = {
     val ellipses = P(("." ~ "." ~ ".").map(_ => Ast.SLICE.Ellipsis))
     val single = P(test.map(Ast.SLICE.Index))
@@ -144,11 +141,16 @@ object Expressions {
     P( ellipses | multi | single )
   }
 
+  val subscriptlist = P( subscript.rep(1, ",") ~ ",".? ).map {
+    case Seq(x) => x
+    case xs => Ast.SLICE.ExtSlice(xs)
+  }
+
   val sliceop = P(":" ~ test.?)
-  val exprlist: P[Seq[Ast.EXPR]] = P(expr.rep(1, sep = ",") ~ ",".?)
-  val testlist: P[Seq[Ast.EXPR]] = P(test.rep(1, sep = ",") ~ ",".?)
+  val exprlist: P[Seq[Ast.EXPR]] = P( expr.rep(1, sep = ",") ~ ",".? )
+  val testlist: P[Seq[Ast.EXPR]] = P( test.rep(1, sep = ",") ~ ",".? )
   val dictorsetmaker: P[Ast.EXPR] = {
-    val dict_item = P(test ~ ":" ~ test)
+    val dict_item = P( test ~ ":" ~ test )
     val dict: P[Ast.EXPR.Dict] = P(
       (dict_item.rep(1, ",") ~ ",".?).map { x =>
         val (keys, values) = x.unzip
@@ -156,8 +158,8 @@ object Expressions {
       }
     )
 
-    val set: P[Ast.EXPR.Set] = P(test.rep(1, ",") ~ ",".?).map(Ast.EXPR.Set)
-    P(dict | set)
+    val set: P[Ast.EXPR.Set] = P( test.rep(1, ",") ~ ",".? ).map(Ast.EXPR.Set)
+    P( dict | set )
   }
 
   val plain_argument: core.Parser[EXPR, Char, String] = P( test )
