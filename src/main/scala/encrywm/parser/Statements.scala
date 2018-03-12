@@ -50,9 +50,9 @@ class Statements(indent: Int){
     printStmt | flowStmt | assertStmt | exprStmt
   )
   val exprStmt: P[Ast.STMT] = {
-    val aug = P( testlist ~ augassign ~ testlist.map(tuplize) )
+    val aug = P( testlist ~ augassign ~ test )
     val tstl = P( testlist )
-    val let = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ testlist.map(tuplize)) )
+    val let = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
 
     P(
       aug.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |

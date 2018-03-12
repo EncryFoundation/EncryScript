@@ -59,17 +59,17 @@ Threshold signature (2 of 3):
                       'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
 
     if checkType(proof, MultiProof) and proof.proofs.size >= 2:
-        sigFlag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0])) else 0
-        sigFlag2 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) else 0
-        sigFlag3 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) else 0
+        let sigFlag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0])) else 0
+        let sigFlag2 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) else 0
+        let sigFlag3 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) else 0
         
         if (sigFlag1 + sigFlag2 + sigFlag3) >= 2:
             unlock
         
 Time-window lock:
 
-    unlockedFrom: long = unixTime('16-00-00:22-12-2018')
-    unlockedUntil: long = unixTime('16-00-00:25-12-2018')
+    let unlockedFrom: long = unixTime('16-00-00:22-12-2018')
+    let unlockedUntil: long = unixTime('16-00-00:25-12-2018')
     
     if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil:
         unlock
