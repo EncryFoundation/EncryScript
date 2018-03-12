@@ -43,11 +43,19 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     val source =
       """
         |let c = a + b * 8
-        |main()
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 
-    println(parsed)
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Variable referencing") {
+    val source =
+      """
+        |let c = 8 + func()
+        |main()
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
