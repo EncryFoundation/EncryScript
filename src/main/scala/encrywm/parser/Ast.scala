@@ -96,6 +96,7 @@ object Ast {
     // TODO: This expr stands out, shouldn't we move it to STMTs?
     case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR
   }
+
   // col_offset is the byte offset in the utf8 string the parser uses
   case class Attributes(lineno: Int, col_offset: Int)
 
