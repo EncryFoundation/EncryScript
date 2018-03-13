@@ -54,7 +54,9 @@ object Lexer {
   }
 
   val integer = negatable[Int](P( CharIn('0' to '9').rep(min = 1).!.map(_.toInt) ))
-  val longinteger = negatable[Long](P( (integer ~ ("l" | "L")).map(_.toLong) ))
+  val longinteger = negatable[Long](P( (integer ~ ("l" | "L").rep(max = 1)).map(_.toLong) ))
+  val floatinteger = negatable[Float](P( (integer ~ "." ~ integer ~ ("f" | "F").rep(max = 1)).!.map(_.toFloat)))
+  val doubleinteger = negatable[Double](P( (integer ~ "." ~ integer).!.map(_.toDouble)))
 
   val decimalinteger: P[BigInt] = P( nonzerodigit ~ digit.rep | "0" ).!.map(scala.BigInt(_))
   val octinteger: P[BigInt] = P( "0" ~ ("o" | "O") ~ octdigit.rep(1).! | "0" ~ octdigit.rep(1).! ).map(scala.BigInt(_, 8))

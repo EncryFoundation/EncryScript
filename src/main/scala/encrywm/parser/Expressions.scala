@@ -14,11 +14,13 @@ import fastparse.noApi._
 object Expressions {
 
   val NAME: P[Ast.Identifier] = Lexer.identifier
-  val NUMBER: P[Ast.EXPR.Num] = P( longConstExpr | intConstExpr )
+  val NUMBER: P[Ast.EXPR.Num] = P( floatConstExpr | doubleConstExpr | longConstExpr| intConstExpr )
   val STRING: P[String] = Lexer.stringliteral
 
   val intConstExpr: P[Ast.EXPR.IntConst] = P( Lexer.integer ).map(Ast.EXPR.IntConst)
   val longConstExpr: P[Ast.EXPR.LongConst] = P( Lexer.longinteger ).map(Ast.EXPR.LongConst)
+  val floatConstExpr: P[Ast.EXPR.FloatConst] = P( Lexer.floatinteger ).map(Ast.EXPR.FloatConst)
+  val doubleConstExpr: P[Ast.EXPR.DoubleConst] = P( Lexer.doubleinteger ).map(Ast.EXPR.DoubleConst)
 
   val test: P[Ast.EXPR] = {
     val ternary = P(orTest ~ (kwd("if") ~ orTest ~ kwd("else") ~ test).?).map {

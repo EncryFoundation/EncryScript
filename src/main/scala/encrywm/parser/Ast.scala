@@ -75,6 +75,8 @@ object Ast {
     sealed trait Num extends EXPR
     case class IntConst(n: Int) extends Num
     case class LongConst(n: Long) extends Num
+    case class FloatConst(n: Float) extends Num
+    case class DoubleConst(n: Double) extends Num
 
     case class Str(s: String) extends EXPR
 
