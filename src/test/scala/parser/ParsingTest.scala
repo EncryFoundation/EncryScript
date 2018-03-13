@@ -144,6 +144,19 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
+  property("If statement with compound test") {
+    val source =
+      """
+        |if true and true or 3 >= 8:
+        |    return 100 * 100 * a
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    println(parsed)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
   property("Complex expression") {
     val source =
       """
