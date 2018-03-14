@@ -1,4 +1,7 @@
 package encrywm.builtins
 
-// TODO: Which type of `value` do we need here?
-case class ESObject(attrs: Map[String, Any])
+import encrywm.parser.Ast.TYPE
+
+case class Attribute(name: String, tpe: TYPE, value: Any)
+
+case class ESObject(name: String, attrs: Map[String, Attribute])
