@@ -4,9 +4,11 @@ import encrywm.builtins.ESObject
 
 object Ast {
 
-  case class Identifier(name: String)
+  sealed trait AST_COMPONENT
 
-  sealed trait TYPE { type Underlying }
+  case class Identifier(name: String) extends AST_COMPONENT
+
+  sealed trait TYPE extends AST_COMPONENT { type Underlying }
   object TYPE {
 
     // Primitives
@@ -25,13 +27,13 @@ object Ast {
     case class TYPE_REF(name: String) extends TYPE { override type Underlying = ESObject }
   }
 
-  sealed trait MOD
+  sealed trait MOD extends AST_COMPONENT
   object MOD {
     case class Contract(body: Seq[STMT]) extends MOD
     case class Expression(body: Seq[STMT]) extends MOD
   }
 
-  sealed trait STMT
+  sealed trait STMT extends AST_COMPONENT
   object STMT {
 
     case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnTypeOpt: Option[Identifier]) extends STMT
@@ -57,7 +59,7 @@ object Ast {
     case class attributes(lineno: Int, col_offset: Int)
   }
 
-  sealed trait EXPR
+  sealed trait EXPR extends AST_COMPONENT
   object EXPR {
 
     sealed trait TYPED_EXPR extends EXPR { var tpeOpt: Option[TYPE] }
@@ -100,7 +102,7 @@ object Ast {
   // col_offset is the byte offset in the utf8 string the parser uses
   case class Attributes(lineno: Int, col_offset: Int)
 
-  sealed trait EXPR_CTX
+  sealed trait EXPR_CTX extends AST_COMPONENT
   object EXPR_CTX {
 
     case object Load extends EXPR_CTX
@@ -112,7 +114,7 @@ object Ast {
     case object AugStore extends EXPR_CTX
   }
 
-  sealed trait SLICE
+  sealed trait SLICE extends AST_COMPONENT
   object SLICE {
 
     case object Ellipsis extends SLICE
@@ -121,13 +123,13 @@ object Ast {
     case class Index(value: EXPR) extends SLICE
   }
 
-  sealed trait BOOL_OP
+  sealed trait BOOL_OP extends AST_COMPONENT
   object BOOL_OP {
     case object And extends BOOL_OP
     case object Or extends BOOL_OP
   }
 
-  sealed trait OPERATOR
+  sealed trait OPERATOR extends AST_COMPONENT
   case object OPERATOR {
     case object Add extends OPERATOR
     case object Sub  extends OPERATOR
@@ -139,7 +141,7 @@ object Ast {
     case object FloorDiv extends OPERATOR
   }
 
-  sealed trait UNARY_OP
+  sealed trait UNARY_OP extends AST_COMPONENT
   object UNARY_OP {
 
     case object Invert extends UNARY_OP
@@ -148,7 +150,7 @@ object Ast {
     case object USub extends UNARY_OP
   }
 
-  sealed trait COMP_OP
+  sealed trait COMP_OP extends AST_COMPONENT
   object COMP_OP {
 
     case object Eq extends COMP_OP
@@ -164,17 +166,17 @@ object Ast {
   }
 
   // not sure what to call the first argument for raise and except
-  sealed trait EXCP_HANDLER
-
+  sealed trait EXCP_HANDLER extends AST_COMPONENT
   object EXCP_HANDLER {
+
     case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: Seq[STMT]) extends EXCP_HANDLER
   }
 
-  case class Arguments(args: Seq[EXPR])
+  case class Arguments(args: Seq[EXPR]) extends AST_COMPONENT
 
   // keyword arguments supplied to call
-  case class Keyword(arg: Identifier, value: EXPR)
+  case class Keyword(arg: Identifier, value: EXPR) extends AST_COMPONENT
 
   // import name with optional 'as' alias.
-  case class Alias(name: Identifier, asname: Option[Identifier])
+  case class Alias(name: Identifier, asname: Option[Identifier]) extends AST_COMPONENT
 }
