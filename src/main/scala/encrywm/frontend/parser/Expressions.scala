@@ -1,8 +1,8 @@
-package encrywm.parser
+package encrywm.frontend.parser
 
-import encrywm.parser.Ast.EXPR
-import encrywm.parser.Lexer.kwd
-import encrywm.parser.WsApi._
+import encrywm.frontend.parser.Ast.EXPR
+import encrywm.frontend.parser.Lexer.kwd
+import encrywm.frontend.parser.WsApi._
 import fastparse.core
 import fastparse.noApi._
 
@@ -178,7 +178,7 @@ object Expressions {
 
   val varargslist: P[Ast.Arguments] = {
     val named_arg = P( fpdef )
-    val x = P( (named_arg ~ Statements.typeDecl).rep(sep = ",") ).map(args => Ast.Arguments(args.map {
+    val x = P( (named_arg ~/ Statements.typeDecl).rep(sep = ",") ).map(args => Ast.Arguments(args.map {
       case (a, t) => Ast.EXPR.Decl(a, Some(t)) }))
     P( x )
   }

@@ -1,7 +1,7 @@
-package parser
+package frontend.parser
 
-import encrywm.parser.Ast
-import encrywm.parser.Statements
+import encrywm.frontend.parser.Ast
+import encrywm.frontend.parser.Statements
 import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}
 import utils.ExprChecker
@@ -151,8 +151,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |    return 100 * 100 * a
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
-
-    println(parsed)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }

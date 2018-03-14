@@ -1,14 +1,14 @@
-package encrywm.parser
+package encrywm.frontend.parser
 
 import encrywm.builtins.ESObject
 
 object Ast {
 
-  sealed trait AST_COMPONENT
+  sealed trait AST_NODE
 
-  case class Identifier(name: String) extends AST_COMPONENT
+  case class Identifier(name: String)
 
-  sealed trait TYPE extends AST_COMPONENT { type Underlying }
+  sealed trait TYPE { type Underlying }
   object TYPE {
 
     // Primitives
@@ -27,16 +27,16 @@ object Ast {
     case class TYPE_REF(name: String) extends TYPE { override type Underlying = ESObject }
   }
 
-  sealed trait MOD extends AST_COMPONENT
-  object MOD {
-    case class Contract(body: Seq[STMT]) extends MOD
-    case class Expression(body: Seq[STMT]) extends MOD
+  sealed trait TREE_ROOT extends AST_NODE
+  object TREE_ROOT {
+    case class Contract(body: Seq[STMT]) extends TREE_ROOT
+    case class Expression(body: Seq[STMT]) extends TREE_ROOT
   }
 
-  sealed trait STMT extends AST_COMPONENT
+  sealed trait STMT extends AST_NODE
   object STMT {
 
-    case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnTypeOpt: Option[Identifier]) extends STMT
+    case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnType: Identifier) extends STMT
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Assign(target: EXPR, value: EXPR) extends STMT
@@ -59,7 +59,7 @@ object Ast {
     case class attributes(lineno: Int, col_offset: Int)
   }
 
-  sealed trait EXPR extends AST_COMPONENT
+  sealed trait EXPR extends AST_NODE
   object EXPR {
 
     sealed trait TYPED_EXPR extends EXPR { var tpeOpt: Option[TYPE] }
@@ -102,7 +102,7 @@ object Ast {
   // col_offset is the byte offset in the utf8 string the parser uses
   case class Attributes(lineno: Int, col_offset: Int)
 
-  sealed trait EXPR_CTX extends AST_COMPONENT
+  sealed trait EXPR_CTX
   object EXPR_CTX {
 
     case object Load extends EXPR_CTX
@@ -114,7 +114,7 @@ object Ast {
     case object AugStore extends EXPR_CTX
   }
 
-  sealed trait SLICE extends AST_COMPONENT
+  sealed trait SLICE extends AST_NODE
   object SLICE {
 
     case object Ellipsis extends SLICE
@@ -123,13 +123,13 @@ object Ast {
     case class Index(value: EXPR) extends SLICE
   }
 
-  sealed trait BOOL_OP extends AST_COMPONENT
+  sealed trait BOOL_OP
   object BOOL_OP {
     case object And extends BOOL_OP
     case object Or extends BOOL_OP
   }
 
-  sealed trait OPERATOR extends AST_COMPONENT
+  sealed trait OPERATOR extends AST_NODE
   case object OPERATOR {
     case object Add extends OPERATOR
     case object Sub  extends OPERATOR
@@ -141,7 +141,7 @@ object Ast {
     case object FloorDiv extends OPERATOR
   }
 
-  sealed trait UNARY_OP extends AST_COMPONENT
+  sealed trait UNARY_OP
   object UNARY_OP {
 
     case object Invert extends UNARY_OP
@@ -150,7 +150,7 @@ object Ast {
     case object USub extends UNARY_OP
   }
 
-  sealed trait COMP_OP extends AST_COMPONENT
+  sealed trait COMP_OP
   object COMP_OP {
 
     case object Eq extends COMP_OP
@@ -166,17 +166,17 @@ object Ast {
   }
 
   // not sure what to call the first argument for raise and except
-  sealed trait EXCP_HANDLER extends AST_COMPONENT
+  sealed trait EXCP_HANDLER extends AST_NODE
   object EXCP_HANDLER {
 
     case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: Seq[STMT]) extends EXCP_HANDLER
   }
 
-  case class Arguments(args: Seq[EXPR]) extends AST_COMPONENT
+  case class Arguments(args: Seq[EXPR.Decl]) extends AST_NODE
 
   // keyword arguments supplied to call
-  case class Keyword(arg: Identifier, value: EXPR) extends AST_COMPONENT
+  case class Keyword(arg: Identifier, value: EXPR) extends AST_NODE
 
   // import name with optional 'as' alias.
-  case class Alias(name: Identifier, asname: Option[Identifier]) extends AST_COMPONENT
+  case class Alias(name: Identifier, asname: Option[Identifier]) extends AST_NODE
 }

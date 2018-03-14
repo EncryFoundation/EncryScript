@@ -1,4 +1,4 @@
-package encrywm.semantics
+package encrywm.frontend.semantics
 
 class ScopedSymbolTable(val scopeName: String,
                         val scopeLevel: Int,

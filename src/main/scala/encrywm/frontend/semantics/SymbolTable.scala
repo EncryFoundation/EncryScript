@@ -1,4 +1,4 @@
-package encrywm.semantics
+package encrywm.frontend.semantics
 
 import scala.collection.mutable
 

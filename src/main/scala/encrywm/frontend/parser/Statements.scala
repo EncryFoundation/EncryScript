@@ -1,8 +1,8 @@
-package encrywm.parser
+package encrywm.frontend.parser
 
-import encrywm.parser.Expressions._
-import encrywm.parser.Lexer.kwd
-import encrywm.parser.WsApi._
+import encrywm.frontend.parser.Expressions._
+import encrywm.frontend.parser.Lexer.kwd
+import encrywm.frontend.parser.WsApi._
 import fastparse.noApi
 import fastparse.noApi._
 
@@ -28,15 +28,17 @@ class Statements(indent: Int){
   val fileInput: P[Seq[Ast.STMT]] = P( spaces.? ~ stmt.repX(0, spaces) ~ spaces.? ).map(_.flatten)
   val evalInput: P[Ast.EXPR] = P( testlist ~ NEWLINE.rep ~ ENDMARKER ).map(tuplize)
 
+  val contract: P[Ast.TREE_ROOT.Contract] = P( fileInput ).map(stmts => Ast.TREE_ROOT.Contract(stmts))
+
   def collapse_dotted_name(name: Seq[Ast.Identifier]): Ast.EXPR = {
     name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head, Ast.EXPR_CTX.Load))(
       (x, y) => Ast.EXPR.Attribute(x, y, Ast.EXPR_CTX.Load)
     )
   }
 
-  val retTypeDecl: P[Ast.Identifier] = P( "->" ~ NAME )
-  val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ fnParameters ~ retTypeDecl.? ~ ":" ~~ block ).map {
-    case (name, args, typeOpt, blc) => Ast.STMT.FunctionDef(name, args, blc, typeOpt)
+  val retTypeDecl: P[Ast.Identifier] = P( "->" ~/ NAME )
+  val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ fnParameters ~/ retTypeDecl ~ ":" ~~ block ).map {
+    case (name, args, tpe, blc) => Ast.STMT.FunctionDef(name, args, blc, tpe)
   }
 
   val typeDecl: P[Ast.Identifier] = P( ":" ~ NAME )

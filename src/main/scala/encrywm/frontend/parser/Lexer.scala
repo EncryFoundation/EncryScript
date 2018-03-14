@@ -1,4 +1,4 @@
-package encrywm.parser
+package encrywm.frontend.parser
 
 import fastparse.all._
 import fastparse.{all, core}

@@ -1,6 +1,6 @@
 package encrywm.builtins
 
-import encrywm.parser.Ast.TYPE
+import encrywm.frontend.parser.Ast.TYPE
 
 case class Attribute(name: String, tpe: TYPE, value: Any)
 
