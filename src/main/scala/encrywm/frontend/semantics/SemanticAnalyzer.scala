@@ -73,7 +73,8 @@ class SemanticAnalyzer extends TreeNodeVisitor {
       visit(bin.left)
       visit(bin.right)
 
-    case fc: EXPR.Call => fc.func match {
+    case fc: EXPR.Call =>
+      fc.func match {
         case n: EXPR.Name =>
           val fn = currentScopeOpt.flatMap(_.lookup(n.id.name))
             .getOrElse(throw NameError(n.id.name))
@@ -87,7 +88,7 @@ class SemanticAnalyzer extends TreeNodeVisitor {
     case attr: EXPR.Attribute =>
       def getBase(node: AST_NODE): BuiltInTypeSymbol = node match {
         case name: EXPR.Name =>
-          val sym = currentScopeOpt.flatMap(sc => sc.lookup(name.id.name))
+          val sym = currentScopeOpt.flatMap(_.lookup(name.id.name))
             .getOrElse(throw NameError(name.id.name))
           sym match {
             case bis: BuiltInTypeSymbol => bis
@@ -128,4 +129,6 @@ class SemanticAnalyzer extends TreeNodeVisitor {
   }
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
+
+  private def getType(expr: EXPR): TYPE = ???
 }

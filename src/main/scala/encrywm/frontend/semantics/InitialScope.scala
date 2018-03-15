@@ -1,11 +1,16 @@
 package encrywm.frontend.semantics
 
-import encrywm.builtins.{Builtins, Transaction}
+import encrywm.builtins.{Attribute, Builtins, ESObject}
+import encrywm.frontend.parser.Ast
 
 // TODO: Implement Scope initialization process.
 object InitialScope {
 
-  val tx = Transaction(1234567888, "Ivan")
+  val attrs = Set(
+    Attribute("timestamp", Ast.TYPE.LONG, 1123455L),
+    Attribute("sender", Ast.TYPE.STRING, "Ivan")
+  )
+  val tx = ESObject("transaction", attrs)
 
   private val builtinSymbs = Builtins.builtinTypes.map(t => BuiltInTypeSymbol(t)) :+
     BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.name)))))
