@@ -51,7 +51,7 @@ object Ast {
 
     case class Expr(value: EXPR) extends STMT
 
-    // Under discussion.
+    // Under discussion
     case object Unlock extends STMT
     case object Abort extends STMT
 
@@ -85,7 +85,7 @@ object Ast {
 
     case class Str(s: String) extends TYPED_EXPR { override var tpeOpt: Option[TYPE] = Some(TYPE.STRING) }
 
-    // the following expression can appear in assignment context
+    // The following expression can appear in assignment context
     case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
     case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
     case class Name(id: Identifier, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }

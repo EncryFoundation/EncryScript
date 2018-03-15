@@ -54,6 +54,13 @@ class SemanticAnalyzer extends TreeNodeVisitor {
 
     case expr: STMT.Expr => visit(expr.value)
 
+    case ifStmt: STMT.If =>
+      visit(ifStmt.test)
+      ifStmt.body.foreach(visit)
+      ifStmt.orelse.foreach(visit)
+
+    // TODO Attribute reference handling.
+
     case _ => // Do nothing.
   }
 
@@ -78,6 +85,21 @@ class SemanticAnalyzer extends TreeNodeVisitor {
           fc.keywords.map(_.value).foreach(visit)
         case _ => throw IllegalExprError(fc.toString)
       }
+
+    case cmp: EXPR.Compare =>
+      cmp.comparators.foreach(visit)
+      visit(cmp.left)
+
+    case uop: EXPR.UnaryOp => visit(uop.operand)
+
+    case ifExp: EXPR.IfExp =>
+      Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(visit)
+
+    case dct: EXPR.Dict =>
+      dct.keys.foreach(visit)
+      dct.values.foreach(visit)
+
+    case lst: EXPR.List => lst.elts.foreach(visit)
 
     case _ => // Do nothing.
   }

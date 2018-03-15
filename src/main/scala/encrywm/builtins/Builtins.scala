@@ -14,5 +14,7 @@ object Builtins {
     "bytes",
     "list",
     "map",
+    "true",
+    "false"
   )
 }
