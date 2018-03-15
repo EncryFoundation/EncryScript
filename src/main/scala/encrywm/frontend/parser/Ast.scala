@@ -8,23 +8,58 @@ object Ast {
 
   case class Identifier(name: String)
 
-  sealed trait TYPE { type Underlying }
+  sealed trait TYPE {
+    type Underlying
+    val name: String
+  }
   object TYPE {
 
     // Primitives
-    case object UNIT extends TYPE { override type Underlying = Unit }
-    case object BOOLEAN extends TYPE { override type Underlying = Boolean }
-    case object INT extends TYPE { override type Underlying = Int }
-    case object LONG extends TYPE { override type Underlying = Long }
-    case object FLOAT extends TYPE { override type Underlying = Float }
-    case object DOUBLE extends TYPE { override type Underlying = Double }
-    case object STRING extends TYPE { override type Underlying = String }
-    case object BYTE_VECTOR extends TYPE { override type Underlying = Array[Byte] }
+    case object UNIT extends TYPE {
+      override type Underlying = Unit
+      override val name: String = "unit"
+    }
+    case object BOOLEAN extends TYPE {
+      override type Underlying = Boolean
+      override val name: String = "bool"
+    }
+    case object INT extends TYPE {
+      override type Underlying = Int
+      override val name: String = "int"
+    }
+    case object LONG extends TYPE {
+      override type Underlying = Long
+      override val name: String = "long"
+    }
+    case object FLOAT extends TYPE {
+      override type Underlying = Float
+      override val name: String = "float"
+    }
+    case object DOUBLE extends TYPE {
+      override type Underlying = Double
+      override val name: String = "double"
+    }
+    case object STRING extends TYPE {
+      override type Underlying = String
+      override val name: String = "string"
+    }
+    case object BYTE_VECTOR extends TYPE {
+      override type Underlying = Array[Byte]
+      override val name: String = "bytes"
+    }
 
     // Complex types
-    case class LIST(valT: TYPE) extends TYPE { override type Underlying = List[valT.Underlying] }
-    case class DICT(keyT: TYPE, valT: TYPE) extends TYPE { override type Underlying = Map[keyT.Underlying, valT.Underlying] }
-    case class TYPE_REF(name: String) extends TYPE { override type Underlying = ESObject }
+    case class LIST(valT: TYPE) extends TYPE {
+      override type Underlying = List[valT.Underlying]
+      override val name: String = "list"
+    }
+    case class DICT(keyT: TYPE, valT: TYPE) extends TYPE {
+      override type Underlying = Map[keyT.Underlying, valT.Underlying]
+      override val name: String = "dict"
+    }
+    case class TYPE_REF(name: String) extends TYPE {
+      override type Underlying = ESObject
+    }
   }
 
   sealed trait TREE_ROOT extends AST_NODE

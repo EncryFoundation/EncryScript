@@ -43,7 +43,7 @@ class SemanticAnalyzer extends TreeNodeVisitor {
             VariableSymbol(n.id.name, typeSymbolOpt)
           case _ => throw new Error("Illegal expression")
         }
-      }
+      }.toSet
       currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, Some(returnTypeSymbol), paramSymbols)))
       val fnScope = new ScopedSymbolTable(fd.name.name, currentScopeOpt.get.scopeLevel + 1, currentScopeOpt)
       currentScopeOpt = Some(fnScope)
@@ -58,8 +58,6 @@ class SemanticAnalyzer extends TreeNodeVisitor {
       visit(ifStmt.test)
       ifStmt.body.foreach(visit)
       ifStmt.orelse.foreach(visit)
-
-    // TODO Attribute reference handling.
 
     case _ => // Do nothing.
   }
@@ -85,6 +83,21 @@ class SemanticAnalyzer extends TreeNodeVisitor {
           fc.keywords.map(_.value).foreach(visit)
         case _ => throw IllegalExprError(fc.toString)
       }
+
+    case attr: EXPR.Attribute =>
+      def getBase(node: AST_NODE): BuiltInTypeSymbol = node match {
+        case name: EXPR.Name =>
+          val sym = currentScopeOpt.flatMap(sc => sc.lookup(name.id.name))
+            .getOrElse(throw NameError(name.id.name))
+          sym match {
+            case bis: BuiltInTypeSymbol => bis
+            case _ => throw NotAnObjectError(sym.name)
+          }
+        case at: EXPR.Attribute => getBase(at.value)
+        case _ => throw IllegalExprError(node.toString)
+      }
+      if (!getBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
+        throw NameError(attr.attr.name)
 
     case cmp: EXPR.Compare =>
       cmp.comparators.foreach(visit)

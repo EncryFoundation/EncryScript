@@ -186,4 +186,34 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe false
   }
+
+  property("Valid AST analysis with attribute referencing") {
+    val simpleTreeParsed = (Statements.contract ~ End).parse(
+      """
+        |let timestamp = transaction.timestamp
+      """.stripMargin)
+
+    val analyzer = new SemanticAnalyzer
+
+    simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Invalid AST analysis with nonexistent attribute referencing") {
+    val simpleTreeParsed = (Statements.contract ~ End).parse(
+      """
+        |let timestamp = transaction.attr0
+      """.stripMargin)
+
+    val analyzer = new SemanticAnalyzer
+
+    simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

@@ -6,11 +6,12 @@ trait Symbol {
   val tpeOpt: Option[BuiltInTypeSymbol] = None
 }
 
-case class BuiltInTypeSymbol(override val name: String) extends Symbol
+case class BuiltInTypeSymbol(override val name: String,
+                             attributes: Set[VariableSymbol] = Set()) extends Symbol
 
 case class FuncSymbol(override val name: String,
                       override val tpeOpt: Option[BuiltInTypeSymbol],
-                      params: Seq[VariableSymbol] = Seq()) extends Symbol
+                      params: Set[VariableSymbol] = Set()) extends Symbol
 
 case class VariableSymbol(override val name: String,
                           override val tpeOpt: Option[BuiltInTypeSymbol]) extends Symbol
