@@ -41,17 +41,29 @@ class SemanticAnalyzer extends TreeNodeVisitor {
 
     case ret: STMT.Return => ret.value.foreach(visit)
 
+    case expr: STMT.Expr => visit(expr.value)
+
     case _ => // Do nothing.
   }
 
   private def visitExpr(node: EXPR): Unit = node match {
+
     case n: EXPR.Name => assertDefined(n.id.name)
+
     case bo: EXPR.BoolOp => bo.values.foreach(visit)
+
     case bin: EXPR.BinOp =>
       // TODO: Ensure operands are compatible.
       visit(bin.left)
       visit(bin.right)
-    case fc: EXPR.Call =>
+
+    case fc: EXPR.Call => fc.func match {
+        case n: EXPR.Name => assertDefined(n.id.name)
+        case _ => // Wrong situation.
+      }
+      fc.args.foreach(visit)
+      fc.keywords.map(_.value).foreach(visit)
+
     case _ => // Do nothing.
   }
 

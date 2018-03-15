@@ -91,18 +91,18 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe false
   }
 
-//  property("Invalid AST with undefined function call analysis") {
-//    val simpleTreeParsed = (Statements.contract ~ End).parse(
-//      """
-//        |sum()
-//      """.stripMargin)
-//
-//    val analyzer = new SemanticAnalyzer
-//
-//    simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-//
-//    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
-//
-//    analyzeTry.isSuccess shouldBe false
-//  }
+  property("Invalid AST with undefined function call analysis") {
+    val simpleTreeParsed = (Statements.contract ~ End).parse(
+      """
+        |sum()
+      """.stripMargin)
+
+    val analyzer = new SemanticAnalyzer
+
+    simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

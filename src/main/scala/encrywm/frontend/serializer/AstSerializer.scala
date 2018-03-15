@@ -1,4 +1,4 @@
-package encrywm.frontend
+package encrywm.frontend.serializer
 
 import encrywm.frontend.parser.Ast
 

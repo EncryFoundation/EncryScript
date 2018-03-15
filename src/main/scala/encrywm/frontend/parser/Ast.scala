@@ -78,10 +78,10 @@ object Ast {
     case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
 
     sealed trait Num extends TYPED_EXPR
-    case class IntConst(n: Int) extends Num { override var tpeOpt: Option[TYPE] = Some(TYPE.INT) }
-    case class LongConst(n: Long) extends Num { override var tpeOpt: Option[TYPE] = Some(TYPE.LONG) }
-    case class FloatConst(n: Float) extends Num { override var tpeOpt: Option[TYPE] = Some(TYPE.FLOAT) }
-    case class DoubleConst(n: Double) extends Num { override var tpeOpt: Option[TYPE] = Some(TYPE.DOUBLE) }
+    case class IntConst(n: Int) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.INT) }
+    case class LongConst(n: Long) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.LONG) }
+    case class FloatConst(n: Float) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.FLOAT) }
+    case class DoubleConst(n: Double) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.DOUBLE) }
 
     case class Str(s: String) extends TYPED_EXPR { override var tpeOpt: Option[TYPE] = Some(TYPE.STRING) }
 
