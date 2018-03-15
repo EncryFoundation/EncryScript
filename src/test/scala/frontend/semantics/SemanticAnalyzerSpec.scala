@@ -105,4 +105,22 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe false
   }
+
+  property("Analysis of invalid AST with wrong number of args passed to function") {
+    val simpleTreeParsed = (Statements.contract ~ End).parse(
+      """
+        |def sum(a: int, b: int) -> int:
+        |    return a + c
+        |
+        |sum(1, 2, 3)
+      """.stripMargin)
+
+    val analyzer = new SemanticAnalyzer
+
+    simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

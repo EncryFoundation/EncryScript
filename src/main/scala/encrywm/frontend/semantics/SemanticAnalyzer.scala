@@ -33,10 +33,21 @@ class SemanticAnalyzer extends TreeNodeVisitor {
     case fd: STMT.FunctionDef =>
       assertDefined(fd.returnType.name)
       val returnTypeSymbol = BuiltInTypeSymbol(fd.returnType.name)
-      currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, Some(returnTypeSymbol))))
+      val paramSymbols = fd.args.args.map { arg =>
+        arg.target match {
+          case n: EXPR.Name =>
+            val typeSymbolOpt = arg.typeOpt.map { t =>
+              assertDefined(t.name)
+              BuiltInTypeSymbol(t.name)
+            }
+            VariableSymbol(n.id.name, typeSymbolOpt)
+          case _ => throw new Error("Illegal expression")
+        }
+      }
+      currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, Some(returnTypeSymbol), paramSymbols)))
       val fnScope = new ScopedSymbolTable(fd.name.name, currentScopeOpt.get.scopeLevel + 1, currentScopeOpt)
       currentScopeOpt = Some(fnScope)
-      fd.args.args.foreach(visitDecl)
+      paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s)))
       fd.body.foreach(visit)
 
     case ret: STMT.Return => ret.value.foreach(visit)
@@ -58,11 +69,15 @@ class SemanticAnalyzer extends TreeNodeVisitor {
       visit(bin.right)
 
     case fc: EXPR.Call => fc.func match {
-        case n: EXPR.Name => assertDefined(n.id.name)
-        case _ => // Wrong situation.
+        case n: EXPR.Name =>
+          val fn = currentScopeOpt.flatMap(_.lookup(n.id.name))
+            .getOrElse(throw NameError(n.id.name))
+          if (fn.asInstanceOf[FuncSymbol].params.size != fc.args.size + fc.keywords.size)
+            throw WrongNumberOfArgumentsError(fn.name)
+          fc.args.foreach(visit)
+          fc.keywords.map(_.value).foreach(visit)
+        case _ => throw IllegalExprError(fc.toString)
       }
-      fc.args.foreach(visit)
-      fc.keywords.map(_.value).foreach(visit)
 
     case _ => // Do nothing.
   }
@@ -74,7 +89,7 @@ class SemanticAnalyzer extends TreeNodeVisitor {
         BuiltInTypeSymbol(t.name)
       }
       currentScopeOpt.foreach(_.insert(VariableSymbol(n.id.name, typeSymbolOpt)))
-    case _ => // Do nothing.
+    case _ => throw IllegalExprError(node.toString)
   }
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
