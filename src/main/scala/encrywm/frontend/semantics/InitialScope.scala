@@ -12,7 +12,7 @@ object InitialScope {
   )
   val tx = ESObject("transaction", attrs)
 
-  private val builtinSymbs = Builtins.builtinTypes.map(t => BuiltInTypeSymbol(t)) :+
+  private val builtinSymbs = Builtins.StaticBuiltInTypes.map(_.symbol).toSeq :+
     BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.name)))))
 
   def global: ScopedSymbolTable = {

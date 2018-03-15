@@ -1,5 +1,6 @@
 package encrywm.frontend.semantics
 
+import encrywm.builtins.Builtins
 import encrywm.frontend.parser.Ast._
 
 class SemanticAnalyzer extends TreeNodeVisitor {
@@ -82,7 +83,7 @@ class SemanticAnalyzer extends TreeNodeVisitor {
             throw WrongNumberOfArgumentsError(fn.name)
           fc.args.foreach(visit)
           fc.keywords.map(_.value).foreach(visit)
-        case _ => throw IllegalExprError(fc.toString)
+        case _ => throw IllegalExprError
       }
 
     case attr: EXPR.Attribute =>
@@ -95,7 +96,7 @@ class SemanticAnalyzer extends TreeNodeVisitor {
             case _ => throw NotAnObjectError(sym.name)
           }
         case at: EXPR.Attribute => getBase(at.value)
-        case _ => throw IllegalExprError(node.toString)
+        case _ => throw IllegalExprError
       }
       if (!getBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
         throw NameError(attr.attr.name)
@@ -125,10 +126,39 @@ class SemanticAnalyzer extends TreeNodeVisitor {
         BuiltInTypeSymbol(t.name)
       }
       currentScopeOpt.foreach(_.insert(VariableSymbol(n.id.name, typeSymbolOpt)))
-    case _ => throw IllegalExprError(node.toString)
+    case _ => throw IllegalExprError
   }
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
 
-  private def getType(expr: EXPR): TYPE = ???
+  def getType(exp: EXPR): TYPE = exp match {
+    case expr: EXPR.TYPED_EXPR => expr.tpeOpt.getOrElse {
+        expr match {
+          case n: EXPR.Name => currentScopeOpt.flatMap(_.lookup(n.id.name))
+            .map(r => Builtins.StaticBuiltInTypes.find(t => t.symbol.name == r.name).get.astType)
+            .getOrElse(throw NameError(n.id.name))
+
+          case fc: EXPR.Call => getType(fc.func)
+
+          case bop: EXPR.BinOp =>
+            (bop.left, bop.right) match {
+              case (lt: EXPR.TYPED_EXPR, rt: EXPR.TYPED_EXPR) => Builtins.BinaryOperationResults.find {
+                case (op, (o1, o2), _) => bop.op == op && o1 == getType(lt) && o2 == getType(rt)
+              }.map(_._3).getOrElse(throw IllegalOperandError)
+              case _ => throw IllegalExprError
+            }
+
+          case ifExp: EXPR.IfExp =>
+            val bodyType = getType(ifExp.body)
+            val elseType = getType(ifExp.orelse)
+            if (bodyType != elseType) throw IllegalExprError
+            bodyType
+
+          case uop: EXPR.UnaryOp => getType(uop.operand)
+
+          case _ => throw IllegalExprError
+        }
+      }
+    case _ => throw IllegalExprError
+  }
 }

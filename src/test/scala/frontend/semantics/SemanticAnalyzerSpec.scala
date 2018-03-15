@@ -1,5 +1,6 @@
 package frontend.semantics
 
+import encrywm.frontend.parser.Ast.{EXPR, OPERATOR}
 import encrywm.frontend.parser.{Ast, Statements}
 import encrywm.frontend.semantics.SemanticAnalyzer
 import fastparse.all._
@@ -128,7 +129,7 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
   property("Valid AST with If-expression analysis") {
     val simpleTreeParsed = (Statements.contract ~ End).parse(
       """
-        |let a: int = 9 if true else 0
+        |let a: int = 9 if 6 > 10 else 0
       """.stripMargin)
 
     val analyzer = new SemanticAnalyzer
@@ -158,7 +159,7 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
   property("Analysis of valid AST with If statement") {
     val simpleTreeParsed = (Statements.contract ~ End).parse(
       """
-        |if true and true:
+        |if 2 == 2 and 8 == 10:
         |    let a = 100
       """.stripMargin)
 
@@ -174,7 +175,7 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
   property("Analysis of invalid AST with If statement and undefined ref in test part") {
     val simpleTreeParsed = (Statements.contract ~ End).parse(
       """
-        |if a > 0 and true:
+        |if a > 0 and b < 0:
         |    let a = 100
       """.stripMargin)
 
@@ -215,5 +216,23 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
     val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Type calculation (INT is expected)") {
+
+    val analyzer = new SemanticAnalyzer
+
+    val tpe = analyzer.getType(EXPR.BinOp(EXPR.IntConst(9), OPERATOR.Add, EXPR.IntConst(9)))
+
+    tpe shouldBe Ast.TYPE.INT
+  }
+
+  property("Type calculation (LONG is expected)") {
+
+    val analyzer = new SemanticAnalyzer
+
+    val tpe = analyzer.getType(EXPR.BinOp(EXPR.IntConst(9), OPERATOR.Mult, EXPR.LongConst(9)))
+
+    tpe shouldBe Ast.TYPE.LONG
   }
 }
