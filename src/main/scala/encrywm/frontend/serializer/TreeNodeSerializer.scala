@@ -4,7 +4,9 @@ import encrywm.frontend.parser.Ast
 
 trait TreeNodeSerializer[NT <: Ast.AST_NODE] {
 
-  def toBytes(tree: Ast.AST_NODE): Array[Byte]
+  val prefix: Byte
 
-  def fromBytes(bytes: Array[Byte]): Ast.AST_NODE
+  def toBytes(tree: NT): Array[Byte]
+
+  def fromBytes(bytes: Array[Byte]): Option[NT]
 }
