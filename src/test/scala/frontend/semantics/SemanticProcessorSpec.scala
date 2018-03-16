@@ -108,4 +108,20 @@ class SemanticProcessorSpec extends PropSpec with Matchers {
 
     processTry.isSuccess shouldBe false
   }
+
+  property("Type checking of invalid assignment (Zero division in value part)") {
+
+    val treeParsed = (Statements.contract ~ End).parse(
+      """
+        |let a: int = 1 / 0
+      """.stripMargin)
+
+    treeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val treeRoot = treeParsed.get.value
+
+    val processTry = SemanticProcessor.processTree(treeRoot)
+
+    processTry.isSuccess shouldBe false
+  }
 }
