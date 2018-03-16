@@ -15,7 +15,6 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
   override def scan(node: AST_NODE): Unit = node match {
     case tr: TREE_ROOT => scanRoot(tr)
     case stmt: STMT => scanStmt(stmt)
-    case expr: EXPR =>
     case _ => // Do nothing.
   }
 
