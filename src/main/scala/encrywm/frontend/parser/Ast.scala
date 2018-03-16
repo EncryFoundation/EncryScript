@@ -57,6 +57,10 @@ object Ast {
       override type Underlying = Map[keyT.Underlying, valT.Underlying]
       override val name: String = "dict"
     }
+    case class OPTION(inT: TYPE) extends TYPE {
+      override type Underlying = Option[inT.Underlying]
+      override val name: String = "option"
+    }
     case class TYPE_REF(name: String) extends TYPE {
       override type Underlying = ESObject
     }

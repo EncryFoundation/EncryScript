@@ -8,7 +8,7 @@ Language abilities:
 * Accessing fields of the predefined data structures via dot-notation.
 * Control-flow (if, for .. in)
 * Variable (? Constants) definition
-* ? Functions definition (Prohibit recursive calls?) 
+* Functions definition (Prohibit recursive calls?) 
 
 ## Available data types
 
@@ -19,6 +19,8 @@ Language abilities:
     * bytes
     * long
     * int
+    * float
+    * double
     * dict
     * list
     * <type>?               // Option[<type>]
@@ -46,10 +48,10 @@ Language abilities:
        
 ## Built-in functions
     
-    checkType(proof: Bytes, type: Any): Boolean
-    checkSig(msg: Bytes, sig: Bytes, pk: Bytes): Boolean
-    pkFromAddress(addr: String): Bytes
-    unixTime(ts: String): Long
+    checkType(proof: bytes, type: any): bool
+    checkSig(msg: bytes, sig: bytes, pk: bytes): bool
+    pkFromAddress(addr: string): bytes
+    unixTime(ts: string): long
 
 ## Use cases
 Threshold signature (2 of 3):
