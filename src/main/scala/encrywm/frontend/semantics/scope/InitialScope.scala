@@ -1,4 +1,4 @@
-package encrywm.frontend.semantics
+package encrywm.frontend.semantics.scope
 
 import encrywm.builtins.{Attribute, Builtins, ESObject}
 import encrywm.frontend.parser.Ast

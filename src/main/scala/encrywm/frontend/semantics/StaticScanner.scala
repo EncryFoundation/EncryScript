@@ -1,6 +1,8 @@
 package encrywm.frontend.semantics
 
 import encrywm.frontend.parser.Ast._
+import encrywm.frontend.semantics.error._
+import encrywm.frontend.semantics.scope._
 
 object StaticScanner extends TreeNodeScanner {
 

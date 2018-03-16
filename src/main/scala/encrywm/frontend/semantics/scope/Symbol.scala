@@ -1,4 +1,4 @@
-package encrywm.frontend.semantics
+package encrywm.frontend.semantics.scope
 
 trait Symbol {
 

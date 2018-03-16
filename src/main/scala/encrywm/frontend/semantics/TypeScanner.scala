@@ -2,6 +2,8 @@ package encrywm.frontend.semantics
 
 import encrywm.builtins.{Builtins, ESMath}
 import encrywm.frontend.parser.Ast.{EXPR, TYPE, _}
+import encrywm.frontend.semantics.error.{IllegalExprError, IllegalOperandError, NameError, TypeMismatchError}
+import encrywm.frontend.semantics.scope.ScopedSymbolTable
 
 class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends TreeNodeScanner {
 
