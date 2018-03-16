@@ -99,7 +99,6 @@ object Ast {
 
     sealed trait TYPED_EXPR extends EXPR { var tpeOpt: Option[TYPE] }
 
-    // TODO: Divide EXPRs into two categories (typed and untyped).
     case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
     case class BinOp(left: EXPR, op: OPERATOR, right: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
     case class UnaryOp(op: UNARY_OP, operand: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }

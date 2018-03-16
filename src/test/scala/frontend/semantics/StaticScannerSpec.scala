@@ -1,14 +1,13 @@
 package frontend.semantics
 
-import encrywm.frontend.parser.Ast.{EXPR, OPERATOR}
 import encrywm.frontend.parser.{Ast, Statements}
-import encrywm.frontend.semantics.SemanticAnalyzer
+import encrywm.frontend.semantics.StaticScanner
 import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Try
 
-class SemanticAnalyzerSpec extends PropSpec with Matchers {
+class StaticScannerSpec extends PropSpec with Matchers {
 
   property("Semantically correct simple AST analysis") {
 
@@ -17,11 +16,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let a: int = 9
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -33,11 +32,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let a: undef = 9
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -50,11 +49,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -68,11 +67,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |sum(1, 2)
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -84,11 +83,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |    return a + c
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -99,11 +98,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |sum()
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -117,11 +116,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |sum(1, 2, 3)
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -132,11 +131,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let a: int = 9 if 6 > 10 else 0
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -147,11 +146,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let a: int = 9 if b < 0 else 0
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -163,11 +162,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -179,11 +178,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
   }
@@ -194,11 +193,11 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let timestamp = transaction.timestamp
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe true
   }
@@ -209,30 +208,12 @@ class SemanticAnalyzerSpec extends PropSpec with Matchers {
         |let timestamp = transaction.attr0
       """.stripMargin)
 
-    val analyzer = new SemanticAnalyzer
+    val analyzer = StaticScanner
 
     simpleTreeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.visit(simpleTreeParsed.get.value))
+    val analyzeTry = Try(analyzer.scan(simpleTreeParsed.get.value))
 
     analyzeTry.isSuccess shouldBe false
-  }
-
-  property("Type calculation (INT is expected)") {
-
-    val analyzer = new SemanticAnalyzer
-
-    val tpe = analyzer.getType(EXPR.BinOp(EXPR.IntConst(9), OPERATOR.Add, EXPR.IntConst(9)))
-
-    tpe shouldBe Ast.TYPE.INT
-  }
-
-  property("Type calculation (LONG is expected)") {
-
-    val analyzer = new SemanticAnalyzer
-
-    val tpe = analyzer.getType(EXPR.BinOp(EXPR.IntConst(9), OPERATOR.Mult, EXPR.LongConst(9)))
-
-    tpe shouldBe Ast.TYPE.LONG
   }
 }

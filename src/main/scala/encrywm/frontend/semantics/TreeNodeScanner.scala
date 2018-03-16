@@ -2,7 +2,7 @@ package encrywm.frontend.semantics
 
 import encrywm.frontend.parser.Ast
 
-trait TreeNodeVisitor {
+trait TreeNodeScanner {
 
-  def visit(node: Ast.AST_NODE): Unit
+  def scan(node: Ast.AST_NODE): Unit
 }
