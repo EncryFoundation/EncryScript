@@ -61,9 +61,9 @@ Threshold signature (2 of 3):
                       'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
 
     if checkType(proof, MultiProof) and proof.proofs.size >= 2:
-        let sigFlag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan']!, publicKeys[0])) else 0
-        let sigFlag2 = 1 if proof.proofs['Marina'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina']!, publicKeys[1]) else 0
-        let sigFlag3 = 1 if proof.proofs['Alice'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice']!, publicKeys[2]) else 0
+        let sigFlag1 = 1 if proof.proofs['Ivan'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Ivan'].get, publicKeys[0])) else 0
+        let sigFlag2 = 1 if proof.proofs['Marina'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina'].get, publicKeys[1]) else 0
+        let sigFlag3 = 1 if proof.proofs['Alice'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice'].get, publicKeys[2]) else 0
         
         if (sigFlag1 + sigFlag2 + sigFlag3) >= 2:
             unlock

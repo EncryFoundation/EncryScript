@@ -73,7 +73,7 @@ class SemanticProcessorSpec extends PropSpec with Matchers {
     processTry.isSuccess shouldBe false
   }
 
-  property("Type checking of invalid function definition (Type mismatch) (Nested statements scanning)") {
+  property("Type checking of invalid function definition (Return type mismatch) (Nested statements scanning)") {
 
     val treeParsed = (Statements.contract ~ End).parse(
       """
@@ -82,6 +82,25 @@ class SemanticProcessorSpec extends PropSpec with Matchers {
         |        return a
         |    else:
         |        return 0L
+      """.stripMargin)
+
+    treeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val treeRoot = treeParsed.get.value
+
+    val processTry = SemanticProcessor.processTree(treeRoot)
+
+    processTry.isSuccess shouldBe false
+  }
+
+  property("Type checking of invalid function definition (Argument type mismatch)") {
+
+    val treeParsed = (Statements.contract ~ End).parse(
+      """
+        |def sum(a: int, b: int) -> int:
+        |    return a + b
+        |
+        |sum(1, "string")
       """.stripMargin)
 
     treeParsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
