@@ -1,7 +1,7 @@
 package frontend.serializer
 
-import encrywm.frontend.parser.Ast.STMT.FunctionDef
-import encrywm.frontend.parser.Ast.TREE_ROOT.{Contract, Expression}
+import encrywm.frontend.ast.Ast.STMT.FunctionDef
+import encrywm.frontend.ast.Ast.TREE_ROOT.{Contract, Expression}
 import encrywm.frontend.serializer.AstSerializer
 import org.scalatest.{Matchers, PropSpec}
 

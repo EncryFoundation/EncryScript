@@ -1,7 +1,7 @@
 package encrywm.frontend.semantics.scope
 
 import encrywm.builtins.{Attribute, Builtins, ESObject}
-import encrywm.frontend.parser.Ast
+import encrywm.frontend.ast.Ast
 
 // TODO: Implement Scope initialization process.
 object InitialScope {

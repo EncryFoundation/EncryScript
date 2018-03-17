@@ -1,5 +1,6 @@
 package encrywm.frontend.parser
 
+import encrywm.frontend.ast.Ast
 import fastparse.all._
 import fastparse.{all, core}
 

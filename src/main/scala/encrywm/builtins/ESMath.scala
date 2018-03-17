@@ -1,9 +1,9 @@
 package encrywm.builtins
 
-import encrywm.frontend.parser.Ast
-import encrywm.frontend.parser.Ast.OPERATOR.{Add, Mult}
-import encrywm.frontend.parser.Ast.TYPE.{DOUBLE, FLOAT, INT, LONG}
-import encrywm.frontend.parser.Ast.{EXPR, OPERATOR}
+import encrywm.frontend.ast.Ast
+import encrywm.frontend.ast.Ast.OPERATOR._
+import encrywm.frontend.ast.Ast.TYPE._
+import encrywm.frontend.ast.Ast.{EXPR, OPERATOR}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {

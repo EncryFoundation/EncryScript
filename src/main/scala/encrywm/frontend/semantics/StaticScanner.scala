@@ -1,8 +1,10 @@
 package encrywm.frontend.semantics
 
-import encrywm.frontend.parser.Ast._
+import encrywm.frontend.ast.Ast._
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
+
+import scala.annotation.tailrec
 
 object StaticScanner extends TreeNodeScanner {
 
@@ -74,7 +76,6 @@ object StaticScanner extends TreeNodeScanner {
     case bo: EXPR.BoolOp => bo.values.foreach(scan)
 
     case bin: EXPR.BinOp =>
-      // TODO: Ensure operands are compatible.
       scan(bin.left)
       scan(bin.right)
 
@@ -91,6 +92,7 @@ object StaticScanner extends TreeNodeScanner {
       }
 
     case attr: EXPR.Attribute =>
+      @tailrec
       def getBase(node: AST_NODE): BuiltInTypeSymbol = node match {
         case name: EXPR.Name =>
           val sym = currentScopeOpt.flatMap(_.lookup(name.id.name))

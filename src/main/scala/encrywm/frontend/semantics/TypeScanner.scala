@@ -1,7 +1,7 @@
 package encrywm.frontend.semantics
 
 import encrywm.builtins.{Builtins, ESMath}
-import encrywm.frontend.parser.Ast.{EXPR, TYPE, _}
+import encrywm.frontend.ast.Ast.{EXPR, TYPE, _}
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope.{FuncSymbol, ScopedSymbolTable}
 
@@ -71,7 +71,7 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
       case expr: EXPR.TYPED_EXPR => expr.tpeOpt.getOrElse {
         expr match {
           case n: EXPR.Name => scope.lookup(n.id.name)
-            .flatMap(r => Builtins.StaticBuiltInTypes.find(t => t.symbol.name == r.tpeOpt.get.name).map(_.astType))
+            .flatMap(r => Builtins.StaticBuiltInTypes.find(_.symbol.name == r.tpeOpt.get.name).map(_.astType))
             .getOrElse(throw NameError(n.id.name))
 
           case fc: EXPR.Call =>

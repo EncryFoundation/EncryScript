@@ -1,6 +1,6 @@
 package encrywm.frontend.semantics
 
-import encrywm.frontend.parser.Ast
+import encrywm.frontend.ast.Ast
 
 trait TreeNodeScanner {
 

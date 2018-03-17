@@ -1,4 +1,4 @@
-package encrywm.frontend.parser
+package encrywm.frontend.ast
 
 import encrywm.builtins.ESObject
 

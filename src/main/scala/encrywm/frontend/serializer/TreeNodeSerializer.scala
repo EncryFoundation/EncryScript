@@ -1,6 +1,6 @@
 package encrywm.frontend.serializer
 
-import encrywm.frontend.parser.Ast
+import encrywm.frontend.ast.Ast
 
 trait TreeNodeSerializer[NT <: Ast.AST_NODE] {
 

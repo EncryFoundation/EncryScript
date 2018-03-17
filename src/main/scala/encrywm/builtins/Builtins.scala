@@ -1,6 +1,6 @@
 package encrywm.builtins
 
-import encrywm.frontend.parser.Ast
+import encrywm.frontend.ast.Ast
 import encrywm.frontend.semantics.scope.BuiltInTypeSymbol
 
 case class BuiltInType(name: String, symbol: BuiltInTypeSymbol, astType: Ast.TYPE)

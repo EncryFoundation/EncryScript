@@ -1,9 +1,9 @@
 package frontend.serializer
 
-import encrywm.frontend.parser.Ast.BOOL_OP.And
-import encrywm.frontend.parser.Ast.{Arguments, EXPR, Identifier, STMT}
-import encrywm.frontend.parser.Ast.EXPR.{BoolOp, IntConst}
-import encrywm.frontend.parser.Ast.STMT.FunctionDef
+import encrywm.frontend.ast.Ast.BOOL_OP.And
+import encrywm.frontend.ast.Ast.{Arguments, EXPR, Identifier, STMT}
+import encrywm.frontend.ast.Ast.EXPR.{BoolOp, IntConst}
+import encrywm.frontend.ast.Ast.STMT.FunctionDef
 
 object Generator {
 

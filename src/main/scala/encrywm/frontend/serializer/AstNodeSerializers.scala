@@ -1,14 +1,14 @@
 package encrywm.frontend.serializer
 
 import com.google.common.primitives.{Bytes, Ints, Shorts}
-import encrywm.frontend.parser.Ast
-import encrywm.frontend.parser.Ast.EXCP_HANDLER.ExceptHandler
-import encrywm.frontend.parser.Ast.EXPR._
-import encrywm.frontend.parser.Ast.OPERATOR._
-import encrywm.frontend.parser.Ast.SLICE.{Ellipsis, ExtSlice, Index, Slice}
-import encrywm.frontend.parser.Ast.STMT._
-import encrywm.frontend.parser.Ast.TREE_ROOT.{Contract, Expression}
-import encrywm.frontend.parser.Ast._
+import encrywm.frontend.ast.Ast
+import encrywm.frontend.ast.Ast.EXCP_HANDLER.ExceptHandler
+import encrywm.frontend.ast.Ast.TREE_ROOT._
+import encrywm.frontend.ast.Ast.EXPR._
+import encrywm.frontend.ast.Ast.SLICE.{Ellipsis, ExtSlice, Index, Slice}
+import encrywm.frontend.ast.Ast.STMT._
+import encrywm.frontend.ast.Ast.OPERATOR._
+import encrywm.frontend.ast.Ast._
 import scorex.crypto.encode.Base58
 
 object ContractSerializer extends TreeNodeSerializer[Contract] {

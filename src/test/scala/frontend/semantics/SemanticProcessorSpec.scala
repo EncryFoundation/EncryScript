@@ -1,6 +1,7 @@
 package frontend.semantics
 
-import encrywm.frontend.parser.{Ast, Statements}
+import encrywm.frontend.ast.Ast
+import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.SemanticProcessor
 import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}

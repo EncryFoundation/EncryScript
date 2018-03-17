@@ -1,6 +1,7 @@
 package encrywm.frontend.parser
 
-import encrywm.frontend.parser.Ast.EXPR
+import encrywm.frontend.ast.Ast
+import encrywm.frontend.ast.Ast.EXPR
 import encrywm.frontend.parser.Lexer.kwd
 import encrywm.frontend.parser.WsApi._
 import fastparse.core
