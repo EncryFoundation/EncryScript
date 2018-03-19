@@ -29,7 +29,7 @@ class Statements(indent: Int){
   val fileInput: P[Seq[Ast.STMT]] = P( spaces.? ~ stmt.repX(0, spaces) ~ spaces.? ).map(_.flatten)
   val evalInput: P[Ast.EXPR] = P( testlist ~ NEWLINE.rep ~ ENDMARKER ).map(tuplize)
 
-  val contract: P[Ast.TREE_ROOT.Contract] = P( fileInput ).map(stmts => Ast.TREE_ROOT.Contract(stmts))
+  val contract: P[Ast.TREE_ROOT.Contract] = P( fileInput ).map(stmts => Ast.TREE_ROOT.Contract(stmts.toList))
 
   def collapse_dotted_name(name: Seq[Ast.Identifier]): Ast.EXPR = {
     name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head, Ast.EXPR_CTX.Load))(
@@ -39,7 +39,7 @@ class Statements(indent: Int){
 
   val retTypeDecl: P[Ast.Identifier] = P( "->" ~/ NAME )
   val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ fnParameters ~/ retTypeDecl ~ ":" ~~ block ).map {
-    case (name, args, tpe, blc) => Ast.STMT.FunctionDef(name, args, blc, tpe)
+    case (name, args, tpe, blc) => Ast.STMT.FunctionDef(name, args, blc.toList, tpe)
   }
 
   val typeDecl: P[Ast.Identifier] = P( ":" ~ NAME )
@@ -100,8 +100,8 @@ class Statements(indent: Int){
       case (test, body, elifs, orelse) =>
         val (init :+ last) = (test, body) +: elifs
         val (last_test, last_body) = last
-        init.foldRight(Ast.STMT.If(last_test, last_body, orelse.toSeq.flatten)){
-          case ((t, b), rhs) => Ast.STMT.If(t, b, Seq(rhs))
+        init.foldRight(Ast.STMT.If(last_test, last_body.toList, orelse.toList.flatten)) {
+          case ((t, b), rhs) => Ast.STMT.If(t, b.toList, List(rhs))
         }
     }
   }
@@ -110,7 +110,7 @@ class Statements(indent: Int){
   val forStmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
     ~~ (spaceIndents ~ kwd("else") ~/ ":" ~~ block).? ).map {
       case (itervars, generator, body, orelse) =>
-        Ast.STMT.For(tuplize(itervars), tuplize(generator), body, orelse.toSeq.flatten)
+        Ast.STMT.For(tuplize(itervars), tuplize(generator), body.toList, orelse.toList.flatten)
     }
 
   val block: P[Seq[Ast.STMT]] = {

@@ -8,22 +8,22 @@ object Ast {
 
   sealed trait TREE_ROOT extends AST_NODE
   object TREE_ROOT {
-    case class Contract(body: Seq[STMT]) extends TREE_ROOT
-    case class Expression(body: Seq[STMT]) extends TREE_ROOT
+    case class Contract(body: List[STMT]) extends TREE_ROOT
+    case class Expression(body: List[STMT]) extends TREE_ROOT
   }
 
   sealed trait STMT extends AST_NODE
   object STMT {
 
-    case class FunctionDef(name: Identifier, args: Arguments, body: Seq[STMT], returnType: Identifier) extends STMT
+    case class FunctionDef(name: Identifier, args: Arguments, body: List[STMT], returnType: Identifier) extends STMT
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Assign(target: EXPR, value: EXPR) extends STMT
     // Do we need operators like `+=`, `-=`, etc?
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT
 
-    case class For(target: EXPR, iter: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
-    case class If(test: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
+    case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
+    case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
 
     case class Assert(test: EXPR, msg: Option[EXPR]) extends STMT
 
@@ -40,7 +40,7 @@ object Ast {
   sealed trait EXPR extends AST_NODE { var tpeOpt: Option[TYPE] }
   object EXPR {
 
-    case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
+    case class BoolOp(op: BOOL_OP, values: List[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
     case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
@@ -48,9 +48,9 @@ object Ast {
 
     // Sequences are required for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
-    case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR {
+    case class Compare(left: EXPR, ops: List[COMP_OP], comparators: List[EXPR]) extends EXPR {
       override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
-    case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tpeOpt: Option[TYPE] = None) extends EXPR
 
     sealed trait Num extends EXPR
     case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(INT) }
@@ -65,10 +65,10 @@ object Ast {
     case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    case class Dict(keys: Seq[EXPR], values: Seq[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Set(elts: Seq[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class List(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Tuple(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Dict(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESet(elts: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class EList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Tuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
     case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(UNIT) }
   }
@@ -93,7 +93,7 @@ object Ast {
 
     case object Ellipsis extends SLICE
     case class Slice(lower: Option[EXPR], upper: Option[EXPR], step: Option[EXPR]) extends SLICE
-    case class ExtSlice(dims: Seq[SLICE]) extends SLICE
+    case class ExtSlice(dims: List[SLICE]) extends SLICE
     case class Index(value: EXPR) extends SLICE
   }
 
@@ -143,12 +143,12 @@ object Ast {
   sealed trait EXCP_HANDLER extends AST_NODE
   object EXCP_HANDLER {
 
-    case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: Seq[STMT]) extends EXCP_HANDLER
+    case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: List[STMT]) extends EXCP_HANDLER
   }
 
   case class Identifier(name: String)
 
-  case class Arguments(args: Seq[EXPR.Decl]) extends AST_NODE
+  case class Arguments(args: List[EXPR.Decl]) extends AST_NODE
 
   // keyword arguments supplied to call
   case class Keyword(arg: Identifier, value: EXPR) extends AST_NODE

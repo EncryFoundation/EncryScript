@@ -29,7 +29,7 @@ object ContractSerializer extends TreeNodeSerializer[Contract] {
         sp += 3 + length
         res
     }
-    Option(Contract(body))
+    Option(Contract(body.toList))
   }
 
   val prefix: Byte = 3
@@ -53,7 +53,7 @@ object ExpressionSerializer extends TreeNodeSerializer[Expression] {
         sp += 3 + length
         res
     }
-    Option(Expression(body))
+    Option(Expression(body.toList))
   }
   val prefix: Byte = 4
 }
@@ -92,7 +92,7 @@ object FunctionDefSerializer extends TreeNodeSerializer[FunctionDef] {
       }
     }
     val returnType = Identifier(Base58.encode(bytes.slice(sp, bytes.length)))
-    Option(FunctionDef(name, args, stmts, returnType))
+    Option(FunctionDef(name, args, stmts.toList, returnType))
   }
 
   val prefix: Byte = 5
@@ -316,18 +316,18 @@ object DictSerializer extends TreeNodeSerializer[Dict]{
   val prefix: Byte = 29
 }
 
-object SetSerializer extends TreeNodeSerializer[Set]{
+object SetSerializer extends TreeNodeSerializer[ESet]{
 
-  override def toBytes(tree: Set) = ???
+  override def toBytes(tree: ESet) = ???
 
   override def fromBytes(bytes: Array[Byte]) = ???
 
   val prefix: Byte = 30
 }
 
-object ListSerializer extends TreeNodeSerializer[List]{
+object ListSerializer extends TreeNodeSerializer[EList]{
 
-  override def toBytes(tree: List) = ???
+  override def toBytes(tree: EList) = ???
 
   override def fromBytes(bytes: Array[Byte]) = ???
 
@@ -496,7 +496,7 @@ object ArgumentsSerializer extends TreeNodeSerializer[Arguments]{
         seq :+ expr
       }
     }
-    Option(Arguments(exprs))
+    Option(Arguments(exprs.toList))
   }
 
   val prefix: Byte = 46
@@ -580,8 +580,8 @@ object EXPRSerializer extends TreeNodeSerializer[EXPR]{
       case subscript: Subscript => SubscriptSerializer.toBytes(subscript)
       case name: Name => NameSerializer.toBytes(name)
       case dict: Dict => DictSerializer.toBytes(dict)
-      case set: Set => SetSerializer.toBytes(set)
-      case list: List => ListSerializer.toBytes(list)
+      case set: ESet => SetSerializer.toBytes(set)
+      case list: EList => ListSerializer.toBytes(list)
       case tuple: Tuple => TupleSerializer.toBytes(tuple)
       case _ => Array.emptyByteArray
     }

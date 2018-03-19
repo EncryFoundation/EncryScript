@@ -120,7 +120,7 @@ object StaticScanner extends TreeNodeScanner {
       dct.keys.foreach(scan)
       dct.values.foreach(scan)
 
-    case lst: EXPR.List => lst.elts.foreach(scan)
+    case lst: EXPR.EList => lst.elts.foreach(scan)
 
     case _ => // Do nothing.
   }
