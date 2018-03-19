@@ -50,7 +50,7 @@ object StaticScanner extends TreeNodeScanner {
             VariableSymbol(n.id.name, typeSymbolOpt)
           case _ => throw IllegalExprError
         }
-      }.toSet
+      }
       currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, Some(returnTypeSymbol), paramSymbols)))
       val fnScope = new ScopedSymbolTable(fd.name.name, currentScopeOpt.get.scopeLevel + 1, currentScopeOpt)
       currentScopeOpt = Some(fnScope)

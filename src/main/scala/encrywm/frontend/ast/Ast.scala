@@ -1,68 +1,10 @@
 package encrywm.frontend.ast
 
-import encrywm.builtins.ESObject
-
 object Ast {
 
+  import encrywm.builtins.Types._
+
   sealed trait AST_NODE
-
-  sealed trait TYPE {
-    type Underlying
-    val name: String
-  }
-  object TYPE {
-
-    // Primitives
-    case object UNIT extends TYPE {
-      override type Underlying = Unit
-      override val name: String = "unit"
-    }
-    case object BOOLEAN extends TYPE {
-      override type Underlying = Boolean
-      override val name: String = "bool"
-    }
-    case object INT extends TYPE {
-      override type Underlying = Int
-      override val name: String = "int"
-    }
-    case object LONG extends TYPE {
-      override type Underlying = Long
-      override val name: String = "long"
-    }
-    case object FLOAT extends TYPE {
-      override type Underlying = Float
-      override val name: String = "float"
-    }
-    case object DOUBLE extends TYPE {
-      override type Underlying = Double
-      override val name: String = "double"
-    }
-    case object STRING extends TYPE {
-      override type Underlying = String
-      override val name: String = "string"
-    }
-    case object BYTE_VECTOR extends TYPE {
-      override type Underlying = Array[Byte]
-      override val name: String = "bytes"
-    }
-
-    // Complex types
-    case class LIST(valT: TYPE) extends TYPE {
-      override type Underlying = List[valT.Underlying]
-      override val name: String = "list"
-    }
-    case class DICT(keyT: TYPE, valT: TYPE) extends TYPE {
-      override type Underlying = Map[keyT.Underlying, valT.Underlying]
-      override val name: String = "dict"
-    }
-    case class OPTION(inT: TYPE) extends TYPE {
-      override type Underlying = Option[inT.Underlying]
-      override val name: String = "option"
-    }
-    case class TYPE_REF(name: String) extends TYPE {
-      override type Underlying = ESObject
-    }
-  }
 
   sealed trait TREE_ROOT extends AST_NODE
   object TREE_ROOT {
@@ -98,7 +40,7 @@ object Ast {
   sealed trait EXPR extends AST_NODE { var tpeOpt: Option[TYPE] }
   object EXPR {
 
-    case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
+    case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
     case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
@@ -107,16 +49,16 @@ object Ast {
     // Sequences are required for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR {
-      override var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
+      override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
     case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword], override var tpeOpt: Option[TYPE] = None) extends EXPR
 
     sealed trait Num extends EXPR
-    case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.INT) }
-    case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.LONG) }
-    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.FLOAT) }
-    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.DOUBLE) }
+    case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(INT) }
+    case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(LONG) }
+    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(FLOAT) }
+    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(DOUBLE) }
 
-    case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(TYPE.STRING) }
+    case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(STRING) }
 
     // The following expression can appear in assignment context
     case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
@@ -128,7 +70,7 @@ object Ast {
     case class List(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Tuple(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.UNIT) }
+    case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(UNIT) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses

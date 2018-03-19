@@ -2,13 +2,14 @@ package encrywm.builtins
 
 import encrywm.frontend.ast.Ast
 import encrywm.frontend.ast.Ast.OPERATOR._
-import encrywm.frontend.ast.Ast.TYPE._
 import encrywm.frontend.ast.Ast.{EXPR, OPERATOR}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
 
-  val BinaryOperationResults: Seq[(Ast.OPERATOR, (Ast.TYPE, Ast.TYPE), Ast.TYPE)] = Seq(
+  import Types._
+
+  val BinaryOperationResults: Seq[(Ast.OPERATOR, (TYPE, TYPE), TYPE)] = Seq(
     (Add, (INT, INT), INT),
     (Add, (INT, LONG), LONG),
     (Add, (LONG, INT), LONG),

@@ -1,19 +1,20 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.builtins.{Attribute, Builtins, ESObject}
-import encrywm.frontend.ast.Ast
+import encrywm.builtins.{Attribute, ESObject}
 
 // TODO: Implement Scope initialization process.
 object InitialScope {
 
-  val attrs = Set(
-    Attribute("timestamp", Ast.TYPE.LONG, 1123455L),
-    Attribute("sender", Ast.TYPE.STRING, "Ivan")
+  import encrywm.builtins.Types._
+
+  val attrs = Seq(
+    Attribute("timestamp", LONG, 1123455L),
+    Attribute("sender", STRING, "Ivan")
   )
   val tx = ESObject("transaction", attrs)
 
-  private val builtinSymbs = Builtins.StaticBuiltInTypes.map(_.symbol).toSeq :+
-    BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.name)))))
+  private val builtinSymbs = staticTypes.map(_._2.symbol).toSeq :+
+    BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.identifier)))))
 
   def global: ScopedSymbolTable = {
     val symtab = new ScopedSymbolTable("GLOBAL", 1)

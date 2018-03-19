@@ -1,11 +1,13 @@
 package encrywm.frontend.semantics
 
-import encrywm.builtins.{Builtins, ESMath}
-import encrywm.frontend.ast.Ast.{EXPR, TYPE, _}
+import encrywm.builtins.ESMath
+import encrywm.frontend.ast.Ast.{EXPR, _}
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope.{FuncSymbol, ScopedSymbolTable}
 
 class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends TreeNodeScanner {
+
+  import encrywm.builtins.Types._
 
   def processedTree: TREE_ROOT = {
     scanRoot(tree)
@@ -28,17 +30,19 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
     case asg: STMT.Assign => asg.target match {
         case decl: EXPR.Decl =>
           val valueType = getType(asg.value)
-          decl.typeOpt.foreach(typeId => assertEquals(typeFromId(typeId), valueType))
+          val declTypeOpt = decl.typeOpt.map(t => scope.lookup(t.name).map(s => TYPE_REF(s.name))
+            .getOrElse(throw NameError(t.name)))
+          declTypeOpt.foreach(tpe => assertEquals(tpe, valueType))
         case _ => // Do nothing.
       }
 
     case fd: STMT.FunctionDef =>
       val retType = findReturns(fd.body).map(_.value.map(getType)).foldLeft(Seq[TYPE]()) { case (acc, tOpt) =>
-        val tpe = tOpt.getOrElse(TYPE.UNIT)
+        val tpe = tOpt.getOrElse(UNIT)
         if (acc.nonEmpty) assertEquals(acc.head, tpe)
         acc :+ tpe
-      }.headOption.getOrElse(TYPE.UNIT)
-      assertEquals(typeFromId(fd.returnType), retType)
+      }.headOption.getOrElse(UNIT)
+      assertEquals(staticTypeById(fd.returnType.name).get, retType)
 
     case expr: STMT.Expr => getType(expr.value)
 
@@ -68,19 +72,18 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
     exp.tpeOpt.getOrElse {
       exp match {
         case n: EXPR.Name => scope.lookup(n.id.name)
-          .flatMap(r => Builtins.StaticBuiltInTypes.find(_.symbol.name == r.tpeOpt.get.name).map(_.astType))
+          .map(r => staticTypeById(r.tpeOpt.get.name).getOrElse(TYPE_REF(r.name))) // TODO: .get
           .getOrElse(throw NameError(n.id.name))
 
         case fc: EXPR.Call =>
           fc.func match {
             case n: EXPR.Name =>
               scope.lookup(n.id.name).map { case sym: FuncSymbol =>
-                val args = sym.params.map(p => p.name -> p.tpeOpt.get).toIndexedSeq
-                fc.args.map(inferType).zip(args).foreach { case (t1, t2n) =>
-                  if (t1.name != t2n._2.name) throw TypeMismatchError(t1.name, t2n._2.name) // TODO: Compare types properly.
+                val args = sym.params.map(p => p.tpeOpt.get)
+                fc.args.map(inferType).zip(args).foreach { case (t1, t2s) =>
+                  if (t1.identifier != t2s.name) throw TypeMismatchError(t1.identifier, t2s.name) // TODO: Compare types properly.
                 }
-                sym.tpeOpt.flatMap(r =>
-                  Builtins.StaticBuiltInTypes.find(t => t.symbol.name == r.tpeOpt.get.name).map(_.astType))
+                sym.tpeOpt.flatMap(r => staticTypeById(r.name))
                   .getOrElse(throw new SemanticError("Illegal return type."))
               }.getOrElse(throw IllegalExprError)
 
@@ -90,7 +93,8 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
         case bop: EXPR.BinOp =>
           ESMath.ensureZeroDivision(bop.op, bop.right)
           ESMath.BinaryOperationResults.find {
-            case (op, (o1, o2), _) => bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
+            case (op, (o1, o2), _) =>
+              bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
           }.map(_._3).getOrElse(throw IllegalOperandError)
 
         case ifExp: EXPR.IfExp =>
@@ -106,9 +110,6 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
     }
   }
 
-  private def typeFromId(id: Identifier): TYPE =
-    Builtins.StaticBuiltInTypes.find(t => t.symbol.name == id.name).get.astType
-
   private def assertEquals(t1: TYPE, t2: TYPE): Unit =
-    if (t1 != t2) throw TypeMismatchError(t1.name, t2.name)
+    if (t1 != t2) throw TypeMismatchError(t1.identifier, t2.identifier)
 }

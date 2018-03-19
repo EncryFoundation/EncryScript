@@ -21,6 +21,8 @@ class SemanticProcessorSpec extends PropSpec with Matchers {
 
     val processTry = SemanticProcessor.processTree(treeRoot)
 
+    processTry.get
+
     processTry.isSuccess shouldBe true
   }
 
@@ -53,6 +55,8 @@ class SemanticProcessorSpec extends PropSpec with Matchers {
     val treeRoot = treeParsed.get.value
 
     val processTry = SemanticProcessor.processTree(treeRoot)
+
+    processTry.get
 
     processTry.isSuccess shouldBe true
   }
