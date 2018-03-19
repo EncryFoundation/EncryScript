@@ -20,7 +20,7 @@ object Generator {
         Identifier(s"count $count"),
         Arguments(List()),
         generateSTMTs(count-1),
-        Identifier("mnopqrstu")
+        Identifier("mnopqrst")
       )
     }
 
