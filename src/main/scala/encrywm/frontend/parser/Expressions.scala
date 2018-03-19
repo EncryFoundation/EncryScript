@@ -122,7 +122,7 @@ object Expressions {
   val tuple = P( tupleContents).map(Ast.EXPR.Tuple(_, Ast.EXPR_CTX.Load))
 
   // TODO: Do we need lambdas?
-  val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ varargslist ~ ":" ~ test ).map(Ast.EXPR.Lambda.tupled )
+  val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ varargslist ~ ":" ~ test ).map { case (args, exp) => Ast.EXPR.Lambda(args, exp) }
 
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
     val call = P("(" ~ arglist ~ ")").map { case (args, keywords) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args, keywords) }
@@ -161,7 +161,7 @@ object Expressions {
       }
     )
 
-    val set: P[Ast.EXPR.Set] = P( test.rep(1, ",") ~ ",".? ).map(Ast.EXPR.Set)
+    val set: P[Ast.EXPR.Set] = P( test.rep(1, ",") ~ ",".? ).map(exp => Ast.EXPR.Set(exp))
     P( dict | set )
   }
 

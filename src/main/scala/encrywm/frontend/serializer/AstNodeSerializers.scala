@@ -136,15 +136,6 @@ object AugAssignSerializer extends TreeNodeSerializer[AugAssign] {
   val prefix: Byte = 8
 }
 
-object PrintSerializer extends TreeNodeSerializer[Print]{
-
-  override def toBytes(tree: Print): Array[Byte] = ???
-
-  override def fromBytes(bytes: Array[Byte]): Option[Print] = ???
-
-  val prefix: Byte = 9
-}
-
 object ForSerializer extends TreeNodeSerializer[For]{
 
   override def toBytes(tree: For): Array[Byte] = ???
@@ -537,7 +528,6 @@ object STMTSerializer extends TreeNodeSerializer[STMT]{
       case r: Return => ReturnSerializer.toBytes(r)
       case assign: Assign => AssignSerializer.toBytes(assign)
       case augAssign: AugAssign => AugAssignSerializer.toBytes(augAssign)
-      case print: Print => PrintSerializer.toBytes(print)
       case f: For => ForSerializer.toBytes(f)
       case i: If => IfSerializer.toBytes(i)
       case assert: Assert => AssertSerializer.toBytes(assert)
@@ -559,7 +549,6 @@ object STMTSerializer extends TreeNodeSerializer[STMT]{
       case ReturnSerializer.prefix => ReturnSerializer.fromBytes(bytes.slice(1, bytes.length))
       case AssignSerializer.prefix => AssignSerializer.fromBytes(bytes.slice(1, bytes.length))
       case AugAssignSerializer.prefix => AugAssignSerializer.fromBytes(bytes.slice(1, bytes.length))
-      case PrintSerializer.prefix => PrintSerializer.fromBytes(bytes.slice(1, bytes.length))
       case ForSerializer.prefix => ForSerializer.fromBytes(bytes.slice(1, bytes.length))
       case IfSerializer.prefix => IfSerializer.fromBytes(bytes.slice(1, bytes.length))
       case AssertSerializer.prefix => AssertSerializer.fromBytes(bytes.slice(1, bytes.length))

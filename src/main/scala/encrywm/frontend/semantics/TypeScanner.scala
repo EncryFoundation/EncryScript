@@ -59,59 +59,50 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
 
   private def getType(exp: EXPR): TYPE = {
 
-    def inferType(e: EXPR): TYPE = e match {
-      case expr: EXPR.TYPED_EXPR =>
-        val tpe = getType(expr)
-        if (expr.tpeOpt.isEmpty) expr.tpeOpt = Some(tpe)
-        tpe
-      case _ => throw IllegalExprError
+    def inferType(e: EXPR): TYPE = {
+      val tpe = getType(e)
+      if (e.tpeOpt.isEmpty) e.tpeOpt = Some(tpe)
+      tpe
     }
 
-    exp match {
-      case expr: EXPR.TYPED_EXPR => expr.tpeOpt.getOrElse {
-        expr match {
-          case n: EXPR.Name => scope.lookup(n.id.name)
-            .flatMap(r => Builtins.StaticBuiltInTypes.find(_.symbol.name == r.tpeOpt.get.name).map(_.astType))
-            .getOrElse(throw NameError(n.id.name))
+    exp.tpeOpt.getOrElse {
+      exp match {
+        case n: EXPR.Name => scope.lookup(n.id.name)
+          .flatMap(r => Builtins.StaticBuiltInTypes.find(_.symbol.name == r.tpeOpt.get.name).map(_.astType))
+          .getOrElse(throw NameError(n.id.name))
 
-          case fc: EXPR.Call =>
-            fc.func match {
-              case n: EXPR.Name =>
-                scope.lookup(n.id.name).map { case sym: FuncSymbol =>
-                  val args = sym.params.map(p => p.name -> p.tpeOpt.get).toIndexedSeq
-                  fc.args.map(inferType).zip(args).foreach { case (t1, t2n) =>
-                    if (t1.name != t2n._2.name) throw TypeMismatchError(t1.name, t2n._2.name) // TODO: Compare types properly.
-                  }
-                  sym.tpeOpt.flatMap(r =>
-                    Builtins.StaticBuiltInTypes.find(t => t.symbol.name == r.tpeOpt.get.name).map(_.astType))
-                    .getOrElse(throw new SemanticError("Illegal return type."))
-                }.getOrElse(throw IllegalExprError)
+        case fc: EXPR.Call =>
+          fc.func match {
+            case n: EXPR.Name =>
+              scope.lookup(n.id.name).map { case sym: FuncSymbol =>
+                val args = sym.params.map(p => p.name -> p.tpeOpt.get).toIndexedSeq
+                fc.args.map(inferType).zip(args).foreach { case (t1, t2n) =>
+                  if (t1.name != t2n._2.name) throw TypeMismatchError(t1.name, t2n._2.name) // TODO: Compare types properly.
+                }
+                sym.tpeOpt.flatMap(r =>
+                  Builtins.StaticBuiltInTypes.find(t => t.symbol.name == r.tpeOpt.get.name).map(_.astType))
+                  .getOrElse(throw new SemanticError("Illegal return type."))
+              }.getOrElse(throw IllegalExprError)
 
-              case _ => throw IllegalExprError
-            }
+            case _ => throw IllegalExprError
+          }
 
-          case bop: EXPR.BinOp =>
-            (bop.left, bop.right) match {
-              case (lt: EXPR.TYPED_EXPR, rt: EXPR.TYPED_EXPR) =>
-                ESMath.ensureZeroDivision(bop.op, rt)
-                ESMath.BinaryOperationResults.find {
-                  case (op, (o1, o2), _) => bop.op == op && o1 == inferType(lt) && o2 == inferType(rt)
-                }.map(_._3).getOrElse(throw IllegalOperandError)
-              case _ => throw IllegalExprError
-            }
+        case bop: EXPR.BinOp =>
+          ESMath.ensureZeroDivision(bop.op, bop.right)
+          ESMath.BinaryOperationResults.find {
+            case (op, (o1, o2), _) => bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
+          }.map(_._3).getOrElse(throw IllegalOperandError)
 
-          case ifExp: EXPR.IfExp =>
-            val bodyType = inferType(ifExp.body)
-            val elseType = inferType(ifExp.orelse)
-            if (bodyType != elseType) throw IllegalExprError
-            bodyType
+        case ifExp: EXPR.IfExp =>
+          val bodyType = inferType(ifExp.body)
+          val elseType = inferType(ifExp.orelse)
+          if (bodyType != elseType) throw IllegalExprError
+          bodyType
 
-          case uop: EXPR.UnaryOp => inferType(uop.operand)
+        case uop: EXPR.UnaryOp => inferType(uop.operand)
 
-          case _ => throw IllegalExprError
-        }
+        case _ => throw IllegalExprError
       }
-      case _ => throw IllegalExprError
     }
   }
 

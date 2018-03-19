@@ -49,9 +49,8 @@ class Statements(indent: Int){
   val stmt: P[Seq[Ast.STMT]] = P( compoundStmt.map(Seq(_)) | simpleStmt )
 
   val simpleStmt: P[Seq[Ast.STMT]] = P( smallStmt.rep(1, sep = ";") ~ ";".? )
-  val smallStmt: P[Ast.STMT] = P(
-    printStmt | flowStmt | assertStmt | exprStmt
-  )
+  val smallStmt: P[Ast.STMT] = P( flowStmt | assertStmt | exprStmt)
+
   val exprStmt: P[Ast.STMT] = {
     val aug = P( testlist ~ augassign ~ test )
     val tstl = P( testlist )
@@ -76,18 +75,11 @@ class Statements(indent: Int){
       "//=".!.map(_ => Ast.OPERATOR.FloorDiv)
   )
 
-  // TODO: For debug?
-  val printStmt: P[Ast.STMT.Print] = {
-    val noDest = P( test.rep(sep = ",") ~ ",".? ).map(Ast.STMT.Print(None, _, nl = true))
-    val dest = P( ">>" ~ test ~ ("," ~ test).rep ~ ",".?).map { case (d, exprs) => Ast.STMT.Print(Some(d), exprs, nl = true) }
-    P("print" ~~ " ".rep ~~ (noDest | dest))
-  }
-
   val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | unlockStmt )
 
   // Those statements are under discussion now.
   val unlockStmt = P(kwd("unlock") ).map(_ => Ast.STMT.Unlock)
-  val abortStmt = P(kwd("abort") ).map(_ => Ast.STMT.Abort)
+  val abortStmt = P(kwd("abort") ).map(_ => Ast.STMT.Halt)
 
   val returnStmt = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 

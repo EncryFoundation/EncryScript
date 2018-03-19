@@ -6,8 +6,6 @@ object Ast {
 
   sealed trait AST_NODE
 
-  case class Identifier(name: String)
-
   sealed trait TYPE {
     type Underlying
     val name: String
@@ -79,9 +77,8 @@ object Ast {
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Assign(target: EXPR, value: EXPR) extends STMT
+    // Do we need operators like `+=`, `-=`, etc?
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT
-
-    case class Print(dest: Option[EXPR], values: Seq[EXPR], nl: Boolean) extends STMT
 
     case class For(target: EXPR, iter: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
     case class If(test: EXPR, body: Seq[STMT], orelse: Seq[STMT]) extends STMT
@@ -92,49 +89,46 @@ object Ast {
 
     // Under discussion
     case object Unlock extends STMT
-    case object Abort extends STMT
+    case object Halt extends STMT
 
     // col_offset is the byte offset in the utf8 string the parser uses
     case class attributes(lineno: Int, col_offset: Int)
   }
 
-  sealed trait EXPR extends AST_NODE
+  sealed trait EXPR extends AST_NODE { var tpeOpt: Option[TYPE] }
   object EXPR {
 
-    sealed trait TYPED_EXPR extends EXPR { var tpeOpt: Option[TYPE] }
-
-    case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
-    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class UnaryOp(op: UNARY_OP, operand: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class Lambda(args: Arguments, body: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
+    case class BoolOp(op: BOOL_OP, values: Seq[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
+    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
     // Sequences are required for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
-    case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends TYPED_EXPR {
+    case class Compare(left: EXPR, ops: Seq[COMP_OP], comparators: Seq[EXPR]) extends EXPR {
       override var tpeOpt: Option[TYPE] = Some(TYPE.BOOLEAN) }
-    case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
+    case class Call(func: EXPR, args: Seq[EXPR], keywords: Seq[Keyword], override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    sealed trait Num extends TYPED_EXPR
-    case class IntConst(n: Int) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.INT) }
-    case class LongConst(n: Long) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.LONG) }
-    case class FloatConst(n: Float) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.FLOAT) }
-    case class DoubleConst(n: Double) extends Num { var tpeOpt: Option[TYPE] = Some(TYPE.DOUBLE) }
+    sealed trait Num extends EXPR
+    case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.INT) }
+    case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.LONG) }
+    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.FLOAT) }
+    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(TYPE.DOUBLE) }
 
-    case class Str(s: String) extends TYPED_EXPR { override var tpeOpt: Option[TYPE] = Some(TYPE.STRING) }
+    case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(TYPE.STRING) }
 
     // The following expression can appear in assignment context
-    case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class Name(id: Identifier, ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
+    case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    case class Dict(keys: Seq[EXPR], values: Seq[EXPR]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class Set(elts: Seq[EXPR]) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class List(elts: Seq[EXPR], ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
-    case class Tuple(elts: Seq[EXPR], ctx: EXPR_CTX) extends TYPED_EXPR { var tpeOpt: Option[TYPE] = None }
+    case class Dict(keys: Seq[EXPR], values: Seq[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Set(elts: Seq[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class List(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Tuple(elts: Seq[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    // TODO: This expr stands out, shouldn't we move it to STMTs?
-    case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR
+    case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(TYPE.UNIT) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses
@@ -209,6 +203,8 @@ object Ast {
 
     case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: Seq[STMT]) extends EXCP_HANDLER
   }
+
+  case class Identifier(name: String)
 
   case class Arguments(args: Seq[EXPR.Decl]) extends AST_NODE
 
