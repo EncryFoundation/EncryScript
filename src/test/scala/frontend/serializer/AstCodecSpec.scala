@@ -3,7 +3,7 @@ package frontend.serializer
 import org.scalatest.{Matchers, PropSpec}
 import encrywm.frontend.ast.AstCodec._
 
-class SerializerTest extends PropSpec with Matchers {
+class AstCodecSpec extends PropSpec with Matchers {
 
   property("Contract serializer"){
 

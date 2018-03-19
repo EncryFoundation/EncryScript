@@ -3,12 +3,10 @@ package encrywm.frontend.ast
 import encrywm.builtins.Types
 import encrywm.builtins.Types.TYPE
 import encrywm.frontend.ast.Ast._
-import scodec.{Codec, codecs}
+import scodec.Codec
 import scodec.codecs.{Discriminated, uint2, uint4, uint8}
 
 object AstCodec {
-
-  import codecs.implicits._
 
   implicit def dRoot = Discriminated[TREE_ROOT, Int](uint2)
   implicit def dCon = dRoot.bind[TREE_ROOT.Contract](0)
@@ -115,5 +113,4 @@ object AstCodec {
   implicit def dAlias = dAN.bind[Alias](2)
 
   val codec: Codec[TREE_ROOT] = Codec[TREE_ROOT]
-
 }
