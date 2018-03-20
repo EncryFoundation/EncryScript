@@ -1,6 +1,6 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.builtins.{Attribute, ESObject}
+import encrywm.builtins.{Attribute, ComplexType}
 
 // TODO: Implement Scope initialization process.
 object InitialScope {
@@ -8,10 +8,10 @@ object InitialScope {
   import encrywm.builtins.Types._
 
   val attrs = Seq(
-    Attribute("timestamp", LONG, 1123455L),
-    Attribute("sender", STRING, "Ivan")
+    Attribute("timestamp", LONG),
+    Attribute("sender", STRING)
   )
-  val tx = ESObject("transaction", attrs)
+  val tx = ComplexType("transaction", attrs)
 
   private val builtinSymbs = staticTypes.map(_._2.symbol).toSeq :+
     BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.identifier)))))

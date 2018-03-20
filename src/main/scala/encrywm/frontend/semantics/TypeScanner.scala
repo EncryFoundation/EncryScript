@@ -81,7 +81,7 @@ class TypeScanner(val tree: TREE_ROOT, val scope: ScopedSymbolTable) extends Tre
               scope.lookup(n.id.name).map { case sym: FuncSymbol =>
                 val args = sym.params.map(p => p.tpeOpt.get)
                 fc.args.map(inferType).zip(args).foreach { case (t1, t2s) =>
-                  if (t1.identifier != t2s.name) throw TypeMismatchError(t1.identifier, t2s.name) // TODO: Compare types properly.
+                  if (t1 != t2s) throw TypeMismatchError(t1.identifier, t2s.name)
                 }
                 sym.tpeOpt.flatMap(r => staticTypeById(r.name))
                   .getOrElse(throw new SemanticError("Illegal return type."))

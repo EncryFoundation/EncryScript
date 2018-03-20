@@ -70,7 +70,7 @@ object Types {
   }
 
   case class TYPE_REF(identifier: String) extends TYPE {
-    override type Underlying = ESObject
+    override type Underlying = ComplexType
 
     override def equals(obj: scala.Any): Boolean = obj match {
       case tr: TYPE_REF => this.identifier == tr.identifier
