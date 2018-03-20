@@ -8,8 +8,8 @@ object InitialScope {
   import encrywm.builtins.Types._
 
   val attrs = Seq(
-    Attribute("timestamp", LONG, 1123455L),
-    Attribute("sender", STRING, "Ivan")
+    Attribute("timestamp", LONG, null),
+    Attribute("sender", STRING, null)
   )
   val tx = ESObject("transaction", attrs)
 
