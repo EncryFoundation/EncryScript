@@ -10,3 +10,9 @@ class ScopedSymbolTable(val scopeName: String,
       case _ => None
     }
 }
+
+object ScopedSymbolTable {
+
+  def apply(name: String, oldScope: ScopedSymbolTable): ScopedSymbolTable =
+    new ScopedSymbolTable(name, oldScope.scopeLevel + 1, Some(oldScope))
+}

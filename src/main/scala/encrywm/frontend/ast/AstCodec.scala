@@ -114,5 +114,5 @@ object AstCodec {
   implicit def dKeyword = dAN.bind[Keyword](1)
   implicit def dAlias = dAN.bind[Alias](2)
 
-  //val codec: Codec[TREE_ROOT] = Codec[TREE_ROOT]
+  val codec: Codec[TREE_ROOT] = Codec[TREE_ROOT]
 }
