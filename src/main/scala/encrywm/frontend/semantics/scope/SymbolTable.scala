@@ -4,7 +4,7 @@ import encrywm.frontend.semantics.error.AlreadyDefinedError
 
 import scala.collection.mutable
 
-class SymbolTable {
+trait SymbolTable {
 
   protected val symbols: mutable.TreeMap[String, Symbol] = mutable.TreeMap.empty[String, Symbol]
 
