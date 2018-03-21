@@ -1,6 +1,6 @@
 package frontend.parser
 
-import encrywm.frontend.ast.Ast
+import encrywm.ast.Ast
 import encrywm.frontend.parser.Statements
 import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}

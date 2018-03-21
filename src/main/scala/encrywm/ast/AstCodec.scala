@@ -1,8 +1,8 @@
-package encrywm.frontend.ast
+package encrywm.ast
 
 import encrywm.builtins.Types
 import encrywm.builtins.Types.TYPE
-import encrywm.frontend.ast.Ast._
+import encrywm.ast.Ast._
 import scodec.Codec
 import scodec.codecs.{Discriminated, uint2, uint4, uint8}
 

@@ -2,7 +2,8 @@ package encrywm.frontend.semantics
 
 import encrywm.builtins.ESMath
 import encrywm.builtins.Types._
-import encrywm.frontend.ast.Ast._
+import encrywm.ast.Ast._
+import encrywm.ast.TreeNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
 import encrywm.utils.Stack
@@ -15,11 +16,6 @@ object StaticAnalyser extends TreeNodeScanner {
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
-
-  def scanTreeAndGetSymtable(node: TREE_ROOT): ScopedSymbolTable = {
-    scanRoot(node)
-    currentScopeOpt.getOrElse(throw MissedContextError)
-  }
 
   override def scan(node: AST_NODE): Unit = node match {
     case tr: TREE_ROOT => scanRoot(tr)

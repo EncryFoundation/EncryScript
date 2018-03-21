@@ -1,7 +1,7 @@
 package frontend.serializer
 
 import org.scalatest.{Matchers, PropSpec}
-import encrywm.frontend.ast.AstCodec._
+import encrywm.ast.AstCodec._
 
 class AstCodecSpec extends PropSpec with Matchers {
 

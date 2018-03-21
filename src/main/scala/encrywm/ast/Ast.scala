@@ -1,4 +1,4 @@
-package encrywm.frontend.ast
+package encrywm.ast
 
 object Ast {
 

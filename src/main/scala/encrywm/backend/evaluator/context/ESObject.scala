@@ -1,4 +1,4 @@
-package encrywm.backend.interpreter.context
+package encrywm.backend.evaluator.context
 
 case class ESObject(name: String, attrs: Seq[ESValue]) extends ESCtxComponent
 

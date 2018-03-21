@@ -1,7 +1,7 @@
-package encrywm.backend.interpreter.context
+package encrywm.backend.evaluator.context
 
 import encrywm.builtins.Types.TYPE
-import encrywm.frontend.ast.Ast.STMT
+import encrywm.ast.Ast.STMT
 
 case class ESFunc(name: String,
                   args: IndexedSeq[(String, TYPE)],

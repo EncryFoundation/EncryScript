@@ -1,4 +1,4 @@
-package encrywm.backend.interpreter.context
+package encrywm.backend.evaluator.context
 
 class ScopedRuntimeContext(val name: String,
                            val level: Int,

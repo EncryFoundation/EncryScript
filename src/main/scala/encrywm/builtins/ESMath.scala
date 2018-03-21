@@ -1,8 +1,8 @@
 package encrywm.builtins
 
-import encrywm.frontend.ast.Ast
-import encrywm.frontend.ast.Ast.OPERATOR._
-import encrywm.frontend.ast.Ast.{EXPR, OPERATOR}
+import encrywm.ast.Ast
+import encrywm.ast.Ast.OPERATOR._
+import encrywm.ast.Ast.{EXPR, OPERATOR}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
