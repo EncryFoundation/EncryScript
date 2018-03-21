@@ -1,7 +1,7 @@
 package encrywm.backend.evaluator
 
 import encrywm.ast.Ast._
-import encrywm.backend.evaluator.context.ScopedRuntimeContext
+import encrywm.backend.evaluator.context.{ESValue, ScopedRuntimeContext}
 import monix.eval.Coeval
 
 class Evaluator {
@@ -11,6 +11,8 @@ class Evaluator {
   private lazy val globalContext: ScopedRuntimeContext = ??? // Initialize global ctx.
 
   def evaluate(node: AST_NODE, context: ScopedRuntimeContext): EvalOutcome = {
+
+    var currentCtx = context
 
     def eval[T](expr: EXPR, ctx: ScopedRuntimeContext): EvalResult[T] = expr match {
       case n: EXPR.Name => ???
@@ -32,7 +34,12 @@ class Evaluator {
         case contract: TREE_ROOT.Contract =>
           evalMany(contract.body)
       }
-      case asg: STMT.Assign => // How to mutate ctx??
+      case asg: STMT.Assign => asg.target match {
+        case n: EXPR.Name =>
+          currentCtx = currentCtx.updated(
+            ESValue(n.id.name, asg.value.tpeOpt.getOrElse(throw EvaluationError("Undefined type"))))
+          Right(Locked)
+      }
     }
   }
 }

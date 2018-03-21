@@ -8,7 +8,7 @@ class ScopedRuntimeContext(val name: String,
                            override val display: Map[String, Byte],
                            parentOpt: Option[ScopedRuntimeContext] = None) extends RuntimeContext {
 
-  def updated(s: Any): RuntimeContext = s match {
+  def updated(s: Any): ScopedRuntimeContext = s match {
     case o: ESObject =>
       new ScopedRuntimeContext(
         name,
