@@ -155,4 +155,5 @@ object Ast {
 
   // import name with optional 'as' alias.
   case class Alias(name: Identifier, asname: Option[Identifier]) extends AST_NODE
+
 }

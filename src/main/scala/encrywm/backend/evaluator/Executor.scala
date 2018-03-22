@@ -39,7 +39,6 @@ class Executor {
           op match {
             case _: OPERATOR.Add.type =>
               val r = Math.sum[opT.Underlying](leftV, rightV)
-              println(r)
               r
           }
 

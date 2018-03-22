@@ -1,5 +1,6 @@
 package encrywm.frontend.semantics.scope
 
+import encrywm.ast.Ast.STMT.FunctionDef
 import encrywm.builtins.{Attribute, ComplexType}
 
 // TODO: Implement Scope initialization process.
@@ -13,12 +14,23 @@ object InitialScope {
   )
   val tx = ComplexType("transaction", attrs)
 
+  val checkSig = FuncSymbol(
+    "checkSig",
+    Option(BuiltInTypeSymbol("bool")),
+    Seq(
+      VariableSymbol("checkSigArg1", Option(BuiltInTypeSymbol("bytes"))),
+      VariableSymbol("checkSigArg2", Option(BuiltInTypeSymbol("bytes"))),
+      VariableSymbol("checkSigArg3", Option(BuiltInTypeSymbol("bytes")))
+    )
+  )
+
   private val builtinSymbs = staticTypes.map(_._2.symbol).toSeq :+
     BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.identifier)))))
 
   def global: ScopedSymbolTable = {
     val symtab = new ScopedSymbolTable("GLOBAL", 1)
     builtinSymbs.foreach(symtab.insert)
+    symtab.insert(checkSig)
     symtab
   }
 }

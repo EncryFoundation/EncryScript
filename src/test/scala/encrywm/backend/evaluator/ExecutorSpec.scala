@@ -27,9 +27,5 @@ class ExecutorSpec extends PropSpec with Matchers {
     val exc = new Executor
 
     val excR = exc.execute(tree)
-
-    println(tree)
-
-    println(excR)
   }
 }

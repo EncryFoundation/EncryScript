@@ -24,13 +24,18 @@ object Lexer {
 
   // TODO: Cleanup.
   val keywords = Set(
-    "and",       "var",       "val",       "not",
-    "as",        "elif",      "abort",     "or",
-    "assert",    "else",      "if",        "pass",
-    "break",     "except",    "unlock",    "print",
-    "with",      "exec",      "in",        "raise",
-    "continue",  "let",       "is",        "return",
-    "def",       "for",       "lambda",    "try"
+    "and",            "var",            "val",            "not",
+    "as",             "elif",           "abort",          "or",
+    "assert",         "else",           "if",             "pass",
+    "break",          "except",         "unlock",         "print",
+    "with",           "exec",           "in",             "raise",
+    "continue",       "let",            "is",             "return",
+    "def",            "for",            "lambda",         "try",
+    "checkSigArg1",   "checkSigArg2",   "checkSigArg3"
+  )
+
+  val predefinedFunctionNames = Set(
+    "checkSig",       "isInstanceOf"
   )
 
   val stringliteral: P[String] = P( stringprefix.? ~ (longstring | shortstring) )
