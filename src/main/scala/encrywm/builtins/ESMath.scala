@@ -3,7 +3,6 @@ package encrywm.builtins
 import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{EXPR, OPERATOR}
-import encrywm.backend.evaluator.EvaluationError
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {

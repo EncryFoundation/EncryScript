@@ -1,4 +1,4 @@
-package encrywm.backend.evaluator
+package encrywm.backend.executor
 
 object Compare {
 
@@ -13,7 +13,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 == o2
       case (o1: Float, o2: Int) => o1 == o2
       case (o1: Int, o2: Float) => o1 == o2
-      case _ => throw EvaluationError("Unsupported operation")
+      case _ => throw ExecutionError("Unsupported operation")
     }
   }
 
@@ -28,7 +28,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 > o2
       case (o1: Float, o2: Int) => o1 > o2
       case (o1: Int, o2: Float) => o1 > o2
-      case _ => throw EvaluationError("Unsupported operation")
+      case _ => throw ExecutionError("Unsupported operation")
     }
   }
 
@@ -43,7 +43,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 >= o2
       case (o1: Float, o2: Int) => o1 >= o2
       case (o1: Int, o2: Float) => o1 >= o2
-      case _ => throw EvaluationError("Unsupported operation")
+      case _ => throw ExecutionError("Unsupported operation")
     }
   }
 
@@ -58,7 +58,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 < o2
       case (o1: Float, o2: Int) => o1 < o2
       case (o1: Int, o2: Float) => o1 < o2
-      case _ => throw EvaluationError("Unsupported operation")
+      case _ => throw ExecutionError("Unsupported operation")
     }
   }
 
@@ -73,7 +73,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 <= o2
       case (o1: Float, o2: Int) => o1 <= o2
       case (o1: Int, o2: Float) => o1 <= o2
-      case _ => throw EvaluationError("Unsupported operation")
+      case _ => throw ExecutionError("Unsupported operation")
     }
   }
 }

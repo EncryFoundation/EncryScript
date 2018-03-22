@@ -1,4 +1,4 @@
-package encrywm.backend.evaluator
+package encrywm.backend.executor
 
 import encrywm.ast.Ast.{AST_NODE, TREE_ROOT}
 import encrywm.frontend.parser.Statements

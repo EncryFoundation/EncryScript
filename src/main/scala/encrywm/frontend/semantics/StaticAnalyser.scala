@@ -101,20 +101,15 @@ object StaticAnalyser extends TreeNodeScanner {
   }
 
   private def scanExpr(node: EXPR): Unit = {
-    def scanAndInferType(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
-      scan(exp)
-      inferType(exp)
-    }
-
     node match {
       case n: EXPR.Name =>
         assertDefined(n.id.name)
-        inferType(n)
 
-      case bo: EXPR.BoolOp => bo.values.foreach(scan)
+      case bo: EXPR.BoolOp =>
+        bo.values.foreach(scan)
 
       case bin: EXPR.BinOp =>
-        scanAndInferType(Seq(bin.left, bin.right))
+        Seq(bin.left, bin.right).foreach(scan)
 
       case fc: EXPR.Call =>
         fc.func match {
@@ -127,7 +122,6 @@ object StaticAnalyser extends TreeNodeScanner {
             fc.keywords.map(_.value).foreach(scan)
           case _ => throw IllegalExprError
         }
-        inferType(fc)
 
       case attr: EXPR.Attribute =>
         if (!getAttributeBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
@@ -150,6 +144,7 @@ object StaticAnalyser extends TreeNodeScanner {
 
       case _ => // Do nothing.
     }
+    inferType(node)
   }
 
   private def addNameToScope(node: EXPR, tpe: TYPE): Unit = node match {

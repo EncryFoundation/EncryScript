@@ -1,7 +1,7 @@
-package encrywm.backend.evaluator
+package encrywm.backend.executor
 
 import encrywm.ast.Ast._
-import encrywm.backend.evaluator.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
+import encrywm.backend.executor.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
 
 import scala.util.{Random, Success, Try}
 
@@ -23,8 +23,8 @@ class Executor {
           currentCtx.get(id.name).map {
             case v: ESValue => v.value
             case o: ESObject => o
-            case f: ESFunc => throw EvaluationError(s"${f.name} is function")
-          }.getOrElse(throw EvaluationError("Unknown reference"))
+            case f: ESFunc => throw ExecutionError(s"${f.name} is function")
+          }.getOrElse(throw ExecutionError("Unknown reference"))
 
         case EXPR.BinOp(l, op, r, tpeOpt) =>
           val opT = tpeOpt.get
@@ -69,11 +69,18 @@ class Executor {
 
         case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, tpeOpt) =>
           currentCtx.get(id.name).map {
-            case f: ESFunc => execMany(f.body) match {
-              case Right(Result(Val(v))) => v
-              case _ => ???
-            }
+            case f: ESFunc =>
+              val nestedCtx = currentCtx.emptyChild(id.name) // TODO: Add args to ctx.
+              execute(f.body, nestedCtx) match {
+                case Right(Result(Val(v))) => v
+                case Right(Result(Unlocked)) => ???
+                case Right(Result(Halt)) => ???
+              }
           }
+
+        case EXPR.True => true
+
+        case EXPR.False => false
 
         case EXPR.IntConst(v) => v
 
@@ -83,7 +90,7 @@ class Executor {
 
         case EXPR.FloatConst(v) => v
 
-        case _ => throw EvaluationError("Unexpected expression")
+        case _ => throw ExecutionError("Unexpected expression")
       }).asInstanceOf[T]
     }
 
@@ -103,10 +110,10 @@ class Executor {
 
       case STMT.If(test, body, orelse) =>
         val testT = test.tpeOpt.get
-        val newCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
+        val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
         eval[testT.Underlying](test) match {
-          case true => execute(body, newCtx)
-          case false => execute(orelse, newCtx)
+          case true => execute(body, nestedCtx)
+          case false => execute(orelse, nestedCtx)
         }
 
       case STMT.Unlock => Right(Result(Unlocked))
