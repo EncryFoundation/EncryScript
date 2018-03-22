@@ -15,6 +15,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a: int = 9
+        |let b: bool = true
       """.stripMargin)
 
     val analyzer = StaticAnalyser

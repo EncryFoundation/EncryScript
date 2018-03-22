@@ -24,7 +24,7 @@ object Lexer {
 
   // TODO: Cleanup.
   val keywords = Set(
-    "and",       "var",       "val",       "not",
+    "and",       "not",       "true",      "false",
     "as",        "elif",      "abort",     "or",
     "assert",    "else",      "if",        "pass",
     "break",     "except",    "unlock",    "print",

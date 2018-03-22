@@ -16,7 +16,11 @@ object Expressions {
 
   val NAME: P[Ast.Identifier] = Lexer.identifier
   val NUMBER: P[Ast.EXPR.Num] = P( floatConstExpr | doubleConstExpr | longConstExpr| intConstExpr )
+  val BOOL: P[Ast.EXPR.BOOL] = P( trueExpr | falseExpr )
   val STRING: P[String] = Lexer.stringliteral
+
+  val trueExpr: P[Ast.EXPR.True] = P( kwd("true").rep(min = 1, max = 1).! ).map(v => Ast.EXPR.True(v.toBoolean))
+  val falseExpr: P[Ast.EXPR.False] = P( kwd("false").rep(min = 1, max = 1).! ).map(v => Ast.EXPR.False(v.toBoolean))
 
   val intConstExpr: P[Ast.EXPR.IntConst] = P( Lexer.integer ).map(Ast.EXPR.IntConst)
   val longConstExpr: P[Ast.EXPR.LongConst] = P( Lexer.longinteger ).map(Ast.EXPR.LongConst)
@@ -113,7 +117,8 @@ object Expressions {
         "{" ~ dictorsetmaker ~ "}" |
         STRING.rep(1).map(_.mkString).map(Ast.EXPR.Str) |
         NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Load)) |
-        NUMBER
+        NUMBER |
+        BOOL
     )
   }
   val listContents = P( test.rep(1, ",") ~ ",".? )
