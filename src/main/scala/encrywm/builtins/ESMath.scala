@@ -3,6 +3,7 @@ package encrywm.builtins
 import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{EXPR, OPERATOR}
+import encrywm.backend.evaluator.EvaluationError
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
@@ -29,6 +30,16 @@ object ESMath {
     (Mult, (FLOAT, FLOAT), FLOAT)
     // TODO: Complete the table.
   )
+
+  def sum[T](op1: Any, op2: Any): T = {
+    def checkType(v: Any): T = v match {
+      case t: T => t
+      case _ => throw EvaluationError("Unexpected type")
+    }
+    (op1, op2) match {
+      case (o1: Int, o2: Int) => checkType(o1 + o2)
+    }
+  }
 
   def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR): Unit = {
     operand2 match {
