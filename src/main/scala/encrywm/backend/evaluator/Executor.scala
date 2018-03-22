@@ -57,7 +57,7 @@ class Executor {
 
     def execMany(stmts: Seq[STMT]): ExecOutcome = {
       stmts.foreach { stmt =>
-        execute(stmt) match {
+        exec(stmt) match {
           case Left(outcome) => return Left(outcome)
           case _ => // Do nothing
         }
@@ -65,10 +65,7 @@ class Executor {
       Right(Locked)
     }
 
-    node match {
-      case root: TREE_ROOT => root match {
-        case TREE_ROOT.Contract(b) => execMany(b)
-      }
+    def exec(stmt: STMT): ExecOutcome = stmt match {
       case asg: STMT.Assign =>
         val valT = asg.value.tpeOpt.get
         asg.target match {
@@ -85,6 +82,11 @@ class Executor {
         Right(Locked)
 
       case STMT.Unlock => Left(Unlocked)
+    }
+
+    node match {
+      case TREE_ROOT.Contract(body) => execMany(body)
+      case TREE_ROOT.Expression(inner) => execMany(inner)
     }
   } match {
     case Success(Left(o)) => Left(o)

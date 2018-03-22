@@ -19,7 +19,7 @@ class ExecutorSpec extends PropSpec with Matchers {
     val tree = precess(
       """
         |let a = 999
-        |let b = 9L
+        |let b = 9
         |a + b
         |unlock
       """.stripMargin)
