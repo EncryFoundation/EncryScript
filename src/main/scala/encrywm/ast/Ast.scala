@@ -58,6 +58,10 @@ object Ast {
     case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(FLOAT) }
     case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(DOUBLE) }
 
+    sealed trait BOOL extends EXPR
+    case class True(n: Boolean) extends EXPR with BOOL { override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
+    case class False(n: Boolean) extends EXPR with BOOL { override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
+
     case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(STRING) }
 
     // The following expression can appear in assignment context
