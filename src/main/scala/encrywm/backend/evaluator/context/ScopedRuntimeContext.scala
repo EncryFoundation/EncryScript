@@ -46,3 +46,9 @@ class ScopedRuntimeContext(val name: String,
     case Some(r) => Some(r)
   }
 }
+
+object ScopedRuntimeContext {
+
+  def empty(n: String, l: Int): ScopedRuntimeContext =
+    new ScopedRuntimeContext(n, l, Map.empty, Map.empty, Map.empty, Map.empty, None)
+}

@@ -1,9 +1,8 @@
 package encrywm.backend.evaluator
 
 import encrywm.ast.Ast._
-import encrywm.backend.evaluator.context.{ESValue, ScopedRuntimeContext}
-import encrywm.builtins.ESMath
-import monix.eval.Coeval
+import encrywm.backend.evaluator.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
+import encrywm.utils.Stack
 
 import scala.util.{Success, Try}
 
@@ -11,22 +10,25 @@ class Executor {
 
   import Executor._
 
-  private lazy val globalContext: ScopedRuntimeContext = ??? // Initialize global ctx.
+  private var ctx: ScopedRuntimeContext = ScopedRuntimeContext.empty("GLOBAL", 1)
 
-  def execute(node: AST_NODE, context: ScopedRuntimeContext): ExecOutcome = Try {
+  private val ctxs: Stack[ScopedRuntimeContext] = new Stack
 
-    var currentCtx = context
+  def execute(node: AST_NODE): ExecOutcome = Try {
 
-    def eval[T](expr: EXPR): EvalResult[T] = {
-      def checkType(v: Any): EvalResult[T] = v match {
-        case t: T => Right(Coeval.evalOnce(t))
-        case _ => Left(EvaluationError("Unexpected type"))
+    def eval[T](expr: EXPR): T = {
+      def checkType(v: Any): T = v match {
+        case t: T => t
+        case _ => throw EvaluationError("Unexpected type")
       }
-
-      expr match {
-        case n: EXPR.Name => currentCtx.get(n.id.name).map {
-            case v: ESValue => checkType(v.value)
-          }.getOrElse(Left(EvaluationError("Unknown reference")))
+      (expr match {
+        case EXPR.Name(id, _, _) =>
+          ctx.get(id.name).map {
+            case v: ESValue =>
+              checkType(v.value)
+            case o: ESObject => checkType(o)
+            case f: ESFunc => throw EvaluationError(s"${f.name} is function")
+          }.getOrElse(throw EvaluationError("Unknown reference"))
 
         case EXPR.BinOp(l, op, r, tpeOpt) =>
           val opT = tpeOpt.get
@@ -35,18 +37,27 @@ class Executor {
           val leftV = eval[leftT.Underlying](l)
           val rightV = eval[rightT.Underlying](r)
           op match {
-            case add: OPERATOR.Add.type =>
-              val r = leftV.flatMap(lv => rightV.map(rv => ESMath.sum[opT.Underlying](lv.apply(), rv.apply())))
-              ???
+            case _: OPERATOR.Add.type =>
+              val r = Math.sum[opT.Underlying](leftV, rightV)
+              println(r)
+              r
           }
 
-        case _ =>
-      }
+        case EXPR.IntConst(v) => v
+
+        case EXPR.LongConst(v) => v
+
+        case EXPR.DoubleConst(v) => v
+
+        case EXPR.FloatConst(v) => v
+
+        case _ => throw EvaluationError("Unexpected expression")
+      }).asInstanceOf[T]
     }
 
     def execMany(stmts: Seq[STMT]): ExecOutcome = {
       stmts.foreach { stmt =>
-        execute(stmt, context) match {
+        execute(stmt) match {
           case Left(outcome) => return Left(outcome)
           case _ => // Do nothing
         }
@@ -56,15 +67,24 @@ class Executor {
 
     node match {
       case root: TREE_ROOT => root match {
-        case contract: TREE_ROOT.Contract =>
-          execMany(contract.body)
+        case TREE_ROOT.Contract(b) => execMany(b)
       }
-      case asg: STMT.Assign => asg.target match {
-        case n: EXPR.Name =>
-          currentCtx = currentCtx.updated(
-            ESValue(n.id.name, asg.value.tpeOpt.getOrElse(throw EvaluationError("Undefined type"))))
-          Right(Locked)
-      }
+      case asg: STMT.Assign =>
+        val valT = asg.value.tpeOpt.get
+        asg.target match {
+          case EXPR.Decl(t, _) => t match {
+            case EXPR.Name(id, _, _) =>
+              ctx = ctx.updated(
+                ESValue(id.name, valT)(eval[valT.Underlying](asg.value)))
+              Right(Locked)
+          }
+        }
+      case STMT.Expr(expr) =>
+        val exprT = expr.tpeOpt.get
+        eval[exprT.Underlying](expr)
+        Right(Locked)
+
+      case STMT.Unlock => Left(Unlocked)
     }
   } match {
     case Success(Left(o)) => Left(o)
@@ -77,8 +97,6 @@ object Executor {
   case object Unlocked
 
   case object Locked
-
-  type EvalResult[T] = Either[EvaluationError, Coeval[T]]
 
   type ExecOutcome = Either[Unlocked.type, Locked.type]
 }
