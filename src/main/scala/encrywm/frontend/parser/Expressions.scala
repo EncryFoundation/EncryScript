@@ -16,11 +16,11 @@ object Expressions {
 
   val NAME: P[Ast.Identifier] = Lexer.identifier
   val NUMBER: P[Ast.EXPR.Num] = P( floatConstExpr | doubleConstExpr | longConstExpr| intConstExpr )
-  val BOOL: P[Ast.EXPR.BOOL] = P( trueExpr | falseExpr )
+  val BOOL: P[Ast.EXPR.Bool] = P( trueExpr | falseExpr )
   val STRING: P[String] = Lexer.stringliteral
 
-  val trueExpr: P[Ast.EXPR.True] = P( kwd("true").rep(min = 1, max = 1).! ).map(v => Ast.EXPR.True(v.toBoolean))
-  val falseExpr: P[Ast.EXPR.False] = P( kwd("false").rep(min = 1, max = 1).! ).map(v => Ast.EXPR.False(v.toBoolean))
+  val trueExpr: P[Ast.EXPR.True.type] = P( kwd("true").rep(min = 1, max = 1).! ).map(_ => Ast.EXPR.True)
+  val falseExpr: P[Ast.EXPR.False.type] = P( kwd("false").rep(min = 1, max = 1).! ).map(_ => Ast.EXPR.False)
 
   val intConstExpr: P[Ast.EXPR.IntConst] = P( Lexer.integer ).map(Ast.EXPR.IntConst)
   val longConstExpr: P[Ast.EXPR.LongConst] = P( Lexer.longinteger ).map(Ast.EXPR.LongConst)
