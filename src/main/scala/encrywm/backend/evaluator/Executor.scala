@@ -2,31 +2,27 @@ package encrywm.backend.evaluator
 
 import encrywm.ast.Ast._
 import encrywm.backend.evaluator.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
-import encrywm.utils.Stack
 
-import scala.util.{Success, Try}
+import scala.util.{Random, Success, Try}
 
 class Executor {
 
   import Executor._
 
-  private var ctx: ScopedRuntimeContext = ScopedRuntimeContext.empty("GLOBAL", 1)
+  private val ctx: ScopedRuntimeContext = ScopedRuntimeContext.empty("GLOBAL", 1)
 
-  private val ctxs: Stack[ScopedRuntimeContext] = new Stack
+  def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
-  def execute(node: AST_NODE): ExecOutcome = Try {
+  private def execute(statements: Seq[STMT], context: ScopedRuntimeContext = ctx): ExecOutcome = Try {
+
+    var currentCtx = context
 
     def eval[T](expr: EXPR): T = {
-      def checkType(v: Any): T = v match {
-        case t: T => t
-        case _ => throw EvaluationError("Unexpected type")
-      }
       (expr match {
         case EXPR.Name(id, _, _) =>
-          ctx.get(id.name).map {
-            case v: ESValue =>
-              checkType(v.value)
-            case o: ESObject => checkType(o)
+          currentCtx.get(id.name).map {
+            case v: ESValue => v.value
+            case o: ESObject => o
             case f: ESFunc => throw EvaluationError(s"${f.name} is function")
           }.getOrElse(throw EvaluationError("Unknown reference"))
 
@@ -38,9 +34,45 @@ class Executor {
           val rightV = eval[rightT.Underlying](r)
           op match {
             case _: OPERATOR.Add.type =>
-              val r = Math.sum[opT.Underlying](leftV, rightV)
-              println(r)
-              r
+              Arith.sum[opT.Underlying](leftV, rightV)
+            case _: OPERATOR.Mult.type =>
+              Arith.mul[opT.Underlying](leftV, rightV)
+            case _: OPERATOR.Div.type =>
+              Arith.div[opT.Underlying](leftV, rightV)
+          }
+
+        case EXPR.BoolOp(op, os) => op match {
+          case BOOL_OP.And => ???
+          case BOOL_OP.Or => ???
+        }
+
+        case EXPR.Compare(left, ops, comps) =>
+          val leftT = left.tpeOpt.get
+          val leftV = eval[leftT.Underlying](left)
+          ops.zip(comps).forall {
+            case (COMP_OP.Eq, comp) =>
+              val compT = comp.tpeOpt.get
+              Compare.eq(leftV, eval[compT.Underlying](comp))
+            case (COMP_OP.Gt, comp) =>
+              val compT = comp.tpeOpt.get
+              Compare.gt(leftV, eval[compT.Underlying](comp))
+            case (COMP_OP.GtE, comp) =>
+              val compT = comp.tpeOpt.get
+              Compare.gte(leftV, eval[compT.Underlying](comp))
+            case (COMP_OP.Lt, comp) =>
+              val compT = comp.tpeOpt.get
+              Compare.lt(leftV, eval[compT.Underlying](comp))
+            case (COMP_OP.LtE, comp) =>
+              val compT = comp.tpeOpt.get
+              Compare.lte(leftV, eval[compT.Underlying](comp))
+          }
+
+        case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, tpeOpt) =>
+          currentCtx.get(id.name).map {
+            case f: ESFunc => execMany(f.body) match {
+              case Right(Result(Val(v))) => v
+              case _ => ???
+            }
           }
 
         case EXPR.IntConst(v) => v
@@ -55,50 +87,72 @@ class Executor {
       }).asInstanceOf[T]
     }
 
-    def execMany(stmts: Seq[STMT]): ExecOutcome = {
-      stmts.foreach { stmt =>
-        exec(stmt) match {
-          case Left(outcome) => return Left(outcome)
-          case _ => // Do nothing
-        }
-      }
-      Right(Locked)
-    }
-
     def exec(stmt: STMT): ExecOutcome = stmt match {
-      case asg: STMT.Assign =>
-        val valT = asg.value.tpeOpt.get
-        asg.target match {
-          case EXPR.Decl(t, _) => t match {
-            case EXPR.Name(id, _, _) =>
-              ctx = ctx.updated(
-                ESValue(id.name, valT)(eval[valT.Underlying](asg.value)))
-              Right(Locked)
-          }
-        }
+
+      case STMT.Assign(EXPR.Decl(EXPR.Name(id, _, _), _), value) =>
+        val valT = value.tpeOpt.get
+        currentCtx = currentCtx.updated(
+          ESValue(id.name, valT)(eval[valT.Underlying](value))
+        )
+        Left(ESUnit)
+
       case STMT.Expr(expr) =>
         val exprT = expr.tpeOpt.get
         eval[exprT.Underlying](expr)
-        Right(Locked)
+        Left(ESUnit)
 
-      case STMT.Unlock => Left(Unlocked)
+      case STMT.If(test, body, orelse) =>
+        val testT = test.tpeOpt.get
+        val newCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
+        eval[testT.Underlying](test) match {
+          case true => execute(body, newCtx)
+          case false => execute(orelse, newCtx)
+        }
+
+      case STMT.Unlock => Right(Result(Unlocked))
+
+      case STMT.Halt => Right(Result(Halt))
+
+      case STMT.Return(None) => Left(ESUnit)
+
+      case STMT.Return(Some(v)) =>
+        val valT = v.tpeOpt.get
+        Right(Result(Val(eval[valT.Underlying](v))))
     }
 
-    node match {
-      case TREE_ROOT.Contract(body) => execMany(body)
-      case TREE_ROOT.Expression(inner) => execMany(inner)
+    def execMany(stmts: Seq[STMT]): ExecOutcome = {
+      for (stmt <- stmts) {
+          exec(stmt) match {
+          case Right(Result(u: Unlocked.type)) =>
+            return Right(Result(u))
+          case Right(Result(h: Halt.type)) =>
+            return Right(Result(h))
+          case Right(Result(Val(v))) =>
+            return Right(Result(Val(v)))
+          case _ => // Do nothing
+        }
+      }
+      Left(ESUnit)
     }
+
+    execMany(statements)
   } match {
-    case Success(Left(o)) => Left(o)
-    case _ => Right(Locked)
+    case Success(Right(out)) => Right(out)
+    case _ => Left(ESUnit)
   }
 }
 
 object Executor {
 
+  type ExecOutcome = Either[ESUnit.type, Result]
+
+  case class Result(r: Any)
+
+  case class Val(v: Any)
+
   case object Unlocked
 
-  case object Locked
+  case object Halt
 
-  type ExecOutcome = Either[Unlocked.type, Locked.type]
+  case object ESUnit
 }

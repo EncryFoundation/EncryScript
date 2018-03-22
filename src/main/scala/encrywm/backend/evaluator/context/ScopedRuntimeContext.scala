@@ -41,6 +41,8 @@ class ScopedRuntimeContext(val name: String,
       )
   }
 
+  def emptyChild(n: String): ScopedRuntimeContext = ScopedRuntimeContext.empty(n, level + 1)
+
   override def get(id: String): Option[ESCtxComponent] = super.get(id) match {
     case None => parentOpt.flatMap(_.get(id))
     case Some(r) => Some(r)

@@ -100,48 +100,56 @@ object StaticAnalyser extends TreeNodeScanner {
     case _ => // Do nothing.
   }
 
-  private def scanExpr(node: EXPR): Unit = node match {
+  private def scanExpr(node: EXPR): Unit = {
+    def scanAndInferType(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
+      scan(exp)
+      inferType(exp)
+    }
 
-    case n: EXPR.Name => assertDefined(n.id.name)
+    node match {
+      case n: EXPR.Name =>
+        assertDefined(n.id.name)
+        inferType(n)
 
-    case bo: EXPR.BoolOp => bo.values.foreach(scan)
+      case bo: EXPR.BoolOp => bo.values.foreach(scan)
 
-    case bin: EXPR.BinOp =>
-      scan(bin.left)
-      scan(bin.right)
+      case bin: EXPR.BinOp =>
+        scanAndInferType(Seq(bin.left, bin.right))
 
-    case fc: EXPR.Call =>
-      fc.func match {
-        case n: EXPR.Name =>
-          val fn = currentScopeOpt.flatMap(_.lookup(n.id.name))
-            .getOrElse(throw NameError(n.id.name))
-          if (fn.asInstanceOf[FuncSymbol].params.size != fc.args.size + fc.keywords.size)
-            throw WrongNumberOfArgumentsError(fn.name)
-          fc.args.foreach(scan)
-          fc.keywords.map(_.value).foreach(scan)
-        case _ => throw IllegalExprError
-      }
+      case fc: EXPR.Call =>
+        fc.func match {
+          case n: EXPR.Name =>
+            val fn = currentScopeOpt.flatMap(_.lookup(n.id.name))
+              .getOrElse(throw NameError(n.id.name))
+            if (fn.asInstanceOf[FuncSymbol].params.size != fc.args.size + fc.keywords.size)
+              throw WrongNumberOfArgumentsError(fn.name)
+            fc.args.foreach(scan)
+            fc.keywords.map(_.value).foreach(scan)
+          case _ => throw IllegalExprError
+        }
+        inferType(fc)
 
-    case attr: EXPR.Attribute =>
-      if (!getAttributeBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
-        throw NameError(attr.attr.name)
+      case attr: EXPR.Attribute =>
+        if (!getAttributeBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
+          throw NameError(attr.attr.name)
 
-    case cmp: EXPR.Compare =>
-      cmp.comparators.foreach(scan)
-      scan(cmp.left)
+      case cmp: EXPR.Compare =>
+        cmp.comparators.foreach(scan)
+        scan(cmp.left)
 
-    case uop: EXPR.UnaryOp => scan(uop.operand)
+      case uop: EXPR.UnaryOp => scan(uop.operand)
 
-    case ifExp: EXPR.IfExp =>
-      Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scan)
+      case ifExp: EXPR.IfExp =>
+        Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scan)
 
-    case dct: EXPR.Dict =>
-      dct.keys.foreach(scan)
-      dct.values.foreach(scan)
+      case dct: EXPR.Dict =>
+        dct.keys.foreach(scan)
+        dct.values.foreach(scan)
 
-    case lst: EXPR.EList => lst.elts.foreach(scan)
+      case lst: EXPR.EList => lst.elts.foreach(scan)
 
-    case _ => // Do nothing.
+      case _ => // Do nothing.
+    }
   }
 
   private def addNameToScope(node: EXPR, tpe: TYPE): Unit = node match {
