@@ -47,6 +47,8 @@ class ScopedRuntimeContext(val name: String,
     case None => parentOpt.flatMap(_.get(id))
     case Some(r) => Some(r)
   }
+
+  override def toString: String = s"<ScopedContext name=$name lvl=$level objectsQty=${display.size}>"
 }
 
 object ScopedRuntimeContext {

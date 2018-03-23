@@ -2,6 +2,7 @@ package encrywm.backend.executor
 
 import encrywm.ast.Ast._
 import encrywm.backend.executor.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
+import encrywm.backend.executor.error._
 import encrywm.builtins.Types
 
 import scala.util.{Random, Success, Try}
@@ -24,8 +25,8 @@ class Executor {
           currentCtx.get(id.name).map {
             case v: ESValue => v.value
             case o: ESObject => o
-            case f: ESFunc => throw ExecutionError(s"${f.name} is function")
-          }.getOrElse(throw ExecutionError("Unknown reference"))
+            case _: ESFunc => throw IsFunctionError(id.name)
+          }.getOrElse(throw UnresolvedReferenceError(id.name))
 
         case EXPR.BinOp(l, op, r, tpeOpt) =>
           val opT = tpeOpt.get
@@ -72,22 +73,25 @@ class Executor {
           currentCtx.get(id.name).map {
             case f: ESFunc =>
               val arglist = currentCtx.get(id.name).map { case f: ESFunc => f.args }
-                .getOrElse(throw ExecutionError("Unknown reference"))
-              val pArgs = args.zip(arglist).map { case (exp, (argN, _)) =>
+                .getOrElse(throw UnresolvedReferenceError(id.name))
+              val argMap = args.zip(arglist).map { case (exp, (argN, _)) =>
                 val expT = exp.tpeOpt.get
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
+              }.map(v => v.name -> v).toMap
+              val ctxDisplay = argMap.map { case (n, _) =>
+                n -> ESValue.typeId
               }
               val nestedCtx =
-                ScopedRuntimeContext(id.name, currentCtx.level + 1, values = pArgs.map(v => v.name -> v).toMap) // TODO: Add kwargs.
+                ScopedRuntimeContext(id.name, currentCtx.level + 1, values = argMap, display = ctxDisplay) // TODO: Add kwargs.
               execute(f.body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => ???
                 case Right(Result(Halt)) => ???
                 case _ => // Do nothing.
               }
-            case other => throw ExecutionError(s"$other is not a function")
-          }.getOrElse(throw ExecutionError("Unknown reference"))
+            case other => throw NotAFunctionError(other.toString)
+          }.getOrElse(throw UnresolvedReferenceError(id.name))
 
         case EXPR.True => true
 
@@ -101,7 +105,7 @@ class Executor {
 
         case EXPR.FloatConst(v) => v
 
-        case _ => throw ExecutionError("Unexpected expression")
+        case exp => throw UnexpectedExpressionError(exp.toString)
       }).asInstanceOf[T]
     }
 
@@ -150,7 +154,7 @@ class Executor {
 
     def execMany(stmts: Seq[STMT]): ExecOutcome = {
       for (stmt <- stmts) {
-          exec(stmt) match {
+        exec(stmt) match {
           case Right(Result(u: Unlocked.type)) =>
             return Right(Result(u))
           case Right(Result(h: Halt.type)) =>
@@ -166,9 +170,7 @@ class Executor {
     execMany(statements)
   } match {
     case Success(Right(out)) => Right(out)
-    case r =>
-      println(r)
-      Left(ESUnit)
+    case _ => Left(ESUnit)
   }
 }
 

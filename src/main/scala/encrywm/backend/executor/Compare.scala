@@ -1,5 +1,7 @@
 package encrywm.backend.executor
 
+import encrywm.backend.executor.error.{ExecutionError, UnsupportedOperationError}
+
 object Compare {
 
   def eq(op1: Any, op2: Any): Boolean = {
@@ -13,7 +15,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 == o2
       case (o1: Float, o2: Int) => o1 == o2
       case (o1: Int, o2: Float) => o1 == o2
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -28,7 +30,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 > o2
       case (o1: Float, o2: Int) => o1 > o2
       case (o1: Int, o2: Float) => o1 > o2
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -43,7 +45,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 >= o2
       case (o1: Float, o2: Int) => o1 >= o2
       case (o1: Int, o2: Float) => o1 >= o2
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -58,7 +60,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 < o2
       case (o1: Float, o2: Int) => o1 < o2
       case (o1: Int, o2: Float) => o1 < o2
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -73,7 +75,7 @@ object Compare {
       case (o1: Double, o2: Double) => o1 <= o2
       case (o1: Float, o2: Int) => o1 <= o2
       case (o1: Int, o2: Float) => o1 <= o2
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 }

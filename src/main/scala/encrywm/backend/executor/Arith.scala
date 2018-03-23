@@ -1,10 +1,12 @@
 package encrywm.backend.executor
 
+import encrywm.backend.executor.error.{ExecutionError, UnsupportedOperationError}
+
 object Arith {
 
   def checkType[T](v: Any): T = v match {
     case t: T => t
-    case _ => throw ExecutionError("Unexpected type")
+    case _ => throw UnsupportedOperationError
   }
 
   def sum[T](op1: Any, op2: Any): T = {
@@ -17,7 +19,7 @@ object Arith {
       case (o1: Int, o2: Double) => checkType[T](o1 + o2)
       case (o1: Double, o2: Int) => checkType[T](o1 + o2)
       case (o1: Double, o2: Double) => checkType[T](o1 + o2)
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -31,7 +33,7 @@ object Arith {
       case (o1: Int, o2: Double) => checkType[T](o1 * o2)
       case (o1: Double, o2: Int) => checkType[T](o1 * o2)
       case (o1: Double, o2: Double) => checkType[T](o1 * o2)
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 
@@ -45,7 +47,7 @@ object Arith {
       case (o1: Int, o2: Double) => checkType[T](o1 / o2)
       case (o1: Double, o2: Int) => checkType[T](o1 / o2)
       case (o1: Double, o2: Double) => checkType[T](o1 / o2)
-      case _ => throw ExecutionError("Unsupported operation")
+      case _ => throw UnsupportedOperationError
     }
   }
 }
