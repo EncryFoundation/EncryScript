@@ -50,7 +50,7 @@ object Types {
     override val identifier: String = "string"
   }
   case object BYTE_VECTOR extends TYPE with STATIC {
-    override type Underlying = Array[Byte]
+    override type Underlying = Array[Byte]  // TODO: Switch to scodec.Bytevector
     override val identifier: String = "bytes"
   }
 

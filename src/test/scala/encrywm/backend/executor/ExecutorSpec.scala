@@ -123,10 +123,34 @@ class ExecutorSpec extends PropSpec with Matchers {
         |def sum(a: int, b: int) -> int:
         |    return a + b
         |
-        |if a >= sum(a, b):
-        |    abort
-        |else:
+        |if a <= sum(a, b):
         |    unlock
+        |else:
+        |    abort
+      """.stripMargin)
+
+    val exc = new Executor
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("If-expression in assignment") {
+
+    val tree = precess(
+      """
+        |let a = 0
+        |let b = 30
+        |
+        |let c = 100 if a < 30 else -50
+        |
+        |if a <= c:
+        |    unlock
+        |else:
+        |    abort
       """.stripMargin)
 
     val exc = new Executor

@@ -71,12 +71,10 @@ class Executor {
               Compare.lte(leftV, eval[compT.Underlying](comp))
           }
 
-        case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, tpeOpt) =>
+        case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, _) =>
           currentCtx.get(id.name).map {
             case f: ESFunc =>
-              val argList = currentCtx.get(id.name).map { case f: ESFunc => f.args }
-                .getOrElse(throw UnresolvedReferenceError(id.name))
-              val argMap = args.zip(argList).map { case (exp, (argN, _)) =>
+              val argMap = args.zip(f.args).map { case (exp, (argN, _)) =>
                 val expT = exp.tpeOpt.get
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
@@ -89,11 +87,25 @@ class Executor {
               execute(f.body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => ???
-                case Right(Result(Halt)) => ???
+                case Right(Result(Halt)) => throw ExecAbortException
                 case _ => // Do nothing.
               }
             case other => throw NotAFunctionError(other.toString)
           }.getOrElse(throw UnresolvedReferenceError(id.name))
+
+        case EXPR.Attribute(value, attrId, _, _) =>
+          val base = eval[ESObject](value)
+          base.attrs.get(attrId.name).map(_.value)
+            .getOrElse(throw UnresolvedReferenceError(attrId.name))
+
+        case EXPR.IfExp(test, body, orelse, tpeOpt) =>
+          val bodyT = body.tpeOpt.get
+          val elseT = orelse.tpeOpt.get
+          if (eval[Boolean](test)) {
+            eval[bodyT.Underlying](body)
+          } else {
+            eval[elseT.Underlying](orelse)
+          }
 
         case EXPR.True => true
 
@@ -106,6 +118,8 @@ class Executor {
         case EXPR.DoubleConst(v) => v
 
         case EXPR.FloatConst(v) => v
+
+        case EXPR.Str(s) => s
 
         case exp => throw UnexpectedExpressionError(exp.toString)
       }).asInstanceOf[T]
@@ -136,11 +150,11 @@ class Executor {
         Left(ESUnit)
 
       case STMT.If(test, body, orelse) =>
-        val testT = test.tpeOpt.get
         val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
-        eval[testT.Underlying](test) match {
-          case true => execute(body, nestedCtx)
-          case false => execute(orelse, nestedCtx)
+        if (eval[Boolean](test)) {
+          execute(body, nestedCtx)
+        } else {
+          execute(orelse, nestedCtx)
         }
 
       case STMT.Unlock => Right(Result(Unlocked))

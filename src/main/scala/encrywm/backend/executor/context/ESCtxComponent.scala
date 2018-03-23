@@ -1,3 +1,3 @@
 package encrywm.backend.executor.context
 
-trait ESCtxComponent
+trait ESCtxComponent { val name: String }
