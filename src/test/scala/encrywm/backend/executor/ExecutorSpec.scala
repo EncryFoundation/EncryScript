@@ -69,4 +69,33 @@ class ExecutorSpec extends PropSpec with Matchers {
 
     excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
   }
+
+//  property("Contract with fn call in If-stmt test") {
+//
+//    val tree = precess(
+//      """
+//        |let a = 10
+//        |let b = 30
+//        |
+//        |def sum(a: int, b: int) -> int:
+//        |    return a + b
+//        |
+//        |if a >= sum(a, b):
+//        |    abort
+//        |else:
+//        |    unlock
+//      """.stripMargin)
+//
+//    val exc = new Executor
+//
+//    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+//
+//    println(excR)
+//
+//    println(tree)
+//
+//    excR.isRight shouldBe true
+//
+//    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+//  }
 }

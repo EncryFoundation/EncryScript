@@ -2,6 +2,7 @@ package encrywm.backend.executor
 
 import encrywm.ast.Ast._
 import encrywm.backend.executor.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
+import encrywm.builtins.Types
 
 import scala.util.{Random, Success, Try}
 
@@ -70,13 +71,23 @@ class Executor {
         case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, tpeOpt) =>
           currentCtx.get(id.name).map {
             case f: ESFunc =>
-              val nestedCtx = currentCtx.emptyChild(id.name) // TODO: Add args to ctx.
+              val arglist = currentCtx.get(id.name).map { case f: ESFunc => f.args }
+                .getOrElse(throw ExecutionError("Unknown reference"))
+              val pArgs = args.zip(arglist).map { case (exp, (argN, _)) =>
+                val expT = exp.tpeOpt.get
+                val expV = eval[expT.Underlying](exp)
+                ESValue(argN, expT)(expV)
+              }
+              val nestedCtx =
+                ScopedRuntimeContext(id.name, currentCtx.level + 1, values = pArgs.map(v => v.name -> v).toMap) // TODO: Add kwargs.
               execute(f.body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => ???
                 case Right(Result(Halt)) => ???
+                case _ => // Do nothing.
               }
-          }
+            case other => throw ExecutionError(s"$other is not a function")
+          }.getOrElse(throw ExecutionError("Unknown reference"))
 
         case EXPR.True => true
 
@@ -106,6 +117,16 @@ class Executor {
       case STMT.Expr(expr) =>
         val exprT = expr.tpeOpt.get
         eval[exprT.Underlying](expr)
+        Left(ESUnit)
+
+      case STMT.FunctionDef(id, args, body, returnType) =>
+        val fnArgs = args.args.map { case EXPR.Decl(EXPR.Name(n, _, _), Some(t)) =>
+          n.name -> Types.staticTypeById(t.name).get
+        }.toIndexedSeq
+        val retT = Types.staticTypeById(returnType.name).get
+        currentCtx = currentCtx.updated(
+          ESFunc(id.name, fnArgs, retT, body)
+        )
         Left(ESUnit)
 
       case STMT.If(test, body, orelse) =>
@@ -145,7 +166,9 @@ class Executor {
     execMany(statements)
   } match {
     case Success(Right(out)) => Right(out)
-    case _ => Left(ESUnit)
+    case r =>
+      println(r)
+      Left(ESUnit)
   }
 }
 

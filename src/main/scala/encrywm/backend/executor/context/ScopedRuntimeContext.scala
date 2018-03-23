@@ -51,6 +51,15 @@ class ScopedRuntimeContext(val name: String,
 
 object ScopedRuntimeContext {
 
+  def apply(name: String,
+            level: Int,
+            types: Map[String, ESObject] = Map.empty,
+            values: Map[String, ESValue] = Map.empty,
+            functions: Map[String, ESFunc] = Map.empty,
+            display: Map[String, Byte] = Map.empty,
+            parentOpt: Option[ScopedRuntimeContext] = None): ScopedRuntimeContext =
+    new ScopedRuntimeContext(name, level, types, values, functions, display, parentOpt)
+
   def empty(n: String, l: Int): ScopedRuntimeContext =
     new ScopedRuntimeContext(n, l, Map.empty, Map.empty, Map.empty, Map.empty, None)
 }
