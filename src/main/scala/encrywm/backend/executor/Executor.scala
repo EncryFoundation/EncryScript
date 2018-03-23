@@ -43,9 +43,11 @@ class Executor {
               Arith.div[opT.Underlying](leftV, rightV)
           }
 
-        case EXPR.BoolOp(op, os) => op match {
-          case BOOL_OP.And => ???
-          case BOOL_OP.Or => ???
+        case EXPR.BoolOp(op, operands) => op match {
+          case BOOL_OP.And => operands.forall(eval[Boolean])
+          case BOOL_OP.Or => operands.foldLeft(false) { case (bool, operand) =>
+            bool || eval[Boolean](operand)
+          }
         }
 
         case EXPR.Compare(left, ops, comps) =>
@@ -72,9 +74,9 @@ class Executor {
         case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, tpeOpt) =>
           currentCtx.get(id.name).map {
             case f: ESFunc =>
-              val arglist = currentCtx.get(id.name).map { case f: ESFunc => f.args }
+              val argList = currentCtx.get(id.name).map { case f: ESFunc => f.args }
                 .getOrElse(throw UnresolvedReferenceError(id.name))
-              val argMap = args.zip(arglist).map { case (exp, (argN, _)) =>
+              val argMap = args.zip(argList).map { case (exp, (argN, _)) =>
                 val expT = exp.tpeOpt.get
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)

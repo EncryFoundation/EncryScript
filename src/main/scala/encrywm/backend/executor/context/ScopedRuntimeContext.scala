@@ -48,7 +48,7 @@ class ScopedRuntimeContext(val name: String,
     case Some(r) => Some(r)
   }
 
-  override def toString: String = s"<ScopedContext name=$name lvl=$level objectsQty=${display.size}>"
+  override def toString: String = s"<ScopedContext name=$name lvl=$level size=${display.size}>"
 }
 
 object ScopedRuntimeContext {
