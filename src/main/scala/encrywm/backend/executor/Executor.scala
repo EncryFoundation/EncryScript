@@ -1,7 +1,7 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast._
-import encrywm.backend.executor.context.{ESFunc, ESObject, ESValue, ScopedRuntimeContext}
+import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
 import encrywm.builtins.Types
 
@@ -73,8 +73,8 @@ class Executor {
 
         case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, _) =>
           currentCtx.get(id.name).map {
-            case f: ESFunc =>
-              val argMap = args.zip(f.args).map { case (exp, (argN, _)) =>
+            case ESFunc(_, fnArgs, _, body) =>
+              val argMap = args.zip(fnArgs).map { case (exp, (argN, _)) =>
                 val expT = exp.tpeOpt.get
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
@@ -84,12 +84,21 @@ class Executor {
               }
               val nestedCtx =
                 ScopedRuntimeContext(id.name, currentCtx.level + 1, values = argMap, display = ctxDisplay) // TODO: Add kwargs.
-              execute(f.body, nestedCtx) match {
+              execute(body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => ???
                 case Right(Result(Halt)) => throw ExecAbortException
                 case _ => // Do nothing.
               }
+
+            case ESBuiltInFunc(_, dArgs, body) =>
+              val fnArgs = args.zip(dArgs).map { case (arg, (n, _)) =>
+                val argT = arg.tpeOpt.get
+                val argV = eval[argT.Underlying](arg)
+                n -> ESValue(n, argT)(argV)
+              }
+              body(fnArgs)
+
             case other => throw NotAFunctionError(other.toString)
           }.getOrElse(throw UnresolvedReferenceError(id.name))
 
@@ -99,12 +108,11 @@ class Executor {
             .getOrElse(throw UnresolvedReferenceError(attrId.name))
 
         case EXPR.IfExp(test, body, orelse, tpeOpt) =>
-          val bodyT = body.tpeOpt.get
-          val elseT = orelse.tpeOpt.get
+          val expT = tpeOpt.get
           if (eval[Boolean](test)) {
-            eval[bodyT.Underlying](body)
+            eval[expT.Underlying](body)
           } else {
-            eval[elseT.Underlying](orelse)
+            eval[expT.Underlying](orelse)
           }
 
         case EXPR.True => true
