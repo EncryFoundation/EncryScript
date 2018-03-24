@@ -84,7 +84,7 @@ object Types {
     BOOLEAN.identifier -> BOOLEAN,
     INT.identifier -> INT,
     LONG.identifier -> LONG,
-    FLOAT.identifier -> FLOAT,
+    FLOAT.identifier -> FLOAT,  // TODO: Remove float?
     DOUBLE.identifier -> DOUBLE,
     STRING.identifier -> STRING,
     BYTE_VECTOR.identifier -> BYTE_VECTOR,

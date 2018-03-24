@@ -18,7 +18,7 @@ object StaticAnalyser extends TreeNodeScanner {
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
   override def scan(node: AST_NODE): Unit = node match {
-    case tr: TREE_ROOT => scanRoot(tr)
+    case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
     case _ => // Do nothing.

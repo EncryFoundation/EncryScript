@@ -5,10 +5,11 @@
 
 Language abilities:
 * Binary operations
+* Boolean operations
 * Accessing fields of the predefined data structures via dot-notation.
-* Control-flow (if, for .. in)
-* Variable (? Constants) definition
-* Functions definition (Prohibit recursive calls?) 
+* Control-flow (if)
+* Constants definition
+* Functions definition (Recursive calls are prohibited)
 
 ## Available data types
 

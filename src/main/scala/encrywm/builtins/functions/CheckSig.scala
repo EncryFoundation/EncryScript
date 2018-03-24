@@ -1,14 +1,9 @@
 package encrywm.builtins.functions
 
-import encrywm.backend.executor.context.{ESBuiltInFunc, ESCtxComponent, ESValue}
+import encrywm.backend.executor.context.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError
 import encrywm.builtins.Types.BYTE_VECTOR
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
-
-sealed trait ESBuiltInFunctionHolder {
-
-  val fn: ESBuiltInFunc
-}
 
 object CheckSig extends ESBuiltInFunctionHolder {
 
