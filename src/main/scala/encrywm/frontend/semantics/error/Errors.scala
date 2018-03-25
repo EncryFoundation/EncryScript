@@ -18,4 +18,6 @@ case class NotAnObjectError(n: String) extends SemanticError(s"$n is not an obje
 
 case object TypeError extends SemanticError("Missed type")
 
-case class TypeMismatchError(t1: String, t2: String) extends SemanticError(s"Expected type is $t1, got $t2.")
+case class TypeMismatchError(t1: String, t2: String) extends SemanticError(s"Expected type $t1, got $t2.")
+
+case object NestedCollectionError extends SemanticError("Nested collections are disallowed")

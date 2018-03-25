@@ -334,4 +334,94 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe false
   }
+
+  property("Type checking of valid list") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = [1, 2, 3, 4]
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Type checking of invalid list (Elms types mismatch)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = [1, 2, 3L, 4]
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Type checking of invalid list (Nested coll)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = [1, 2, [1, 2, 3], 4]
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Type checking of valid dict") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = {1 : "string", 2 : "string"}
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Type checking of invalid dict (Elms types mismatch)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = {1 : "string", 2 : 8}
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Type checking of invalid dict (Nested coll)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = {1 : {1 : 2}, 2 : {3 : 4}}
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

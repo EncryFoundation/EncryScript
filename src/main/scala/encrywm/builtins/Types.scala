@@ -55,14 +55,25 @@ object Types {
   }
 
   // Complex types
-  // TODO: equals()?
   case class LIST(valT: TYPE) extends TYPE with PARAMETRIZED {
     override type Underlying = List[valT.Underlying]
     override val identifier: String = "list"
+
+    override def equals(obj: Any): Boolean = obj match {
+      case l: LIST => l.valT == this.valT
+      case sym: BuiltInTypeSymbol => ???
+      case _ => false
+    }
   }
   case class DICT(keyT: TYPE, valT: TYPE) extends TYPE with PARAMETRIZED {
     override type Underlying = Map[keyT.Underlying, valT.Underlying]
     override val identifier: String = "dict"
+
+    override def equals(obj: Any): Boolean = obj match {
+      case d: DICT => d.keyT == this.keyT && d.valT == this.valT
+      case sym: BuiltInTypeSymbol => ???
+      case _ => false
+    }
   }
   case class OPTION(inT: TYPE) extends TYPE with PARAMETRIZED {
     override type Underlying = Option[inT.Underlying]

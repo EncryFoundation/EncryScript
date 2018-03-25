@@ -70,7 +70,7 @@ object StaticAnalyser extends TreeNodeScanner {
 
       val retType = findReturns(fd.body).map(_.value.map { exp =>
         scanExpr(exp)
-        inferType(exp)
+        exp.tpeOpt.get
       }).foldLeft(Seq[TYPE]()) { case (acc, tOpt) =>
         val tpe = tOpt.getOrElse(UNIT)
         if (acc.nonEmpty) assertEquals(acc.head, tpe)
@@ -223,6 +223,20 @@ object StaticAnalyser extends TreeNodeScanner {
 
         case uop: EXPR.UnaryOp => inferType(uop.operand)
 
+        case EXPR.EList(elts, _, _) =>
+          val listT = elts.headOption.map(inferType).getOrElse(UNIT)  // TODO: Allow creating an empty colls?
+          elts.tail.foreach(e => assertEquals(listT, inferType(e)))
+          ensureNestedColl(elts)
+          LIST(listT)
+
+        case EXPR.Dict(keys, vals, _) =>
+          val keyT = keys.headOption.map(inferType).getOrElse(UNIT)
+          val valT = vals.headOption.map(inferType).getOrElse(UNIT)
+          keys.tail.foreach(k => assertEquals(keyT, inferType(k)))
+          vals.tail.foreach(v => assertEquals(valT, inferType(v)))
+          ensureNestedColl(vals)  // TODO: Ensure nested coll for keys?
+          DICT(keyT, valT)
+
         case _ => throw IllegalExprError
       }
     }
@@ -230,6 +244,11 @@ object StaticAnalyser extends TreeNodeScanner {
     val tpe = inferTypeIn(exp)
     if (exp.tpeOpt.isEmpty) exp.tpeOpt = Some(tpe)
     tpe
+  }
+
+  private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
+    val expT = exp.tpeOpt.get
+    if (expT.isInstanceOf[LIST] || expT.isInstanceOf[DICT]) throw NestedCollectionError
   }
 
   private def assertEquals(t1: TYPE, t2: TYPE): Unit =
