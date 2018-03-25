@@ -37,7 +37,7 @@ object AstCodec {
   implicit def dIf = dSt.bind[STMT.If](5)
   implicit def dAsrt = dSt.bind[STMT.Assert](6)
   implicit def dExpSt = dSt.bind[STMT.Expr](7)
-  implicit def dUnl = dSt.bind[STMT.Unlock.type](8)
+  implicit def dUnl = dSt.bind[STMT.UnlockIf](8)
   implicit def dHalt = dSt.bind[STMT.Halt.type](9)
 
   implicit def dEx = Discriminated[EXPR, Int](uint8)

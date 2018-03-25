@@ -66,20 +66,17 @@ Threshold signature (2 of 3):
         let sigFlag2 = 1 if proof.proofs['Marina'].isDefined and checkSig(ctx.transaction.txHash, proof.proofs['Marina'].get, publicKeys[1]) else 0
         let sigFlag3 = 1 if proof.proofs['Alice'].isDefined and checkSig(ctx.transaction.txHash, proof.proofs['Alice'].get, publicKeys[2]) else 0
         
-        if (sigFlag1 + sigFlag2 + sigFlag3) >= 2:
-            unlock
+        unlock if (sigFlag1 + sigFlag2 + sigFlag3) >= 2
         
 Time-window lock:
 
     let unlockedFrom: long = unixTime('16-00-00:22-12-2018')
     let unlockedUntil: long = unixTime('16-00-00:25-12-2018')
     
-    if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil:
-        unlock
+    unlock if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil
         
 State height lock:
 
     let unlockedFrom: int = 100000
     
-    if ctx.state.height >= unlockedFrom:
-        unlock
+    unlock if ctx.state.height >= unlockedFrom

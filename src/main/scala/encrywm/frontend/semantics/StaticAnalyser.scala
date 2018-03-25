@@ -98,6 +98,9 @@ object StaticAnalyser extends TreeNodeScanner {
       ifStmt.orelse.foreach(scan)
       scopes.popHead()
 
+    case STMT.UnlockIf(test) =>
+      scanExpr(test)
+
     case _ => // Do nothing.
   }
 

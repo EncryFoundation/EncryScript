@@ -75,14 +75,11 @@ class Statements(indent: Int){
       "//=".!.map(_ => Ast.OPERATOR.FloorDiv)
   )
 
-  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | unlockStmt )
+  val abortStmt: P[Ast.STMT.Halt.type] = P(kwd("abort") ).map(_ => Ast.STMT.Halt)
 
-  // Those statements are under discussion now.
-  val unlockStmt = P(kwd("unlock") ).map(_ => Ast.STMT.Unlock)
-  val abortStmt = P(kwd("abort") ).map(_ => Ast.STMT.Halt)
+  val returnStmt: P[Ast.STMT.Return] = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 
-  val returnStmt = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
-
+  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt )
 
   val dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
     .map(Ast.Alias.tupled)
@@ -91,7 +88,7 @@ class Statements(indent: Int){
 
   val assertStmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
-  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef )
+  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef | unlockIfStmt )
   val ifStmt: P[Ast.STMT.If] = {
     val firstIf = P( kwd("if") ~/ test ~ ":" ~~ block )
     val elifs = P( (spaceIndents ~~ kwd("elif") ~/ test ~ ":" ~~ block).repX )
@@ -107,6 +104,12 @@ class Statements(indent: Int){
   }
   val spaceIndents: P0 = P( spaces.repX ~~ " ".repX(indent) )
 
+  val unlockIfStmt: P[Ast.STMT.UnlockIf] = {
+    val firstIf = P( kwd("unlock") ~/ kwd("if") ~/ test )
+    P( firstIf ).map(test => Ast.STMT.UnlockIf(test))
+  }
+
+  // TODO: Remove?
   val forStmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
     ~~ (spaceIndents ~ kwd("else") ~/ ":" ~~ block).? ).map {
       case (itervars, generator, body, orelse) =>

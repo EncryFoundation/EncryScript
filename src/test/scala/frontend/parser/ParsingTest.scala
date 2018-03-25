@@ -165,6 +165,26 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
+  property("Unlock If statement") {
+    val source =
+      """
+        |unlock if true
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Unlock If statement with compound test expr") {
+    val source =
+      """
+        |unlock if true and 6 > 8 and call()
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
   property("Complex expression") {
     val source =
       """
@@ -177,8 +197,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |    let flag2 = 1 if proof.proofs['Marina'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Marina'], publicKeys[1]) else 0
         |    let flag3 = 1 if proof.proofs['Alice'].isDefined and checkSig(ctx.transaction.bytes, proof.proofs['Alice'], publicKeys[2]) else 0
         |
-        |    if (flag1 + flag2 + flag3) >= 2:
-        |        unlock
+        |    unlock if (flag1 + flag2 + flag3) >= 2
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 

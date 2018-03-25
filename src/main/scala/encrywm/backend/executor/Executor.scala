@@ -121,6 +121,12 @@ class Executor {
             eval[expT.Underlying](orelse)
           }
 
+        case EXPR.UnaryOp(op, operand, Some(_)) =>
+          op match {
+            case UNARY_OP.Not => !eval[Boolean](operand)
+            case _ => throw IllegalOperationError
+          }
+
         case EXPR.Subscript(EXPR.Name(id, _, Some(tpe)), slice, _, tpeOpt) =>
           if (!tpe.isInstanceOf[LIST]) throw IllegalOperationError
           currentCtx.get(id.name).map {
@@ -128,7 +134,7 @@ class Executor {
               v.value match {
                 case list: List[_] => slice match {
                   case SLICE.Index(idx) => list(eval[Int](idx))
-                  case _ => IllegalOperationError
+                  case _ => throw IllegalOperationError
                 }
               }
             case _ => IllegalOperationError
@@ -191,7 +197,9 @@ class Executor {
           execute(orelse, nestedCtx)
         }
 
-      case STMT.Unlock => throw UnlockException
+      case STMT.UnlockIf(test) =>
+        if (eval[Boolean](test)) throw UnlockException
+        else Left(ESUnit)
 
       case STMT.Halt => throw ExecAbortException
 

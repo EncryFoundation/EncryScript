@@ -30,14 +30,14 @@ class ExecutorSpec extends PropSpec with Matchers {
     excR.isLeft shouldBe true
   }
 
-  property("Contract with If-stmt") {
+  property("Contract with UnlockIf-stmt") {
 
     val tree = precess(
       """
         |let a = 30
         |let b = 30
-        |if a >= b:
-        |    unlock
+        |
+        |unlock if a >= b
       """.stripMargin)
 
     val exc = new Executor
@@ -49,37 +49,14 @@ class ExecutorSpec extends PropSpec with Matchers {
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
-  property("Contract with 2 branch If-stmt") {
+  property("Boolean operation in UnlockIf-stmt test (||)") {
 
     val tree = precess(
       """
         |let a = 10
         |let b = 30
-        |if a >= b:
-        |    unlock
-        |else:
-        |    abort
-      """.stripMargin)
-
-    val exc = new Executor
-
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
-
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
-  }
-
-  property("Boolean operation in If-stmt test (||)") {
-
-    val tree = precess(
-      """
-        |let a = 10
-        |let b = 30
-        |if a >= b || true:
-        |    unlock
-        |else:
-        |    abort
+        |
+        |unlock if a >= b || true
       """.stripMargin)
 
     val exc = new Executor
@@ -91,16 +68,14 @@ class ExecutorSpec extends PropSpec with Matchers {
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
-  property("Boolean operation in If-stmt test (&&)") {
+  property("Boolean operation in UnlockIf-stmt test (&&)") {
 
     val tree = precess(
       """
         |let a = 10
         |let b = 30
-        |if a < b && true:
-        |    unlock
-        |else:
-        |    abort
+        |
+        |unlock if a < b && true
       """.stripMargin)
 
     val exc = new Executor
@@ -123,10 +98,7 @@ class ExecutorSpec extends PropSpec with Matchers {
         |def sum(a: int, b: int) -> int:
         |    return a + b
         |
-        |if a <= sum(a, b):
-        |    unlock
-        |else:
-        |    abort
+        |unlock if a <= sum(a, b)
       """.stripMargin)
 
     val exc = new Executor
@@ -147,10 +119,7 @@ class ExecutorSpec extends PropSpec with Matchers {
         |
         |let c = 100 if a < 30 else -50
         |
-        |if a <= c:
-        |    unlock
-        |else:
-        |    abort
+        |unlock if a <= c
       """.stripMargin)
 
     val exc = new Executor
@@ -169,10 +138,23 @@ class ExecutorSpec extends PropSpec with Matchers {
         |let lst = [0, 1, 2, 3, 4]
         |let a: int = lst[3]
         |
-        |if a >= lst[1]:
-        |    unlock
-        |else:
-        |    abort
+        |unlock if a >= lst[1]
+      """.stripMargin)
+
+    val exc = new Executor
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("Unary operation in test expr") {
+
+    val tree = precess(
+      """
+        |unlock if not false
       """.stripMargin)
 
     val exc = new Executor
@@ -192,10 +174,7 @@ class ExecutorSpec extends PropSpec with Matchers {
         |let sig = base58"FRQ91MwL3MV3LVEG8Ej3ZspTLgUJqSLtcHM66Zk11xY1"
         |let pk = base58"117gRnfiknXThwHF6fb4A8WQdgNxA6ZDxYApqu7MztH"
         |
-        |if checkSig(msg, sig, pk):
-        |    unlock
-        |else:
-        |    abort
+        |unlock if not checkSig(msg, sig, pk)
       """.stripMargin)
 
     val exc = new Executor
@@ -204,6 +183,6 @@ class ExecutorSpec extends PropSpec with Matchers {
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 }

@@ -29,8 +29,7 @@ object Ast {
 
     case class Expr(value: EXPR) extends STMT
 
-    // Under discussion
-    case object Unlock extends STMT
+    case class UnlockIf(test: EXPR) extends STMT
     case object Halt extends STMT
 
     // col_offset is the byte offset in the utf8 string the parser uses
