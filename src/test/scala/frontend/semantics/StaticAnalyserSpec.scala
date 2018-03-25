@@ -424,4 +424,36 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe false
   }
+
+  property("Type checking of valid list subscription") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let lst = [1, 2, 3, 4]
+        |let a: int = lst[1]
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Type checking of invalid list subscription (Type mismatch)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let lst = [1, 2, 3, 4]
+        |let a: string = lst[1]
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

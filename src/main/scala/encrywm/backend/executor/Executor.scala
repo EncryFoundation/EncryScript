@@ -4,6 +4,7 @@ import encrywm.ast.Ast._
 import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
 import encrywm.builtins.Types
+import encrywm.builtins.Types.LIST
 
 import scala.util.{Random, Success, Try}
 
@@ -115,6 +116,24 @@ class Executor {
             eval[expT.Underlying](orelse)
           }
 
+        case EXPR.Subscript(EXPR.Name(id, _, Some(tpe)), slice, _, tpeOpt) =>
+          if (!tpe.isInstanceOf[LIST]) throw IllegalOperationError
+          currentCtx.get(id.name).map {
+            case v: ESValue =>
+              v.value match {
+                case list: List[_] => slice match {
+                  case SLICE.Index(idx) => list(eval[Int](idx))
+                  case _ => IllegalOperationError
+                }
+              }
+            case _ => IllegalOperationError
+          }.getOrElse(UnresolvedReferenceError(id.name))
+
+        case EXPR.EList(elts, _, Some(tpe)) =>
+          elts.foldLeft(List[tpe.Underlying]()) { case (acc, exp) =>
+            acc :+ eval[tpe.Underlying](exp)
+          }
+
         case EXPR.True => true
 
         case EXPR.False => false
@@ -194,7 +213,9 @@ class Executor {
     execMany(statements)
   } match {
     case Success(Right(out)) => Right(out)
-    case _ => Left(ESUnit)
+    case r =>
+      println(r)
+      Left(ESUnit)
   }
 }
 

@@ -61,7 +61,8 @@ object Types {
 
     override def equals(obj: Any): Boolean = obj match {
       case l: LIST => l.valT == this.valT
-      case sym: BuiltInTypeSymbol => ???
+      case sym: BuiltInTypeSymbol => this.identifier == sym.name &&
+        sym.typeParams.headOption.exists(_.name == this.valT.identifier)
       case _ => false
     }
   }
@@ -71,7 +72,9 @@ object Types {
 
     override def equals(obj: Any): Boolean = obj match {
       case d: DICT => d.keyT == this.keyT && d.valT == this.valT
-      case sym: BuiltInTypeSymbol => ???
+      case sym: BuiltInTypeSymbol => this.identifier == sym.name &&
+        sym.typeParams.headOption.exists(_.name == this.keyT.identifier) &&
+        sym.typeParams.lastOption.exists(_.name == this.valT.identifier)
       case _ => false
     }
   }

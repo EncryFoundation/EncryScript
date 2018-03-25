@@ -1,6 +1,6 @@
 package encrywm.backend.executor
 
-import encrywm.backend.executor.error.{ExecutionError, UnsupportedOperationError}
+import encrywm.backend.executor.error.UnsupportedOperationError
 
 object Compare {
 

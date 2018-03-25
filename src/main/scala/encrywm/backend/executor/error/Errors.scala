@@ -11,3 +11,5 @@ case class UnexpectedExpressionError(exp: String) extends ExecutionError(s"Unexp
 case object UnsupportedOperationError extends ExecutionError(s"Unsupported operation")
 
 case object BuiltInFunctionExecError extends ExecutionError("Built-in function execution error")
+
+case object IllegalOperationError extends ExecutionError("Illegal operation")

@@ -36,15 +36,15 @@ object StaticAnalyser extends TreeNodeScanner {
     case asg: STMT.Assign =>
       scan(asg.value)
       asg.target match {
-        case decl: EXPR.Decl =>
+        case EXPR.Decl(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val declTypeOpt = decl.typeOpt.flatMap(t =>
+          val declTypeOpt = typeOpt.flatMap(t =>
             currentScopeOpt.map(_.lookup(t.name).map(s =>
               staticTypeById(s.name).getOrElse(TYPE_REF(s.name))
             ).getOrElse(throw NameError(t.name)))
           )
           declTypeOpt.foreach(tpe => assertEquals(tpe, valueType))
-          addNameToScope(decl.target, valueType)
+          addNameToScope(name, valueType)
         case _ => // ???
       }
 
@@ -106,10 +106,10 @@ object StaticAnalyser extends TreeNodeScanner {
         assertDefined(n.id.name)
 
       case bo: EXPR.BoolOp =>
-        bo.values.foreach(scan)
+        bo.values.foreach(scanExpr)
 
       case bin: EXPR.BinOp =>
-        Seq(bin.left, bin.right).foreach(scan)
+        Seq(bin.left, bin.right).foreach(scanExpr)
 
       case fc: EXPR.Call =>
         fc.func match {
@@ -118,8 +118,8 @@ object StaticAnalyser extends TreeNodeScanner {
               .getOrElse(throw NameError(n.id.name))
             if (fn.asInstanceOf[FuncSymbol].params.size != fc.args.size + fc.keywords.size)
               throw WrongNumberOfArgumentsError(fn.name)
-            fc.args.foreach(scan)
-            fc.keywords.map(_.value).foreach(scan)
+            fc.args.foreach(scanExpr)
+            fc.keywords.map(_.value).foreach(scanExpr)
           case _ => throw IllegalExprError
         }
 
@@ -128,30 +128,49 @@ object StaticAnalyser extends TreeNodeScanner {
           throw NameError(attr.attr.name)
 
       case cmp: EXPR.Compare =>
-        cmp.comparators.foreach(scan)
-        scan(cmp.left)
+        cmp.comparators.foreach(scanExpr)
+        scanExpr(cmp.left)
 
-      case uop: EXPR.UnaryOp => scan(uop.operand)
+      case uop: EXPR.UnaryOp => scanExpr(uop.operand)
 
       case ifExp: EXPR.IfExp =>
-        Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scan)
+        Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scanExpr)
 
       case dct: EXPR.Dict =>
         dct.keys.foreach(scan)
         dct.values.foreach(scan)
 
-      case lst: EXPR.EList => lst.elts.foreach(scan)
+      case lst: EXPR.EList => lst.elts.foreach(scanExpr)
+
+      case sub: EXPR.Subscript =>
+        scanExpr(sub.value)
+        sub.slice match {
+          case SLICE.Index(idx) =>
+            scanExpr(idx)
+            assertEquals(idx.tpeOpt.get, INT)
+
+          // TODO: Complete for other SLICE_OPs.
+        }
 
       case _ => // Do nothing.
     }
     inferType(node)
   }
 
-  private def addNameToScope(node: EXPR, tpe: TYPE): Unit = node match {
-    case n: EXPR.Name =>
-      val typeSymb = BuiltInTypeSymbol(tpe.identifier)
-      currentScopeOpt.foreach(_.insert(VariableSymbol(n.id.name, Some(typeSymb))))
-    case _ => throw IllegalExprError
+  private def addNameToScope(name: EXPR.Name, tpe: TYPE): Unit = {
+    val typeSymbol = tpe match {
+      case LIST(valT) =>
+        val valSymbol = BuiltInTypeSymbol(valT.identifier)
+        BuiltInTypeSymbol(tpe.identifier, typeParams = Seq(valSymbol))
+
+      case DICT(keyT, valT) =>
+        val keySymbol = BuiltInTypeSymbol(keyT.identifier)
+        val valSymbol = BuiltInTypeSymbol(valT.identifier)
+        BuiltInTypeSymbol(tpe.identifier, typeParams = Seq(keySymbol, valSymbol))
+
+      case _ => BuiltInTypeSymbol(tpe.identifier)
+    }
+    currentScopeOpt.foreach(_.insert(VariableSymbol(name.id.name, Some(typeSymbol))))
   }
 
   @tailrec
@@ -186,8 +205,21 @@ object StaticAnalyser extends TreeNodeScanner {
     def inferTypeIn(e: EXPR): TYPE = e.tpeOpt.getOrElse {
       exp match {
         case n: EXPR.Name => scope.lookup(n.id.name)
-          .map(r => staticTypeById(r.tpeOpt.get.name).getOrElse(TYPE_REF(r.name))) // TODO: .get
-          .getOrElse(throw NameError(n.id.name))
+          .map { symbol =>
+            val symbolT = symbol.tpeOpt.get
+            staticTypeById(symbolT.name).getOrElse {
+              if (symbolT.name == "list") {
+                val valT = staticTypeById(symbolT.typeParams.head.name).getOrElse(TYPE_REF(symbolT.name))
+                LIST(valT)
+              } else if (symbolT.name == "dict") {
+                val keyT = staticTypeById(symbolT.typeParams.head.name).getOrElse(TYPE_REF(symbolT.name))
+                val valT = staticTypeById(symbolT.typeParams.last.name).getOrElse(TYPE_REF(symbolT.name))
+                DICT(keyT, valT)
+              } else {
+                TYPE_REF(symbolT.name)
+              }
+            }
+          }.getOrElse(throw NameError(n.id.name))
 
         case a: EXPR.Attribute =>
           getAttributeBase(a).attributes.find(s => s.name == a.attr.name).get.tpeOpt.map(s =>
@@ -224,7 +256,7 @@ object StaticAnalyser extends TreeNodeScanner {
         case uop: EXPR.UnaryOp => inferType(uop.operand)
 
         case EXPR.EList(elts, _, _) =>
-          val listT = elts.headOption.map(inferType).getOrElse(UNIT)  // TODO: Allow creating an empty colls?
+          val listT = elts.headOption.map(inferType).getOrElse(UNIT)  // TODO: Allow creating empty colls?
           elts.tail.foreach(e => assertEquals(listT, inferType(e)))
           ensureNestedColl(elts)
           LIST(listT)
@@ -236,6 +268,12 @@ object StaticAnalyser extends TreeNodeScanner {
           vals.tail.foreach(v => assertEquals(valT, inferType(v)))
           ensureNestedColl(vals)  // TODO: Ensure nested coll for keys?
           DICT(keyT, valT)
+
+        case EXPR.Subscript(value, SLICE.Index(_), _, _) =>
+          inferType(value) match {
+            case list: LIST => list.valT
+            case dict: DICT => dict.valT
+          }
 
         case _ => throw IllegalExprError
       }

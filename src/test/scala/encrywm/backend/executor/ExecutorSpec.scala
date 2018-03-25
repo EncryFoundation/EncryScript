@@ -161,4 +161,26 @@ class ExecutorSpec extends PropSpec with Matchers {
 
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
+
+  property("List subscription") {
+
+    val tree = precess(
+      """
+        |let lst = [0, 1, 2, 3, 4]
+        |let a: int = lst[3]
+        |
+        |if a >= lst[1]:
+        |    unlock
+        |else:
+        |    abort
+      """.stripMargin)
+
+    val exc = new Executor
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
 }

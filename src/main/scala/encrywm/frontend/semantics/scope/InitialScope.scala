@@ -14,7 +14,7 @@ object InitialScope {
   val tx = ComplexType("transaction", attrs)
 
   private val builtinSymbs = staticTypes.map(_._2.symbol).toSeq :+
-    BuiltInTypeSymbol(tx.name, tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.identifier)))))
+    BuiltInTypeSymbol(tx.name, attributes = tx.attrs.map(attr => VariableSymbol(attr.name, Some(BuiltInTypeSymbol(attr.tpe.identifier)))))
 
   def global: ScopedSymbolTable = {
     val symtab = new ScopedSymbolTable("GLOBAL", 1)
