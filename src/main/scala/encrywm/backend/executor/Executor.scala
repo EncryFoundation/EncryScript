@@ -213,9 +213,7 @@ class Executor {
     execMany(statements)
   } match {
     case Success(Right(out)) => Right(out)
-    case r =>
-      println(r)
-      Left(ESUnit)
+    case _ => Left(ESUnit)
   }
 }
 
