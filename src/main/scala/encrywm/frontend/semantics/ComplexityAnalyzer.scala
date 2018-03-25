@@ -35,7 +35,7 @@ object ComplexityAnalyzer{
 
   private def scanExpr(expr: EXPR): Int = expr match {
     case EXPR.BoolOp(_, values) => values.length
-    case EXPR.BinOp(left, _, right, _) => scanExpr(left) + scanExpr(right)
+    case EXPR.BinOp(left, _, right, _) => scanExpr(left) + scanExpr(right) //6
     case EXPR.UnaryOp(_, operand, _) => scanExpr(operand)
     case EXPR.Lambda(_, body, _) => scanExpr(body)
     case EXPR.IfExp(test, body, orelse, _) => scanExpr(test) + Math.max(scanExpr(body), scanExpr(orelse))
@@ -49,8 +49,8 @@ object ComplexityAnalyzer{
     case EXPR.False => 1
     case EXPR.Str(_) => 1
     case EXPR.Base58Str(_) => 1
-    case EXPR.Attribute(_, _, _, _) => 1
-    case EXPR.Subscript(_, _, _, _) => 1
+    case EXPR.Attribute(value, _, _, _) => scanExpr(value)
+    case EXPR.Subscript(value, _, _, _) => scanExpr(value)
     case EXPR.Name(_, _, _) => 1
     case EXPR.Dict(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
     case EXPR.ESet(elts, _) => elts.map(scanExpr).sum
