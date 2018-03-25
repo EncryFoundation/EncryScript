@@ -2,12 +2,16 @@ package encrywm.builtins.functions
 
 import encrywm.backend.executor.context.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError
+import encrywm.builtins.Types
 import encrywm.builtins.Types.BYTE_VECTOR
+import encrywm.frontend.semantics.scope.{FuncSymbol, VariableSymbol}
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 object CheckSig extends ESBuiltInFunctionHolder {
 
-  override lazy val fn: ESBuiltInFunc = ESBuiltInFunc("checkSig", args, body)
+  val name: String = "checkSig"
+
+  override lazy val fn: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
   private val args = IndexedSeq("msg" -> BYTE_VECTOR, "sig" -> BYTE_VECTOR, "pubKey" -> BYTE_VECTOR)
 
@@ -21,4 +25,7 @@ object CheckSig extends ESBuiltInFunctionHolder {
       Left(BuiltInFunctionExecError)
     }
   }
+
+  val symbol: FuncSymbol =
+    FuncSymbol(name, Some(Types.BOOLEAN.symbol), args.map(arg => VariableSymbol(arg._1, Some(arg._2.symbol))))
 }

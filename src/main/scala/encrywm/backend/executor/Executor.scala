@@ -5,14 +5,16 @@ import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
 import encrywm.builtins.Types
 import encrywm.builtins.Types.LIST
+import scorex.crypto.encode.Base58
 
 import scala.util.{Random, Success, Try}
 
+// TODO: Throw single error type inside the executor?
 class Executor {
 
   import Executor._
 
-  private val ctx: ScopedRuntimeContext = ScopedRuntimeContext.empty("GLOBAL", 1)
+  private val ctx: ScopedRuntimeContext = ScopedRuntimeContext.initialized("GLOBAL", 1)
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
@@ -98,7 +100,10 @@ class Executor {
                 val argV = eval[argT.Underlying](arg)
                 n -> ESValue(n, argT)(argV)
               }
-              body(fnArgs)
+              body(fnArgs) match {
+                case Right(r) => r
+                case _ => throw BuiltInFunctionExecError
+              }
 
             case other => throw NotAFunctionError(other.toString)
           }.getOrElse(throw UnresolvedReferenceError(id.name))
@@ -134,6 +139,10 @@ class Executor {
             acc :+ eval[tpe.Underlying](exp)
           }
 
+        case EXPR.Base58Str(s) => Base58.decode(s).get
+
+        case EXPR.Str(s) => s
+
         case EXPR.True => true
 
         case EXPR.False => false
@@ -145,8 +154,6 @@ class Executor {
         case EXPR.DoubleConst(v) => v
 
         case EXPR.FloatConst(v) => v
-
-        case EXPR.Str(s) => s
 
         case exp => throw UnexpectedExpressionError(exp.toString)
       }).asInstanceOf[T]

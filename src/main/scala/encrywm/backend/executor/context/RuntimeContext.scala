@@ -5,6 +5,7 @@ trait RuntimeContext {
   val types: Map[String, ESObject]
   val values: Map[String, ESValue]
   val functions: Map[String, ESFunc]
+  val biFunctions: Map[String, ESBuiltInFunc]
   val display: Map[String, Byte]
 
   def updated(s: Any): RuntimeContext
@@ -13,5 +14,6 @@ trait RuntimeContext {
     case ESObject.typeId => types.get(id)
     case ESValue.typeId => values.get(id)
     case ESFunc.typeId => functions.get(id)
+    case ESBuiltInFunc.typeId => biFunctions.get(id)
   }
 }

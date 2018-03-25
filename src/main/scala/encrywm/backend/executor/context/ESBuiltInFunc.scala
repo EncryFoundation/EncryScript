@@ -10,5 +10,7 @@ case class ESBuiltInFunc(name: String,
 
 object ESBuiltInFunc {
 
+  val typeId: Byte = 3.toByte
+
   type EvalResult = Either[ExecutionError, Any]
 }

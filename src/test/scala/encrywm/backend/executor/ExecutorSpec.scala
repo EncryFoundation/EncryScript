@@ -183,4 +183,27 @@ class ExecutorSpec extends PropSpec with Matchers {
 
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
+
+  property("BuiltIn function") {
+
+    val tree = precess(
+      """
+        |let msg = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
+        |let sig = base58"FRQ91MwL3MV3LVEG8Ej3ZspTLgUJqSLtcHM66Zk11xY1"
+        |let pk = base58"117gRnfiknXThwHF6fb4A8WQdgNxA6ZDxYApqu7MztH"
+        |
+        |if checkSig(msg, sig, pk):
+        |    unlock
+        |else:
+        |    abort
+      """.stripMargin)
+
+    val exc = new Executor
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
+  }
 }

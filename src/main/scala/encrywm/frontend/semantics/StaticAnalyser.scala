@@ -7,6 +7,7 @@ import encrywm.ast.TreeNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
 import encrywm.utils.Stack
+import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -151,6 +152,9 @@ object StaticAnalyser extends TreeNodeScanner {
 
           // TODO: Complete for other SLICE_OPs.
         }
+
+      case EXPR.Base58Str(s) =>
+        if (Base58.decode(s).isFailure) throw Base58DecodeError
 
       case _ => // Do nothing.
     }

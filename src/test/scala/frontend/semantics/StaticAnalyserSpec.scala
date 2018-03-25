@@ -456,4 +456,34 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe false
   }
+
+  property("Valid Base58 string analysis") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let byteVector: bytes = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Invalid Base58 string analysis (Illegal symbol)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let byteVector = base58"invalidString_oO0"
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
 }

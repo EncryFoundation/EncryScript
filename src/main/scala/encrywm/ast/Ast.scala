@@ -64,6 +64,8 @@ object Ast {
 
     case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(STRING) }
 
+    case class Base58Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(BYTE_VECTOR)}
+
     // The following expression can appear in assignment context
     case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR

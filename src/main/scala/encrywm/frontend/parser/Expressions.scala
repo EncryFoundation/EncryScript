@@ -18,6 +18,7 @@ object Expressions {
   val NUMBER: P[Ast.EXPR.Num] = P( floatConstExpr | doubleConstExpr | longConstExpr| intConstExpr )
   val BOOL: P[Ast.EXPR.Bool] = P( trueExpr | falseExpr )
   val STRING: P[String] = Lexer.stringliteral
+  val BASE58STRING: P[String] = P( "base58" ~/ Lexer.stringliteral )
 
   val trueExpr: P[Ast.EXPR.True.type] = P( kwd("true").rep(min = 1, max = 1).! ).map(_ => Ast.EXPR.True)
   val falseExpr: P[Ast.EXPR.False.type] = P( kwd("false").rep(min = 1, max = 1).! ).map(_ => Ast.EXPR.False)
@@ -115,6 +116,7 @@ object Expressions {
         "(" ~ (tuple | test) ~ ")" |
         "[" ~ list ~ "]" |
         "{" ~ dictorsetmaker ~ "}" |
+        BASE58STRING.rep(1).map(_.mkString).map(Ast.EXPR.Base58Str) |
         STRING.rep(1).map(_.mkString).map(Ast.EXPR.Str) |
         NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Load)) |
         NUMBER |

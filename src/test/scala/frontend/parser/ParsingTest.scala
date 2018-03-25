@@ -48,6 +48,16 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
+  property("Base58 string") {
+    val source =
+      """
+        |let a = base58"5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9"
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
   property("Function definition") {
     val source =
       """
