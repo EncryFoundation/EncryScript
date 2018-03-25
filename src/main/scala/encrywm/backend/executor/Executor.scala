@@ -7,7 +7,7 @@ import encrywm.builtins.Types
 import encrywm.builtins.Types.LIST
 import scorex.crypto.encode.Base58
 
-import scala.util.{Random, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 // TODO: Throw single error type inside the executor?
 class Executor {
@@ -89,7 +89,7 @@ class Executor {
                 ScopedRuntimeContext(id.name, currentCtx.level + 1, values = argMap, display = ctxDisplay) // TODO: Add kwargs.
               execute(body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
-                case Right(Result(Unlocked)) => ???
+                case Right(Result(Unlocked)) => throw UnlockException
                 case Right(Result(Halt)) => throw ExecAbortException
                 case _ => // Do nothing.
               }
@@ -191,9 +191,9 @@ class Executor {
           execute(orelse, nestedCtx)
         }
 
-      case STMT.Unlock => Right(Result(Unlocked))
+      case STMT.Unlock => throw UnlockException
 
-      case STMT.Halt => Right(Result(Halt))
+      case STMT.Halt => throw ExecAbortException
 
       case STMT.Return(None) => Left(ESUnit)
 
@@ -219,6 +219,8 @@ class Executor {
 
     execMany(statements)
   } match {
+    case Failure(_: UnlockException.type) => Right(Result(Unlocked))
+    case Failure(_: ExecAbortException.type) => Right(Result(Halt))
     case Success(Right(out)) => Right(out)
     case _ => Left(ESUnit)
   }
