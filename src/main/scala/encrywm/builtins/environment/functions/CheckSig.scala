@@ -1,4 +1,4 @@
-package encrywm.builtins.functions
+package encrywm.builtins.environment.functions
 
 import encrywm.backend.executor.context.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError

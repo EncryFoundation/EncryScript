@@ -10,11 +10,11 @@ import scorex.crypto.encode.Base58
 import scala.util.{Failure, Random, Success, Try}
 
 // TODO: Throw single error type inside the executor?
-class Executor {
+class Executor(globalContext: ScopedRuntimeContext) {
 
   import Executor._
 
-  private val ctx: ScopedRuntimeContext = ScopedRuntimeContext.initialized("GLOBAL", 1)
+  private val ctx: ScopedRuntimeContext = globalContext
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
@@ -191,11 +191,8 @@ class Executor {
 
       case STMT.If(test, body, orelse) =>
         val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
-        if (eval[Boolean](test)) {
-          execute(body, nestedCtx)
-        } else {
-          execute(orelse, nestedCtx)
-        }
+        if (eval[Boolean](test)) execute(body, nestedCtx)
+        else execute(orelse, nestedCtx)
 
       case STMT.UnlockIf(test) =>
         if (eval[Boolean](test)) throw UnlockException

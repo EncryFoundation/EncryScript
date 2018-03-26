@@ -1,6 +1,6 @@
 package encrywm.backend.executor.context
 
-import encrywm.builtins.functions.CheckSig
+import encrywm.builtins.environment.functions.CheckSig
 
 class ScopedRuntimeContext(val name: String,
                            val level: Int,
@@ -60,7 +60,7 @@ class ScopedRuntimeContext(val name: String,
 
   def emptyChild(n: String): ScopedRuntimeContext = ScopedRuntimeContext.empty(n, level + 1)
 
-  override def get(id: String): Option[ESCtxComponent] = super.get(id) match {
+  override def get(id: String): Option[ESRuntimeComponent] = super.get(id) match {
     case None => parentOpt.flatMap(_.get(id))
     case Some(r) => Some(r)
   }

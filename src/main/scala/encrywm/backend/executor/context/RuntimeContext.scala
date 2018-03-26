@@ -10,7 +10,7 @@ trait RuntimeContext {
 
   def updated(s: Any): RuntimeContext
 
-  def get(id: String): Option[ESCtxComponent] = display.get(id).flatMap {
+  def get(id: String): Option[ESRuntimeComponent] = display.get(id).flatMap {
     case ESObject.typeId => types.get(id)
     case ESValue.typeId => values.get(id)
     case ESFunc.typeId => functions.get(id)

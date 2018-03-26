@@ -6,7 +6,7 @@ import encrywm.builtins.Types.TYPE
 
 case class ESBuiltInFunc(name: String,
                          args: IndexedSeq[(String, TYPE)],
-                         body: (Seq[(String, ESValue)]) => EvalResult) extends ESCtxComponent
+                         body: (Seq[(String, ESValue)]) => EvalResult) extends ESRuntimeComponent
 
 object ESBuiltInFunc {
 

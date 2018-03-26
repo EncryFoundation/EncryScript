@@ -2,7 +2,7 @@ package encrywm.backend.executor.context
 
 import encrywm.builtins.Types.TYPE
 
-sealed trait ESValue extends ESCtxComponent {
+sealed trait ESValue extends ESRuntimeComponent {
 
   val name: String
   val tpe: TYPE

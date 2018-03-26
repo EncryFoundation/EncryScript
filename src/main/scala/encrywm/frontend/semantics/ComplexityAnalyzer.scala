@@ -1,8 +1,9 @@
 package encrywm.frontend.semantics
 
 import encrywm.ast.Ast._
+import encrywm.ast.AstNodeScanner
 
-object ComplexityAnalyzer {
+object ComplexityAnalyzer extends AstNodeScanner {
 
   def scan(node: AST_NODE): Int = node match {
     case root: TREE_ROOT => scanRoot(root)

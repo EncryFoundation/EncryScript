@@ -3,7 +3,7 @@ package encrywm.frontend.semantics
 import encrywm.builtins.ESMath
 import encrywm.builtins.Types._
 import encrywm.ast.Ast._
-import encrywm.ast.TreeNodeScanner
+import encrywm.ast.AstNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
 import encrywm.utils.Stack
@@ -12,7 +12,7 @@ import scorex.crypto.encode.Base58
 import scala.annotation.tailrec
 import scala.util.Random
 
-object StaticAnalyser extends TreeNodeScanner {
+object StaticAnalyser extends AstNodeScanner {
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
@@ -27,7 +27,7 @@ object StaticAnalyser extends TreeNodeScanner {
 
   private def scanRoot(node: TREE_ROOT): Unit = node match {
     case c: TREE_ROOT.Contract =>
-      scopes.push(InitialScope.global)
+      scopes.push(ScopedSymbolTable.initialized)
       c.body.foreach(scan)
     case _ => // Do nothing.
   }

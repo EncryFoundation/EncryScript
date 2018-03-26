@@ -1,6 +1,7 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast.{AST_NODE, TREE_ROOT}
+import encrywm.backend.executor.context.ScopedRuntimeContext
 import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.StaticAnalyser
 import fastparse.all._
@@ -8,11 +9,13 @@ import org.scalatest.{Matchers, PropSpec}
 
 class ExecutorSpec extends PropSpec with Matchers {
 
-  def precess(s: String): AST_NODE = {
+  private def precess(s: String): AST_NODE = {
     val parsed = (Statements.contract ~ End).parse(s).get.value
     StaticAnalyser.scan(parsed)
     parsed
   }
+
+  private val exc = new Executor(ScopedRuntimeContext.initialized("GLOBAL", 1))
 
   property("Simple contract") {
 
@@ -22,8 +25,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |let b = 9
         |a + b + 8
       """.stripMargin)
-
-    val exc = new Executor
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
@@ -39,8 +40,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |
         |unlock if a >= b
       """.stripMargin)
-
-    val exc = new Executor
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
@@ -59,8 +58,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |unlock if a >= b || true
       """.stripMargin)
 
-    val exc = new Executor
-
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
     excR.isRight shouldBe true
@@ -77,8 +74,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |
         |unlock if a < b && true
       """.stripMargin)
-
-    val exc = new Executor
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
@@ -101,8 +96,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |unlock if a <= sum(a, b)
       """.stripMargin)
 
-    val exc = new Executor
-
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
     excR.isRight shouldBe true
@@ -122,8 +115,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |unlock if a <= c
       """.stripMargin)
 
-    val exc = new Executor
-
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
     excR.isRight shouldBe true
@@ -141,8 +132,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |unlock if a >= lst[1]
       """.stripMargin)
 
-    val exc = new Executor
-
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
     excR.isRight shouldBe true
@@ -156,8 +145,6 @@ class ExecutorSpec extends PropSpec with Matchers {
       """
         |unlock if not false
       """.stripMargin)
-
-    val exc = new Executor
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
@@ -176,8 +163,6 @@ class ExecutorSpec extends PropSpec with Matchers {
         |
         |unlock if not checkSig(msg, sig, pk)
       """.stripMargin)
-
-    val exc = new Executor
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
