@@ -19,9 +19,11 @@ object Ast {
     case class Return(value: Option[EXPR]) extends STMT
 
     case class Assign(target: EXPR, value: EXPR) extends STMT
-    // Do we need operators like `+=`, `-=`, etc?
+
+    // Reassignment could be introduced later.
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT
 
+    // For loop could be introduced later.
     case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
 
@@ -63,19 +65,19 @@ object Ast {
 
     case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(STRING) }
 
-    case class Base58Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(BYTE_VECTOR)}
+    case class Base58Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(BYTE_VECTOR) }
 
     // The following expression can appear in assignment context
     case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
     case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    case class Dict(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class ESet(elts: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class EList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Tuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESDict(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESSet(elts: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
 
-    case class Decl(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(UNIT) }
+    case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(UNIT) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses
@@ -88,7 +90,6 @@ object Ast {
     case object Store extends EXPR_CTX
     case object Param extends EXPR_CTX
 
-    // TODO: Do we need those?
     case object AugLoad extends EXPR_CTX
     case object AugStore extends EXPR_CTX
   }
@@ -153,7 +154,7 @@ object Ast {
 
   case class Identifier(name: String)
 
-  case class Arguments(args: List[EXPR.Decl]) extends AST_NODE
+  case class Arguments(args: List[EXPR.Declaration]) extends AST_NODE
 
   // keyword arguments supplied to call
   case class Keyword(arg: Identifier, value: EXPR) extends AST_NODE

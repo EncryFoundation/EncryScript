@@ -140,7 +140,7 @@ class Executor {
             case _ => IllegalOperationError
           }.getOrElse(UnresolvedReferenceError(id.name))
 
-        case EXPR.EList(elts, _, Some(tpe)) =>
+        case EXPR.ESList(elts, _, Some(tpe)) =>
           elts.foldLeft(List[tpe.Underlying]()) { case (acc, exp) =>
             acc :+ eval[tpe.Underlying](exp)
           }
@@ -167,7 +167,7 @@ class Executor {
 
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
-      case STMT.Assign(EXPR.Decl(EXPR.Name(id, _, _), _), value) =>
+      case STMT.Assign(EXPR.Declaration(EXPR.Name(id, _, _), _), value) =>
         val valT = value.tpeOpt.get
         currentCtx = currentCtx.updated(
           ESValue(id.name, valT)(eval[valT.Underlying](value))
@@ -180,7 +180,7 @@ class Executor {
         Left(ESUnit)
 
       case STMT.FunctionDef(id, args, body, returnType) =>
-        val fnArgs = args.args.map { case EXPR.Decl(EXPR.Name(n, _, _), Some(t)) =>
+        val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
           n.name -> Types.staticTypeById(t.name).get
         }.toIndexedSeq
         val retT = Types.staticTypeById(returnType.name).get

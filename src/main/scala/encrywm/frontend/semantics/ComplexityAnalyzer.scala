@@ -47,11 +47,11 @@ object ComplexityAnalyzer {
     case EXPR.Attribute(value, _, _, _) => scanExpr(value)
     case EXPR.Subscript(value, _, _, _) => scanExpr(value)
     case EXPR.Name(_, _, _) => 1
-    case EXPR.Dict(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
-    case EXPR.ESet(elts, _) => elts.map(scanExpr).sum
-    case EXPR.EList(elts, _, _) => elts.map(scanExpr).sum
-    case EXPR.Tuple(elts, _, _) => elts.map(scanExpr).sum
-    case EXPR.Decl(target, _) => scanExpr(target)
+    case EXPR.ESDict(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
+    case EXPR.ESSet(elts, _) => elts.map(scanExpr).sum
+    case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum
+    case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr).sum
+    case EXPR.Declaration(target, _) => scanExpr(target)
     case _ => 0
   }
 }

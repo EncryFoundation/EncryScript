@@ -37,7 +37,7 @@ object StaticAnalyser extends TreeNodeScanner {
     case asg: STMT.Assign =>
       scan(asg.value)
       asg.target match {
-        case EXPR.Decl(name: EXPR.Name, typeOpt) =>
+        case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
           val declTypeOpt = typeOpt.flatMap(t =>
             currentScopeOpt.map(_.lookup(t.name).map(s =>
@@ -140,11 +140,11 @@ object StaticAnalyser extends TreeNodeScanner {
       case ifExp: EXPR.IfExp =>
         Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scanExpr)
 
-      case dct: EXPR.Dict =>
+      case dct: EXPR.ESDict =>
         dct.keys.foreach(scan)
         dct.values.foreach(scan)
 
-      case lst: EXPR.EList => lst.elts.foreach(scanExpr)
+      case lst: EXPR.ESList => lst.elts.foreach(scanExpr)
 
       case sub: EXPR.Subscript =>
         scanExpr(sub.value)
@@ -262,13 +262,13 @@ object StaticAnalyser extends TreeNodeScanner {
 
         case uop: EXPR.UnaryOp => inferType(uop.operand)
 
-        case EXPR.EList(elts, _, _) =>
+        case EXPR.ESList(elts, _, _) =>
           val listT = elts.headOption.map(inferType).getOrElse(UNIT)  // TODO: Allow creating empty colls?
           elts.tail.foreach(e => assertEquals(listT, inferType(e)))
           ensureNestedColl(elts)
           LIST(listT)
 
-        case EXPR.Dict(keys, vals, _) =>
+        case EXPR.ESDict(keys, vals, _) =>
           val keyT = keys.headOption.map(inferType).getOrElse(UNIT)
           val valT = vals.headOption.map(inferType).getOrElse(UNIT)
           keys.tail.foreach(k => assertEquals(keyT, inferType(k)))

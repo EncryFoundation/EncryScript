@@ -60,7 +60,7 @@ class Statements(indent: Int){
       aug.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
         tstl.map(a => Ast.STMT.Expr(tuplize(a))) |
         let.map {
-          case (a, t, b) => Ast.STMT.Assign(Ast.EXPR.Decl(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
+          case (a, t, b) => Ast.STMT.Assign(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
         }
     )
   }
