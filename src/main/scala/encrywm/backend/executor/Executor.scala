@@ -1,12 +1,12 @@
 package encrywm.backend.executor
 
-import encrywm.ast.Ast.EXPR.{ESDictNode, IntConst, LongConst}
+import encrywm.ast.Ast.EXPR.{IntConst, LongConst}
 import encrywm.ast.Ast._
-import encrywm.backend.{Arith, Compare}
 import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
+import encrywm.backend.{Arith, Compare}
 import encrywm.core.Types
-import encrywm.core.Types.{ESDict, ESInt, ESList}
+import encrywm.core.Types.{ESDict, ESList}
 import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
