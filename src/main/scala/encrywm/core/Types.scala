@@ -52,6 +52,8 @@ object Types {
   sealed trait ESProduct extends ESType {
     val fields: Map[String, ESType] = Map.empty
 
+    def getAttrType(n: String): Option[ESType] = fields.get(n)
+
     def typeOfField(fn: String): Option[ESType] = fields.get(fn)
 
     override def equals(obj: Any): Boolean = obj match {

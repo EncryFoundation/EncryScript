@@ -48,7 +48,7 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.Attribute(value, _, _, _) => scanExpr(value)
     case EXPR.Subscript(value, _, _, _) => scanExpr(value)
     case EXPR.Name(_, _, _) => 1
-    case EXPR.ESDict(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
+    case EXPR.ESDictNode(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
     case EXPR.ESSet(elts, _) => elts.map(scanExpr).sum
     case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr).sum

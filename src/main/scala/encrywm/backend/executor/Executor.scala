@@ -1,12 +1,12 @@
 package encrywm.backend.executor
 
-import encrywm.ast.Ast.EXPR.{IntConst, LongConst}
+import encrywm.ast.Ast.EXPR.{ESDictNode, IntConst, LongConst}
 import encrywm.ast.Ast._
 import encrywm.backend.{Arith, Compare}
 import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
 import encrywm.core.Types
-import encrywm.core.Types.{ESInt, ESList}
+import encrywm.core.Types.{ESDict, ESInt, ESList}
 import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
@@ -32,6 +32,15 @@ class Executor(globalContext: ScopedRuntimeContext) {
           eval[ESObject](expr.value)
         case at: EXPR.Attribute => getAttributeBase(at)
         case _ => throw UnexpectedExpressionError(expr.toString)
+      }
+
+      def resolveRef(expr: EXPR): ESRuntimeComponent = expr match {
+        case EXPR.Name(id, _, _) =>
+          currentCtx.get(id.name)
+            .getOrElse(throw UnresolvedReferenceError(id.name))
+        case attr: EXPR.Attribute =>
+          getAttributeBase(attr).getAttr(attr.attr.name)
+            .getOrElse(throw UnresolvedReferenceError(attr.attr.name))
       }
 
       (expr match {
@@ -93,9 +102,6 @@ class Executor(globalContext: ScopedRuntimeContext) {
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
               }.map(v => v.name -> v).toMap
-              val ctxDisplay = argMap.map { case (n, _) =>
-                n -> ESValue.typeId
-              }
               val nestedCtx =
                 ScopedRuntimeContext(id.name, currentCtx.level + 1, argMap) // TODO: Add kwargs.
               execute(body, nestedCtx) match {
@@ -142,22 +148,30 @@ class Executor(globalContext: ScopedRuntimeContext) {
             case _ => throw IllegalOperationError
           }
 
-        case EXPR.Subscript(EXPR.Name(id, _, Some(tpe)), slice, _, tpeOpt) =>
-          if (!tpe.isInstanceOf[ESList]) throw IllegalOperationError
-          currentCtx.get(id.name).map {
-            case v: ESValue =>
-              v.value match {
-                case list: List[_] => slice match {
-                  case SLICE.Index(idx) => list(eval[Int](idx))
-                  case _ => throw IllegalOperationError
+        case EXPR.Subscript(exp, slice, _, Some(_)) =>
+          resolveRef(exp) match {
+            case v: ESValue => slice match {
+              case SLICE.Index(idx) =>
+                val idxT = idx.tpeOpt.get
+                v.value match {
+                  case lst: List[idxT.Underlying@unchecked] =>
+                    lst(eval[Int](idx))
+                  case dct: Map[idxT.Underlying@unchecked, _] =>
+                    dct(eval[idxT.Underlying](idx))
                 }
-              }
-            case _ => IllegalOperationError
-          }.getOrElse(UnresolvedReferenceError(id.name))
 
-        case EXPR.ESList(elts, _, Some(tpe)) =>
-          elts.foldLeft(List[tpe.Underlying]()) { case (acc, exp) =>
-            acc :+ eval[tpe.Underlying](exp)
+              case _ => throw IllegalOperationError
+            }
+          }
+
+        case EXPR.ESList(elts, _, Some(ESList(valT))) =>
+          elts.foldLeft(List[valT.Underlying]()) { case (acc, exp) =>
+            acc :+ eval[valT.Underlying](exp)
+          }
+
+        case EXPR.ESDictNode(keys, values, Some(ESDict(keyT, valT))) =>
+          keys.zip(values).foldLeft(Map[keyT.Underlying, valT.Underlying]()) { case (acc, (k, v)) =>
+            acc.updated(eval[keyT.Underlying](k), eval[valT.Underlying](v))
           }
 
         case EXPR.Base58Str(s) => Base58.decode(s).get
@@ -242,7 +256,7 @@ class Executor(globalContext: ScopedRuntimeContext) {
     case Failure(_: UnlockException.type) => Right(Result(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Result(Halt))
     case Success(Right(out)) => Right(out)
-    case _ => Left(ESUnit)
+    case r => Left(ESUnit)
   }
 }
 

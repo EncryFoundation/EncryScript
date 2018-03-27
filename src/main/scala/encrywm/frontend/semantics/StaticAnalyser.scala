@@ -120,7 +120,7 @@ object StaticAnalyser extends AstNodeScanner {
         keywords.map(_.value).foreach(scanExpr)
 
       case EXPR.Attribute(value, attr, _, _) =>
-        if (getAttributeBase(value).fields.get(attr.name).isEmpty)
+        if (getAttributeBase(value).getAttrType(attr.name).isEmpty)
           throw NameError(attr.name)
 
       case cmp: EXPR.Compare =>
@@ -132,7 +132,7 @@ object StaticAnalyser extends AstNodeScanner {
       case ifExp: EXPR.IfExp =>
         Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scanExpr)
 
-      case dct: EXPR.ESDict =>
+      case dct: EXPR.ESDictNode =>
         dct.keys.foreach(scan)
         dct.values.foreach(scan)
 
@@ -143,8 +143,12 @@ object StaticAnalyser extends AstNodeScanner {
         sub.slice match {
           case SLICE.Index(idx) =>
             scanExpr(idx)
-            assertEquals(idx.tpeOpt.get, ESInt)
-
+            val idxT = idx.tpeOpt.get
+            sub.value.tpeOpt match {
+              case Some(ESList(_)) => assertEquals(idxT, ESInt)
+              case Some(ESDict(keyT, _)) => assertEquals(idxT, keyT)
+              case _ => throw IllegalExprError
+            }
           // TODO: Complete for other SLICE_OPs.
         }
 
@@ -233,7 +237,7 @@ object StaticAnalyser extends AstNodeScanner {
           ensureNestedColl(elts)
           ESList(listT)
 
-        case EXPR.ESDict(keys, vals, _) =>
+        case EXPR.ESDictNode(keys, vals, _) =>
           val keyT = keys.headOption.map(inferType).getOrElse(ESUnit)
           val valT = vals.headOption.map(inferType).getOrElse(ESUnit)
           keys.tail.foreach(k => assertEquals(keyT, inferType(k)))

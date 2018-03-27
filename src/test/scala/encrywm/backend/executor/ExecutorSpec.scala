@@ -146,6 +146,23 @@ class ExecutorSpec extends PropSpec with Matchers {
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
+  property("Dict subscription") {
+
+    val tree = precess(
+      """
+        |let map = {"2" : 2, "1" : 1}
+        |let a: Int = map["2"]
+        |
+        |unlock if a >= map["1"]
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
   property("Object attribute reference") {
 
     val tree = precess(

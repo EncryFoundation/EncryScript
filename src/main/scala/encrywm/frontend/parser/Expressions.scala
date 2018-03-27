@@ -108,7 +108,7 @@ object Expressions {
   val atom: P[Ast.EXPR] = {
     val empty_tuple = ("(" ~ ")").map(_ => Ast.EXPR.ESTuple(Nil, Ast.EXPR_CTX.Load))
     val empty_list = ("[" ~ "]").map(_ => Ast.EXPR.ESList(Nil, Ast.EXPR_CTX.Load))
-    val empty_dict = ("{" ~ "}").map(_ => Ast.EXPR.ESDict(Nil, Nil))
+    val empty_dict = ("{" ~ "}").map(_ => Ast.EXPR.ESDictNode(Nil, Nil))
     P(
       empty_tuple  |
         empty_list |
@@ -161,10 +161,10 @@ object Expressions {
   val testlist: P[Seq[Ast.EXPR]] = P( test.rep(1, sep = ",") ~ ",".? )
   val dictorsetmaker: P[Ast.EXPR] = {
     val dict_item = P( test ~ ":" ~ test )
-    val dict: P[Ast.EXPR.ESDict] = P(
+    val dict: P[Ast.EXPR.ESDictNode] = P(
       (dict_item.rep(1, ",") ~ ",".?).map { x =>
         val (keys, values) = x.unzip
-        Ast.EXPR.ESDict(keys.toList, values.toList)
+        Ast.EXPR.ESDictNode(keys.toList, values.toList)
       }
     )
 

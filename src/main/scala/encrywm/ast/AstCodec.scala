@@ -61,7 +61,7 @@ object AstCodec {
   implicit def dAttribute = dEx.bind[EXPR.Attribute](15)
   implicit def dSubscript = dEx.bind[EXPR.Subscript](16)
   implicit def dName = dEx.bind[EXPR.Name](17)
-  implicit def dDictEx = dEx.bind[EXPR.ESDict](18)
+  implicit def dDictEx = dEx.bind[EXPR.ESDictNode](18)
   implicit def dSet = dEx.bind[EXPR.ESSet](19)
   implicit def dListEx = dEx.bind[EXPR.ESList](20)
   implicit def dTuple = dEx.bind[EXPR.ESTuple](21)
