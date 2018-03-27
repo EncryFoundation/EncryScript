@@ -1,13 +1,15 @@
 package encrywm.backend.executor
 
+import encrywm.ast.Ast.EXPR.{IntConst, LongConst}
 import encrywm.ast.Ast._
 import encrywm.backend.{Arith, Compare}
 import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
-import encrywm.builtins.Types
-import encrywm.builtins.Types.ESList
+import encrywm.core.Types
+import encrywm.core.Types.{ESInt, ESList}
 import scorex.crypto.encode.Base58
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Random, Success, Try}
 
 // TODO: Throw single error type inside the executor?
@@ -24,6 +26,14 @@ class Executor(globalContext: ScopedRuntimeContext) {
     var currentCtx = context
 
     def eval[T](expr: EXPR): T = {
+      @tailrec
+      def getAttributeBase(expr: EXPR.Attribute): ESObject = expr.value match {
+        case _: EXPR.Name =>
+          eval[ESObject](expr.value)
+        case at: EXPR.Attribute => getAttributeBase(at)
+        case _ => throw UnexpectedExpressionError(expr.toString)
+      }
+
       (expr match {
         case EXPR.Name(id, _, _) =>
           currentCtx.get(id.name).map {
@@ -87,7 +97,7 @@ class Executor(globalContext: ScopedRuntimeContext) {
                 n -> ESValue.typeId
               }
               val nestedCtx =
-                ScopedRuntimeContext(id.name, currentCtx.level + 1, values = argMap, display = ctxDisplay) // TODO: Add kwargs.
+                ScopedRuntimeContext(id.name, currentCtx.level + 1, argMap) // TODO: Add kwargs.
               execute(body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => throw UnlockException
@@ -109,11 +119,10 @@ class Executor(globalContext: ScopedRuntimeContext) {
             case other => throw NotAFunctionError(other.toString)
           }.getOrElse(throw UnresolvedReferenceError(id.name))
 
-          // FIXME: Ensure `base0.base1.attr`.
-        case EXPR.Attribute(value, attrId, _, _) =>
-          val base = eval[ESObject](value)
-          base.attrs.get(attrId.name).map(_.value)
-            .getOrElse(throw UnresolvedReferenceError(attrId.name))
+        case attr: EXPR.Attribute =>
+          val base = getAttributeBase(attr)
+          base.attrs.get(attr.attr.name).map(_.value)
+            .getOrElse(throw UnresolvedReferenceError(attr.attr.name))
 
         case EXPR.IfExp(test, body, orelse, tpeOpt) =>
           val expT = tpeOpt.get
@@ -126,6 +135,10 @@ class Executor(globalContext: ScopedRuntimeContext) {
         case EXPR.UnaryOp(op, operand, Some(_)) =>
           op match {
             case UNARY_OP.Not => !eval[Boolean](operand)
+            case UNARY_OP.Invert => operand match {
+              case exp: IntConst => eval[Int](exp) * (-1)
+              case exp: LongConst => eval[Long](exp) * (-1)
+            }
             case _ => throw IllegalOperationError
           }
 

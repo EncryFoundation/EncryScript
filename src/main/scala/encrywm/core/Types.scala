@@ -1,4 +1,4 @@
-package encrywm.builtins
+package encrywm.core
 
 import encrywm.backend.executor.context.ESObject
 
@@ -73,6 +73,17 @@ object Types {
     )
   }
 
+  case object ESState extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val identifier: String = "State"
+
+    override val fields: Map[String, ESType] = Map(
+      "height" -> ESLong,
+      "lastBlockTimestamp" -> ESLong,
+      "stateDigest" -> ESByteVector
+    )
+  }
+
   sealed trait Parametrized
 
   sealed trait ESCollection extends ESProduct with Parametrized
@@ -80,21 +91,33 @@ object Types {
   case class ESList(valT: ESType) extends ESType with ESCollection {
     override type Underlying = List[valT.Underlying]
     override val identifier: String = "List"
+    override val fields: Map[String, ESType] = ESList.fields
 
     override def equals(obj: Any): Boolean = obj match {
       case l: ESList => l.valT == this.valT
       case _ => false
     }
   }
+  object ESList {
+    val fields: Map[String, ESType] = Map(
+      "size" -> ESInt
+    )
+  }
 
   case class ESDict(keyT: ESType, valT: ESType) extends ESType with ESCollection {
     override type Underlying = Map[keyT.Underlying, valT.Underlying]
     override val identifier: String = "Dict"
+    override val fields: Map[String, ESType] = ESDict.fields
 
     override def equals(obj: Any): Boolean = obj match {
       case d: ESDict => d.keyT == this.keyT && d.valT == this.valT
       case _ => false
     }
+  }
+  object ESDict {
+    val fields: Map[String, ESType] = Map(
+      "size" -> ESInt
+    )
   }
 
   case class ESOption(inT: ESType) extends ESType with ESProduct with Parametrized {

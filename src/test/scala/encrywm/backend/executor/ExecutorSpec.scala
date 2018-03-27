@@ -1,11 +1,13 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast.{AST_NODE, TREE_ROOT}
-import encrywm.backend.executor.context.ScopedRuntimeContext
+import encrywm.backend.executor.context.{ESPredefContext, ScopedRuntimeContext}
+import encrywm.core.environment.context.{ESStateBuilder, ESTransactionBuilder}
 import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.StaticAnalyser
 import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}
+import scorex.utils.Random
 
 class ExecutorSpec extends PropSpec with Matchers {
 
@@ -15,7 +17,12 @@ class ExecutorSpec extends PropSpec with Matchers {
     parsed
   }
 
-  private val exc = new Executor(ScopedRuntimeContext.initialized("GLOBAL", 1))
+  private val ctx = new ESPredefContext(
+    ESTransactionBuilder(Random.randomBytes(), Random.randomBytes(), Random.randomBytes(), 123456),
+    ESStateBuilder(90000, 123455, Random.randomBytes())
+  )
+
+  private val exc = new Executor(ScopedRuntimeContext.initialized("GLOBAL", 1, ctx))
 
   property("Simple contract") {
 
@@ -130,6 +137,22 @@ class ExecutorSpec extends PropSpec with Matchers {
         |let a: Int = lst[3]
         |
         |unlock if a >= lst[1]
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("Object attribute reference") {
+
+    val tree = precess(
+      """
+        |let a: Long = state.height
+        |
+        |unlock if a >= 100
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])

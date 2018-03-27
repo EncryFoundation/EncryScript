@@ -1,62 +1,12 @@
 package encrywm.backend.executor.context
 
-import encrywm.builtins.environment.functions.CheckSig
-
 class ScopedRuntimeContext(val name: String,
                            val level: Int,
-                           override val types: Map[String, ESObject],
-                           override val values: Map[String, ESValue],
-                           override val functions: Map[String, ESFunc],
-                           override val biFunctions: Map[String, ESBuiltInFunc],
-                           override val display: Map[String, Byte],
+                           override val members: Map[String, ESRuntimeComponent],
                            parentOpt: Option[ScopedRuntimeContext] = None) extends RuntimeContext {
 
-  def updated(s: Any): ScopedRuntimeContext = s match {
-    case o: ESObject =>
-      new ScopedRuntimeContext(
-        name,
-        level,
-        types.updated(o.name, o),
-        values,
-        functions,
-        biFunctions,
-        display.updated(o.name, ESObject.typeId),
-        parentOpt
-      )
-    case v: ESValue =>
-      new ScopedRuntimeContext(
-        name,
-        level,
-        types,
-        values.updated(v.name, v),
-        functions,
-        biFunctions,
-        display.updated(v.name, ESValue.typeId),
-        parentOpt
-      )
-    case f: ESFunc =>
-      new ScopedRuntimeContext(
-        name,
-        level,
-        types,
-        values,
-        functions.updated(f.name, f),
-        biFunctions,
-        display.updated(f.name, ESFunc.typeId),
-        parentOpt
-      )
-    case biF: ESBuiltInFunc =>
-      new ScopedRuntimeContext(
-        name,
-        level,
-        types,
-        values,
-        functions,
-        biFunctions.updated(biF.name, biF),
-        display.updated(biF.name, ESBuiltInFunc.typeId),
-        parentOpt
-      )
-  }
+  def updated(s: ESRuntimeComponent): ScopedRuntimeContext =
+    new ScopedRuntimeContext(name, level, members.updated(s.name, s), parentOpt)
 
   def emptyChild(n: String): ScopedRuntimeContext = ScopedRuntimeContext.empty(n, level + 1)
 
@@ -65,26 +15,20 @@ class ScopedRuntimeContext(val name: String,
     case Some(r) => Some(r)
   }
 
-  override def toString: String = s"<ScopedContext name=$name lvl=$level size=${display.size}>"
+  override def toString: String = s"<ScopedContext name=$name lvl=$level size=${members.size}>"
 }
 
 object ScopedRuntimeContext {
 
   def apply(name: String,
             level: Int,
-            types: Map[String, ESObject] = Map.empty,
-            values: Map[String, ESValue] = Map.empty,
-            functions: Map[String, ESFunc] = Map.empty,
-            biFunctions: Map[String, ESBuiltInFunc] = Map.empty,
-            display: Map[String, Byte] = Map.empty,
+            members: Map[String, ESRuntimeComponent] = Map.empty,
             parentOpt: Option[ScopedRuntimeContext] = None): ScopedRuntimeContext =
-    new ScopedRuntimeContext(name, level, types, values, functions, biFunctions, display, parentOpt)
+    new ScopedRuntimeContext(name, level, members, parentOpt)
 
   def empty(n: String, l: Int): ScopedRuntimeContext =
-    new ScopedRuntimeContext(n, l, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, None)
+    new ScopedRuntimeContext(n, l, Map.empty, None)
 
-  def initialized(n: String, l: Int): ScopedRuntimeContext = {
-      new ScopedRuntimeContext(n, l, Map.empty, Map.empty, Map.empty,
-        Map(CheckSig.name -> CheckSig.fn), Map(CheckSig.name -> ESBuiltInFunc.typeId), None)
-    }
+  def initialized(n: String, l: Int, ctx: ESPredefContext): ScopedRuntimeContext =
+    new ScopedRuntimeContext(n, l, ctx.predefMembers, None)
 }

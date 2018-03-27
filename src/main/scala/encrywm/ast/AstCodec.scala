@@ -1,7 +1,7 @@
 package encrywm.ast
 
-import encrywm.builtins.Types
-import encrywm.builtins.Types.ESType
+import encrywm.core.Types
+import encrywm.core.Types.ESType
 import encrywm.ast.Ast._
 import scodec.Codec
 import scodec.codecs.{Discriminated, uint2, uint4, uint8}
@@ -27,7 +27,8 @@ object AstCodec {
   implicit def dDict = dT.bind[Types.ESDict](9)
   implicit def dOpt = dT.bind[Types.ESOption](10)
   implicit def dTr = dT.bind[Types.ESTransaction.type](11)
-  implicit def dNi = dT.bind[Types.NIType.type](12)
+  implicit def dSte = dT.bind[Types.ESState.type](12)
+  implicit def dNi = dT.bind[Types.NIType.type](13)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)

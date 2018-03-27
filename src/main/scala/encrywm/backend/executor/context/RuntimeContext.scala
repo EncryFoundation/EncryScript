@@ -2,18 +2,9 @@ package encrywm.backend.executor.context
 
 trait RuntimeContext {
 
-  val types: Map[String, ESObject]
-  val values: Map[String, ESValue]
-  val functions: Map[String, ESFunc]
-  val biFunctions: Map[String, ESBuiltInFunc]
-  val display: Map[String, Byte]
+  val members: Map[String, ESRuntimeComponent]
 
-  def updated(s: Any): RuntimeContext
+  def updated(s: ESRuntimeComponent): RuntimeContext
 
-  def get(id: String): Option[ESRuntimeComponent] = display.get(id).flatMap {
-    case ESObject.typeId => types.get(id)
-    case ESValue.typeId => values.get(id)
-    case ESFunc.typeId => functions.get(id)
-    case ESBuiltInFunc.typeId => biFunctions.get(id)
-  }
+  def get(id: String): Option[ESRuntimeComponent] = members.get(id)
 }

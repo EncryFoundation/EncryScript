@@ -1,6 +1,6 @@
 package encrywm.backend.executor.context
 
-import encrywm.builtins.Types.ESType
+import encrywm.core.Types.ESType
 
 sealed trait ESValue extends ESRuntimeComponent {
 

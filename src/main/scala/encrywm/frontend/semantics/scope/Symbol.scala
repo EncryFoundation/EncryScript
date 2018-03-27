@@ -1,6 +1,6 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.builtins.Types.ESType
+import encrywm.core.Types.ESType
 
 sealed trait Symbol {
   val name: String

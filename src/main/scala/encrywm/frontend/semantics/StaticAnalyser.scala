@@ -1,7 +1,7 @@
 package encrywm.frontend.semantics
 
-import encrywm.builtins.ESMath
-import encrywm.builtins.Types._
+import encrywm.core.ESMath
+import encrywm.core.Types._
 import encrywm.ast.Ast._
 import encrywm.ast.AstNodeScanner
 import encrywm.frontend.semantics.error._

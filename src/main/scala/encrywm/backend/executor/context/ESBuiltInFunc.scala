@@ -2,7 +2,7 @@ package encrywm.backend.executor.context
 
 import encrywm.backend.executor.context.ESBuiltInFunc.EvalResult
 import encrywm.backend.executor.error.ExecutionError
-import encrywm.builtins.Types.ESType
+import encrywm.core.Types.ESType
 
 case class ESBuiltInFunc(name: String,
                          args: IndexedSeq[(String, ESType)],
