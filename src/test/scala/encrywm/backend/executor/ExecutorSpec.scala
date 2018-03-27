@@ -90,7 +90,7 @@ class ExecutorSpec extends PropSpec with Matchers {
         |let a = 10
         |let b = 30
         |
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + b
         |
         |unlock if a <= sum(a, b)
@@ -127,7 +127,7 @@ class ExecutorSpec extends PropSpec with Matchers {
     val tree = precess(
       """
         |let lst = [0, 1, 2, 3, 4]
-        |let a: int = lst[3]
+        |let a: Int = lst[3]
         |
         |unlock if a >= lst[1]
       """.stripMargin)

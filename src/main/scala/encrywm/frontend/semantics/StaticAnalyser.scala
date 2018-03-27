@@ -39,31 +39,27 @@ object StaticAnalyser extends AstNodeScanner {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val declTypeOpt = typeOpt.flatMap(t =>
-            currentScopeOpt.map(_.lookup(t.name).map(s =>
-              staticTypeById(s.name).getOrElse(TYPE_REF(s.name))
-            ).getOrElse(throw NameError(t.name)))
+          val typeDeclOpt = typeOpt.map(t =>
+            typeByIdent(t.name).getOrElse(throw NameError(t.name))
           )
-          declTypeOpt.foreach(tpe => assertEquals(tpe, valueType))
+          typeDeclOpt.foreach(tpe => assertEquals(tpe, valueType))
           addNameToScope(name, valueType)
         case _ => // ???
       }
 
     case fd: STMT.FunctionDef =>
-      assertDefined(fd.returnType.name)
-      val returnTypeSymbol = BuiltInTypeSymbol(fd.returnType.name)
+      val declaredRetType = typeByIdent(fd.returnType.name)
+        .getOrElse(throw NameError(fd.returnType.name))
       val paramSymbols = fd.args.args.map { arg =>
         arg.target match {
           case n: EXPR.Name =>
-            val typeSymbolOpt = arg.typeOpt.map { t =>
-              assertDefined(t.name)
-              BuiltInTypeSymbol(t.name)
-            }
-            VariableSymbol(n.id.name, typeSymbolOpt)
+            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.name))
+              .getOrElse(throw IllegalExprError)
+            ValSymbol(n.id.name, valT)
           case _ => throw IllegalExprError
         }
       }
-      currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, Some(returnTypeSymbol), paramSymbols)))
+      currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, declaredRetType, paramSymbols)))
       val fnScope = ScopedSymbolTable(fd.name.name, currentScopeOpt.get)
       scopes.push(fnScope)
       paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s)))
@@ -72,12 +68,12 @@ object StaticAnalyser extends AstNodeScanner {
       val retType = findReturns(fd.body).map(_.value.map { exp =>
         scanExpr(exp)
         exp.tpeOpt.get
-      }).foldLeft(Seq[TYPE]()) { case (acc, tOpt) =>
-        val tpe = tOpt.getOrElse(UNIT)
+      }).foldLeft(Seq[ESType]()) { case (acc, tOpt) =>
+        val tpe = tOpt.getOrElse(ESUnit)
         if (acc.nonEmpty) assertEquals(acc.head, tpe)
         acc :+ tpe
-      }.headOption.getOrElse(UNIT)
-      assertEquals(staticTypeById(fd.returnType.name).get, retType)
+      }.headOption.getOrElse(ESUnit)
+      assertEquals(declaredRetType, retType)
 
       scopes.popHead()
 
@@ -115,21 +111,17 @@ object StaticAnalyser extends AstNodeScanner {
       case bin: EXPR.BinOp =>
         Seq(bin.left, bin.right).foreach(scanExpr)
 
-      case fc: EXPR.Call =>
-        fc.func match {
-          case n: EXPR.Name =>
-            val fn = currentScopeOpt.flatMap(_.lookup(n.id.name))
-              .getOrElse(throw NameError(n.id.name))
-            if (fn.asInstanceOf[FuncSymbol].params.size != fc.args.size + fc.keywords.size)
-              throw WrongNumberOfArgumentsError(fn.name)
-            fc.args.foreach(scanExpr)
-            fc.keywords.map(_.value).foreach(scanExpr)
-          case _ => throw IllegalExprError
-        }
+      case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
+        currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
+          if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
+          id.name
+        }.getOrElse(throw NameError(id.name))
+        args.foreach(scanExpr)
+        keywords.map(_.value).foreach(scanExpr)
 
-      case attr: EXPR.Attribute =>
-        if (!getAttributeBase(attr.value).attributes.map(_.name).contains(attr.attr.name))
-          throw NameError(attr.attr.name)
+      case EXPR.Attribute(value, attr, _, _) =>
+        if (getAttributeBase(value).fields.get(attr.name).isEmpty)
+          throw NameError(attr.name)
 
       case cmp: EXPR.Compare =>
         cmp.comparators.foreach(scanExpr)
@@ -151,7 +143,7 @@ object StaticAnalyser extends AstNodeScanner {
         sub.slice match {
           case SLICE.Index(idx) =>
             scanExpr(idx)
-            assertEquals(idx.tpeOpt.get, INT)
+            assertEquals(idx.tpeOpt.get, ESInt)
 
           // TODO: Complete for other SLICE_OPs.
         }
@@ -164,29 +156,17 @@ object StaticAnalyser extends AstNodeScanner {
     inferType(node)
   }
 
-  private def addNameToScope(name: EXPR.Name, tpe: TYPE): Unit = {
-    val typeSymbol = tpe match {
-      case LIST(valT) =>
-        val valSymbol = BuiltInTypeSymbol(valT.identifier)
-        BuiltInTypeSymbol(tpe.identifier, typeParams = Seq(valSymbol))
-
-      case DICT(keyT, valT) =>
-        val keySymbol = BuiltInTypeSymbol(keyT.identifier)
-        val valSymbol = BuiltInTypeSymbol(valT.identifier)
-        BuiltInTypeSymbol(tpe.identifier, typeParams = Seq(keySymbol, valSymbol))
-
-      case _ => BuiltInTypeSymbol(tpe.identifier)
-    }
-    currentScopeOpt.foreach(_.insert(VariableSymbol(name.id.name, Some(typeSymbol))))
+  private def addNameToScope(name: EXPR.Name, tpe: ESType): Unit = {
+    currentScopeOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
   }
 
   @tailrec
-  def getAttributeBase(node: AST_NODE): BuiltInTypeSymbol = node match {
+  def getAttributeBase(node: AST_NODE): ESProduct = node match {
     case name: EXPR.Name =>
       val sym = currentScopeOpt.flatMap(_.lookup(name.id.name))
         .getOrElse(throw NameError(name.id.name))
       sym match {
-        case bis: BuiltInTypeSymbol => bis
+        case ValSymbol(_, t: ESProduct) => t
         case _ => throw NotAnObjectError(sym.name)
       }
     case at: EXPR.Attribute => getAttributeBase(at.value)
@@ -205,43 +185,28 @@ object StaticAnalyser extends AstNodeScanner {
     stmts.flatMap(findReturnsIn)
   }
 
-  private def inferType(exp: EXPR): TYPE = {
+  private def inferType(exp: EXPR): ESType = {
 
     val scope = currentScopeOpt.getOrElse(throw MissedContextError)
 
-    def inferTypeIn(e: EXPR): TYPE = e.tpeOpt.getOrElse {
+    def inferTypeIn(e: EXPR): ESType = e.tpeOpt.getOrElse {
       exp match {
         case n: EXPR.Name => scope.lookup(n.id.name)
-          .map { symbol =>
-            val symbolT = symbol.tpeOpt.get
-            staticTypeById(symbolT.name).getOrElse {
-              if (symbolT.name == "list") {
-                val valT = staticTypeById(symbolT.typeParams.head.name).getOrElse(TYPE_REF(symbolT.name))
-                LIST(valT)
-              } else if (symbolT.name == "dict") {
-                val keyT = staticTypeById(symbolT.typeParams.head.name).getOrElse(TYPE_REF(symbolT.name))
-                val valT = staticTypeById(symbolT.typeParams.last.name).getOrElse(TYPE_REF(symbolT.name))
-                DICT(keyT, valT)
-              } else {
-                TYPE_REF(symbolT.name)
-              }
-            }
-          }.getOrElse(throw NameError(n.id.name))
+          .map(_.tpe).getOrElse(throw NameError(n.id.name))
 
         case a: EXPR.Attribute =>
-          getAttributeBase(a).attributes.find(s => s.name == a.attr.name).get.tpeOpt.map(s =>
-            staticTypeById(s.name).getOrElse(TYPE_REF(s.name))).getOrElse(throw TypeError)
+          getAttributeBase(a).fields.getOrElse(a.attr.name, throw NameError(a.attr.name))
 
+        // TODO: Move type checking to `scan()`.
         case fc: EXPR.Call =>
           fc.func match {
             case n: EXPR.Name =>
               scope.lookup(n.id.name).map { case sym: FuncSymbol =>
-                val args = sym.params.map(p => p.tpeOpt.get)
-                fc.args.map(inferType).zip(args).foreach { case (t1, t2s) =>
-                  if (t1 != t2s) throw TypeMismatchError(t1.identifier, t2s.name)
+                val argTypes = sym.params.map(_.tpe)
+                fc.args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
+                  if (t1 != t2) throw TypeMismatchError(t1.identifier, t2.identifier)
                 }
-                sym.tpeOpt.flatMap(r => staticTypeById(r.name))
-                  .getOrElse(throw new SemanticError("Illegal return type."))
+                sym.tpe
               }.getOrElse(throw IllegalExprError)
 
             case _ => throw IllegalExprError
@@ -263,23 +228,23 @@ object StaticAnalyser extends AstNodeScanner {
         case uop: EXPR.UnaryOp => inferType(uop.operand)
 
         case EXPR.ESList(elts, _, _) =>
-          val listT = elts.headOption.map(inferType).getOrElse(UNIT)  // TODO: Allow creating empty colls?
+          val listT = elts.headOption.map(inferType).getOrElse(ESUnit)  // TODO: Allow creating empty colls?
           elts.tail.foreach(e => assertEquals(listT, inferType(e)))
           ensureNestedColl(elts)
-          LIST(listT)
+          ESList(listT)
 
         case EXPR.ESDict(keys, vals, _) =>
-          val keyT = keys.headOption.map(inferType).getOrElse(UNIT)
-          val valT = vals.headOption.map(inferType).getOrElse(UNIT)
+          val keyT = keys.headOption.map(inferType).getOrElse(ESUnit)
+          val valT = vals.headOption.map(inferType).getOrElse(ESUnit)
           keys.tail.foreach(k => assertEquals(keyT, inferType(k)))
           vals.tail.foreach(v => assertEquals(valT, inferType(v)))
           ensureNestedColl(vals)  // TODO: Ensure nested coll for keys?
-          DICT(keyT, valT)
+          ESDict(keyT, valT)
 
         case EXPR.Subscript(value, SLICE.Index(_), _, _) =>
           inferType(value) match {
-            case list: LIST => list.valT
-            case dict: DICT => dict.valT
+            case list: ESList => list.valT
+            case dict: ESDict => dict.valT
           }
 
         case _ => throw IllegalExprError
@@ -293,10 +258,10 @@ object StaticAnalyser extends AstNodeScanner {
 
   private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
     val expT = exp.tpeOpt.get
-    if (expT.isInstanceOf[LIST] || expT.isInstanceOf[DICT]) throw NestedCollectionError
+    if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict]) throw NestedCollectionError
   }
 
-  private def assertEquals(t1: TYPE, t2: TYPE): Unit =
+  private def assertEquals(t1: ESType, t2: ESType): Unit =
     if (t1 != t2) throw TypeMismatchError(t1.identifier, t2.identifier)
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)

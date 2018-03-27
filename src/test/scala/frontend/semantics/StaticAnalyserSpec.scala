@@ -14,8 +14,8 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let a: int = 9
-        |let b: bool = true
+        |let a: Int = 9
+        |let b: Bool = true
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -47,7 +47,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + b
       """.stripMargin)
 
@@ -63,7 +63,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Valid AST with function call analysis") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + b
         |
         |sum(1, 2)
@@ -81,7 +81,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Invalid AST with nested scope analysis (Undefined name)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + c
       """.stripMargin)
 
@@ -112,7 +112,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Analysis of invalid AST with wrong number of args passed to function") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + c
         |
         |sum(1, 2, 3)
@@ -130,7 +130,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Valid AST with If-expression analysis") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let a: int = 9 if 6 > 10 else 0
+        |let a: Int = 9 if 6 > 10 else 0
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -145,7 +145,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Analysis of invalid AST with If expression and undefined ref inside") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let a: int = 9 if b < 0 else 0
+        |let a: Int = 9 if b < 0 else 0
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -239,7 +239,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of invalid assignment (Type mismatch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let a: int = 9L + 1
+        |let a: Int = 9L + 1
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -254,7 +254,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of valid function definition") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + b
       """.stripMargin)
 
@@ -270,7 +270,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of invalid function definition (Type mismatch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> string:
+        |def sum(a: Int, b: Int) -> String:
         |    return a + b
       """.stripMargin)
 
@@ -286,7 +286,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of invalid function definition (Return type mismatch) (Nested statements scanning)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    if a > b:
         |        return a
         |    else:
@@ -305,7 +305,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of invalid function call (Argument type mismatch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |def sum(a: int, b: int) -> int:
+        |def sum(a: Int, b: Int) -> Int:
         |    return a + b
         |
         |sum(1, "string")
@@ -323,7 +323,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Type checking of invalid assignment (Zero division in value part)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let a: int = 1 / 0
+        |let a: Int = 1 / 0
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -429,7 +429,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let lst = [1, 2, 3, 4]
-        |let a: int = lst[1]
+        |let a: Int = lst[1]
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -445,7 +445,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let lst = [1, 2, 3, 4]
-        |let a: string = lst[1]
+        |let a: String = lst[1]
       """.stripMargin)
 
     val analyzer = StaticAnalyser
@@ -460,7 +460,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Valid Base58 string analysis") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let byteVector: bytes = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
+        |let byteVector: Bytes = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
       """.stripMargin)
 
     val analyzer = StaticAnalyser

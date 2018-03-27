@@ -1,18 +1,15 @@
 package encrywm.frontend.semantics.scope
 
-trait Symbol {
+import encrywm.builtins.Types.ESType
 
+sealed trait Symbol {
   val name: String
-  val tpeOpt: Option[BuiltInTypeSymbol] = None
+  val tpe: ESType
 }
 
-case class BuiltInTypeSymbol(override val name: String,
-                             typeParams: Seq[BuiltInTypeSymbol] = Seq(),
-                             attributes: Seq[VariableSymbol] = Seq()) extends Symbol
-
 case class FuncSymbol(override val name: String,
-                      override val tpeOpt: Option[BuiltInTypeSymbol],
-                      params: Seq[VariableSymbol] = Seq()) extends Symbol
+                      override val tpe: ESType,
+                      params: Seq[ValSymbol] = Seq()) extends Symbol
 
-case class VariableSymbol(override val name: String,
-                          override val tpeOpt: Option[BuiltInTypeSymbol]) extends Symbol
+case class ValSymbol(override val name: String,
+                     override val tpe: ESType) extends Symbol

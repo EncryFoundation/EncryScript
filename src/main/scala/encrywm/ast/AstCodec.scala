@@ -1,7 +1,7 @@
 package encrywm.ast
 
 import encrywm.builtins.Types
-import encrywm.builtins.Types.TYPE
+import encrywm.builtins.Types.ESType
 import encrywm.ast.Ast._
 import scodec.Codec
 import scodec.codecs.{Discriminated, uint2, uint4, uint8}
@@ -14,19 +14,20 @@ object AstCodec {
   implicit def dCon = dRoot.bind[TREE_ROOT.Contract](0)
   implicit def dRExp = dRoot.bind[TREE_ROOT.Expression](1)
 
-  implicit def dT = Discriminated[TYPE, Int](uint4)
-  implicit def dUnit = dT.bind[Types.UNIT.type](0)
-  implicit def dBool = dT.bind[Types.BOOLEAN.type](1)
-  implicit def dInt = dT.bind[Types.INT.type](2)
-  implicit def dLong = dT.bind[Types.LONG.type](3)
+  implicit def dT = Discriminated[ESType, Int](uint4)
+  implicit def dUnit = dT.bind[Types.ESUnit.type](0)
+  implicit def dBool = dT.bind[Types.ESBoolean.type](1)
+  implicit def dInt = dT.bind[Types.ESInt.type](2)
+  implicit def dLong = dT.bind[Types.ESLong.type](3)
   implicit def dFloat = dT.bind[Types.FLOAT.type](4)
   implicit def dDouble = dT.bind[Types.DOUBLE.type](5)
-  implicit def dStr = dT.bind[Types.STRING.type](6)
-  implicit def dBytes = dT.bind[Types.BYTE_VECTOR.type](7)
-  implicit def dList = dT.bind[Types.LIST](8)
-  implicit def dDict = dT.bind[Types.DICT](9)
-  implicit def dOpt = dT.bind[Types.OPTION](10)
-  implicit def dTr = dT.bind[Types.TYPE_REF](11)
+  implicit def dStr = dT.bind[Types.ESString.type](6)
+  implicit def dBytes = dT.bind[Types.ESByteVector.type](7)
+  implicit def dList = dT.bind[Types.ESList](8)
+  implicit def dDict = dT.bind[Types.ESDict](9)
+  implicit def dOpt = dT.bind[Types.ESOption](10)
+  implicit def dTr = dT.bind[Types.ESTransaction.type](11)
+  implicit def dNi = dT.bind[Types.NIType.type](12)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)

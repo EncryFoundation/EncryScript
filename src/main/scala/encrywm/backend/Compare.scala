@@ -1,4 +1,4 @@
-package encrywm.backend.executor
+package encrywm.backend
 
 import encrywm.backend.executor.error.UnsupportedOperationError
 

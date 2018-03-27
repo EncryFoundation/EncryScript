@@ -1,109 +1,128 @@
 package encrywm.builtins
 
 import encrywm.backend.executor.context.ESObject
-import encrywm.frontend.semantics.scope.BuiltInTypeSymbol
 
 object Types {
 
-  sealed trait TYPE {
+  sealed trait ESType {
     type Underlying
     val identifier: String
-    lazy val symbol: BuiltInTypeSymbol = BuiltInTypeSymbol(identifier)
 
     override def equals(obj: scala.Any): Boolean = obj match {
-      case s: STATIC => this.identifier == s.identifier
-      case sym: BuiltInTypeSymbol => this.identifier == sym.name
+      case s: ESPrimitive => this.identifier == s.identifier
       case _ => false
     }
   }
 
-  sealed trait STATIC extends TYPE
+  sealed trait ESPrimitive extends ESType
 
-  sealed trait PARAMETRIZED extends TYPE
-
-  // Primitives
-  case object UNIT extends TYPE with STATIC {
+  case object ESUnit extends ESType with ESPrimitive {
     override type Underlying = Unit
-    override val identifier: String = "unit"
+    override val identifier: String = "Unit"
   }
-  case object BOOLEAN extends TYPE with STATIC {
+  case object ESBoolean extends ESType with ESPrimitive {
     override type Underlying = Boolean
-    override val identifier: String = "bool"
+    override val identifier: String = "Bool"
   }
-  case object INT extends TYPE with STATIC {
+  case object ESInt extends ESType with ESPrimitive {
     override type Underlying = Int
-    override val identifier: String = "int"
+    override val identifier: String = "Int"
   }
-  case object LONG extends TYPE with STATIC {
+  case object ESLong extends ESType with ESPrimitive {
     override type Underlying = Long
-    override val identifier: String = "long"
+    override val identifier: String = "Long"
   }
-  case object FLOAT extends TYPE with STATIC {
+  case object FLOAT extends ESType with ESPrimitive {
     override type Underlying = Float
-    override val identifier: String = "float"
+    override val identifier: String = "Float"
   }
-  case object DOUBLE extends TYPE with STATIC {
+  case object DOUBLE extends ESType with ESPrimitive {
     override type Underlying = Double
-    override val identifier: String = "double"
+    override val identifier: String = "Double"
   }
-  case object STRING extends TYPE with STATIC {
+  case object ESString extends ESType with ESPrimitive {
     override type Underlying = String
-    override val identifier: String = "string"
+    override val identifier: String = "String"
   }
-  case object BYTE_VECTOR extends TYPE with STATIC {
+  case object ESByteVector extends ESType with ESPrimitive {
     override type Underlying = Array[Byte]  // TODO: Switch to scodec.Bytevector
-    override val identifier: String = "bytes"
+    override val identifier: String = "Bytes"
   }
 
-  // Complex types
-  case class LIST(valT: TYPE) extends TYPE with PARAMETRIZED {
-    override type Underlying = List[valT.Underlying]
-    override val identifier: String = "list"
+  sealed trait ESProduct extends ESType {
+    val fields: Map[String, ESType] = Map.empty
 
-    override def equals(obj: Any): Boolean = obj match {
-      case l: LIST => l.valT == this.valT
-      case sym: BuiltInTypeSymbol => this.identifier == sym.name &&
-        sym.typeParams.headOption.exists(_.name == this.valT.identifier)
-      case _ => false
-    }
-  }
-  case class DICT(keyT: TYPE, valT: TYPE) extends TYPE with PARAMETRIZED {
-    override type Underlying = Map[keyT.Underlying, valT.Underlying]
-    override val identifier: String = "dict"
+    def typeOfField(fn: String): Option[ESType] = fields.get(fn)
 
     override def equals(obj: Any): Boolean = obj match {
-      case d: DICT => d.keyT == this.keyT && d.valT == this.valT
-      case sym: BuiltInTypeSymbol => this.identifier == sym.name &&
-        sym.typeParams.headOption.exists(_.name == this.keyT.identifier) &&
-        sym.typeParams.lastOption.exists(_.name == this.valT.identifier)
-      case _ => false
+      case p: ESProduct =>
+        if (p.fields.size != this.fields.size) false
+        else p.fields.zip(this.fields).forall { case ((f1, _), (f2, _)) => f1 == f2 }
     }
   }
-  case class OPTION(inT: TYPE) extends TYPE with PARAMETRIZED {
-    override type Underlying = Option[inT.Underlying]
-    override val identifier: String = "option"
-  }
 
-  case class TYPE_REF(identifier: String) extends TYPE {
+  case object ESTransaction extends ESType with ESProduct {
     override type Underlying = ESObject
+    override val identifier: String = "Transaction"
 
-    override def equals(obj: scala.Any): Boolean = obj match {
-      case tr: TYPE_REF => this.identifier == tr.identifier
-      case sym: BuiltInTypeSymbol => this.identifier == sym.name
+    override val fields: Map[String, ESType] = Map(
+      "accountPubKey" -> ESByteVector,
+      "timestamp" -> ESLong,
+      "signature" -> ESByteVector,
+      "bodyBytes" -> ESByteVector
+    )
+  }
+
+  sealed trait Parametrized
+
+  sealed trait ESCollection extends ESProduct with Parametrized
+
+  case class ESList(valT: ESType) extends ESType with ESCollection {
+    override type Underlying = List[valT.Underlying]
+    override val identifier: String = "List"
+
+    override def equals(obj: Any): Boolean = obj match {
+      case l: ESList => l.valT == this.valT
       case _ => false
     }
   }
 
-  lazy val staticTypes: Map[String, STATIC] = Map(
-    UNIT.identifier -> UNIT,
-    BOOLEAN.identifier -> BOOLEAN,
-    INT.identifier -> INT,
-    LONG.identifier -> LONG,
-    FLOAT.identifier -> FLOAT,  // TODO: Remove float?
-    DOUBLE.identifier -> DOUBLE,
-    STRING.identifier -> STRING,
-    BYTE_VECTOR.identifier -> BYTE_VECTOR,
-  )
+  case class ESDict(keyT: ESType, valT: ESType) extends ESType with ESCollection {
+    override type Underlying = Map[keyT.Underlying, valT.Underlying]
+    override val identifier: String = "Dict"
 
-  def staticTypeById(id: String): Option[TYPE] = staticTypes.get(id)
+    override def equals(obj: Any): Boolean = obj match {
+      case d: ESDict => d.keyT == this.keyT && d.valT == this.valT
+      case _ => false
+    }
+  }
+
+  case class ESOption(inT: ESType) extends ESType with ESProduct with Parametrized {
+    override type Underlying = Option[inT.Underlying]
+    override val identifier: String = "Option"
+  }
+
+  // Placeholder fot inferred type.
+  case object NIType extends ESType {
+    override type Underlying = Nothing
+    override val identifier: String = "NotInferred"
+  }
+
+  lazy val primitiveTypes: Seq[ESPrimitive] = Seq(ESUnit, ESBoolean, ESInt, ESLong, ESString, ESByteVector)
+  lazy val productTypes: Seq[ESProduct] = Seq(ESTransaction, ESOption(NIType))
+  lazy val collTypes: Seq[ESCollection] = Seq(ESDict(NIType, NIType), ESList(NIType))
+
+  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes
+
+  lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.identifier -> t).toMap
+
+  def typeByIdent(id: String): Option[ESType] = typesMap.get(id)
+
+  def liftType(d: Any): ESType = d match {
+    case _: Int => ESInt
+    case _: Long => ESLong
+    case _: Boolean => ESBoolean
+    case _: String => ESString
+    case _: Array[Byte] => ESByteVector
+  }
 }

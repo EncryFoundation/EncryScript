@@ -38,46 +38,46 @@ object Ast {
     case class attributes(lineno: Int, col_offset: Int)
   }
 
-  sealed trait EXPR extends AST_NODE { var tpeOpt: Option[TYPE] }
+  sealed trait EXPR extends AST_NODE { var tpeOpt: Option[ESType] }
   object EXPR {
 
-    case class BoolOp(op: BOOL_OP, values: List[EXPR]) extends EXPR { var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
-    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class BoolOp(op: BOOL_OP, values: List[EXPR]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESBoolean) }
+    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR
 
     // Sequences are required for compare to distinguish between
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: List[COMP_OP], comparators: List[EXPR]) extends EXPR {
-      override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
-    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tpeOpt: Option[TYPE] = None) extends EXPR
+      override var tpeOpt: Option[ESType] = Some(ESBoolean) }
+    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tpeOpt: Option[ESType] = None) extends EXPR
 
     sealed trait Num extends EXPR
-    case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(INT) }
-    case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(LONG) }
-    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(FLOAT) }
-    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[TYPE] = Some(DOUBLE) }
+    case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(ESInt) }
+    case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(ESLong) }
+    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(FLOAT) }
+    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(DOUBLE) }
 
     sealed trait Bool extends EXPR
-    case object True extends EXPR with Bool { override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
-    case object False extends EXPR with Bool { override var tpeOpt: Option[TYPE] = Some(BOOLEAN) }
+    case object True extends EXPR with Bool { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
+    case object False extends EXPR with Bool { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
 
-    case class Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(STRING) }
+    case class Str(s: String) extends EXPR { override var tpeOpt: Option[ESType] = Some(ESString) }
 
-    case class Base58Str(s: String) extends EXPR { override var tpeOpt: Option[TYPE] = Some(BYTE_VECTOR) }
+    case class Base58Str(s: String) extends EXPR { override var tpeOpt: Option[ESType] = Some(ESByteVector) }
 
     // The following expression can appear in assignment context
-    case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
 
-    case class ESDict(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class ESSet(elts: List[EXPR], override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
-    case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[TYPE] = None) extends EXPR
+    case class ESDict(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class ESSet(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
+    case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
 
-    case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[TYPE] = Some(UNIT) }
+    case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses

@@ -1,10 +1,11 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast._
+import encrywm.backend.{Arith, Compare}
 import encrywm.backend.executor.context._
 import encrywm.backend.executor.error._
 import encrywm.builtins.Types
-import encrywm.builtins.Types.LIST
+import encrywm.builtins.Types.ESList
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -108,6 +109,7 @@ class Executor(globalContext: ScopedRuntimeContext) {
             case other => throw NotAFunctionError(other.toString)
           }.getOrElse(throw UnresolvedReferenceError(id.name))
 
+          // FIXME: Ensure `base0.base1.attr`.
         case EXPR.Attribute(value, attrId, _, _) =>
           val base = eval[ESObject](value)
           base.attrs.get(attrId.name).map(_.value)
@@ -128,7 +130,7 @@ class Executor(globalContext: ScopedRuntimeContext) {
           }
 
         case EXPR.Subscript(EXPR.Name(id, _, Some(tpe)), slice, _, tpeOpt) =>
-          if (!tpe.isInstanceOf[LIST]) throw IllegalOperationError
+          if (!tpe.isInstanceOf[ESList]) throw IllegalOperationError
           currentCtx.get(id.name).map {
             case v: ESValue =>
               v.value match {
@@ -181,9 +183,9 @@ class Executor(globalContext: ScopedRuntimeContext) {
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
-          n.name -> Types.staticTypeById(t.name).get
+          n.name -> Types.typeByIdent(t.name).get
         }.toIndexedSeq
-        val retT = Types.staticTypeById(returnType.name).get
+        val retT = Types.typeByIdent(returnType.name).get
         currentCtx = currentCtx.updated(
           ESFunc(id.name, fnArgs, retT, body)
         )
