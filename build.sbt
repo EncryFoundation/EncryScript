@@ -14,5 +14,6 @@ libraryDependencies ++= Seq(
   "org.scodec" %% "scodec-core" % "1.10.3",
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "io.monix" %% "monix-eval" % "3.0.0-RC1",
-  "org.typelevel" %% "cats-core" % "1.1.0"
+  "org.typelevel" %% "cats-core" % "1.1.0",
+  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0"
 )

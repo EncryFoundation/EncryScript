@@ -28,7 +28,8 @@ object AstCodec {
   implicit def dOpt = dT.bind[Types.ESOption](10)
   implicit def dTr = dT.bind[Types.ESTransaction.type](11)
   implicit def dSte = dT.bind[Types.ESState.type](12)
-  implicit def dNi = dT.bind[Types.NIType.type](13)
+  implicit def dCtx = dT.bind[Types.ESContext.type](13)
+  implicit def dNi = dT.bind[Types.NIType.type](14)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)

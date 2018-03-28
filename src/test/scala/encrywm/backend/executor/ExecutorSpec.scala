@@ -1,21 +1,13 @@
 package encrywm.backend.executor
 
-import encrywm.ast.Ast.{AST_NODE, TREE_ROOT}
+import encrywm.ast.Ast.TREE_ROOT
 import encrywm.backend.env.{ESPredefEnv, ScopedRuntimeEnv}
 import encrywm.core.environment.context._
-import encrywm.frontend.parser.Statements
-import encrywm.frontend.semantics.StaticAnalyser
-import fastparse.all._
 import org.scalatest.{Matchers, PropSpec}
 import scorex.utils.Random
+import utils.SourceProcessor
 
-class ExecutorSpec extends PropSpec with Matchers {
-
-  private def precess(s: String): AST_NODE = {
-    val parsed = (Statements.contract ~ End).parse(s).get.value
-    StaticAnalyser.scan(parsed)
-    parsed
-  }
+class ExecutorSpec extends PropSpec with Matchers with SourceProcessor {
 
   private val ctx = {
     val transaction = ESTransactionData(Random.randomBytes(), Random.randomBytes(), Random.randomBytes(), 12345567L)

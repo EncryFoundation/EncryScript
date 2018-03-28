@@ -20,7 +20,8 @@ class Executor(globalContext: ScopedRuntimeEnv) {
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
-  private def execute(statements: Seq[STMT], context: ScopedRuntimeEnv = ctx): ExecOutcome = Try {
+  private def execute(statements: Seq[STMT],
+                      context: ScopedRuntimeEnv = ctx): ExecOutcome = Try {
 
     var currentCtx = context
 
