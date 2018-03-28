@@ -9,7 +9,6 @@ import encrywm.core.Types
 import encrywm.core.Types.{ESDict, ESList}
 import scorex.crypto.encode.Base58
 
-import scala.annotation.tailrec
 import scala.util.{Failure, Random, Success, Try}
 
 // TODO: Throw single error type inside the executor?

@@ -9,7 +9,6 @@ import encrywm.frontend.semantics.scope._
 import encrywm.utils.Stack
 import scorex.crypto.encode.Base58
 
-import scala.annotation.tailrec
 import scala.util.Random
 
 object StaticAnalyser extends AstNodeScanner {
@@ -229,7 +228,7 @@ object StaticAnalyser extends AstNodeScanner {
           val valT = vals.headOption.map(inferType).getOrElse(ESUnit)
           keys.tail.foreach(k => assertEquals(keyT, inferType(k)))
           vals.tail.foreach(v => assertEquals(valT, inferType(v)))
-          ensureNestedColl(vals)  // TODO: Ensure nested coll for keys?
+          ensureNestedColl(vals)
           ESDict(keyT, valT)
 
         case EXPR.Subscript(value, SLICE.Index(_), _, _) =>
