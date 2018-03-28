@@ -8,7 +8,7 @@ import fastparse.all._
 
 import scala.util.Try
 
-object Preprocessor {
+object ESPreprocessor {
 
   type SerializedContract = Array[Byte]
 

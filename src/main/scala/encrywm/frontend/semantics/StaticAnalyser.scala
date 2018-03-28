@@ -134,6 +134,7 @@ object StaticAnalyser extends AstNodeScanner {
 
       case dct: EXPR.ESDictNode =>
         dct.keys.foreach(scan)
+        if (!dct.keys.forall(k => k.tpeOpt.get.isPrimitive)) throw IllegalExprError
         dct.values.foreach(scan)
 
       case lst: EXPR.ESList => lst.elts.foreach(scanExpr)
@@ -208,7 +209,7 @@ object StaticAnalyser extends AstNodeScanner {
               scope.lookup(n.id.name).map { case sym: FuncSymbol =>
                 val argTypes = sym.params.map(_.tpe)
                 fc.args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
-                  if (t1 != t2) throw TypeMismatchError(t1.identifier, t2.identifier)
+                  if (t1 != t2) throw TypeMismatchError(t2.identifier, t1.identifier)
                 }
                 sym.tpe
               }.getOrElse(throw IllegalExprError)
