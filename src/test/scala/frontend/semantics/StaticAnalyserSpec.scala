@@ -192,7 +192,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Valid AST analysis with attribute referencing") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |let timestamp = transaction.timestamp
+        |let timestamp = context.transaction.timestamp
       """.stripMargin)
 
     val analyzer = StaticAnalyser

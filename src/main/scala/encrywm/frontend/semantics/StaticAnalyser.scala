@@ -119,10 +119,6 @@ object StaticAnalyser extends AstNodeScanner {
         args.foreach(scanExpr)
         keywords.map(_.value).foreach(scanExpr)
 
-      case EXPR.Attribute(value, attr, _, _) =>
-        if (getAttributeBase(value).getAttrType(attr.name).isEmpty)
-          throw NameError(attr.name)
-
       case cmp: EXPR.Compare =>
         cmp.comparators.foreach(scanExpr)
         scanExpr(cmp.left)
@@ -165,19 +161,6 @@ object StaticAnalyser extends AstNodeScanner {
     currentScopeOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
   }
 
-  @tailrec
-  def getAttributeBase(node: AST_NODE): ESProduct = node match {
-    case name: EXPR.Name =>
-      val sym = currentScopeOpt.flatMap(_.lookup(name.id.name))
-        .getOrElse(throw NameError(name.id.name))
-      sym match {
-        case ValSymbol(_, t: ESProduct) => t
-        case _ => throw NotAnObjectError(sym.name)
-      }
-    case at: EXPR.Attribute => getAttributeBase(at.value)
-    case _ => throw IllegalExprError
-  }
-
   private def findReturns(stmts: Seq[STMT]): Seq[STMT.Return] = {
 
     def findReturnsIn(stmt: STMT): Seq[STMT.Return] = stmt match {
@@ -199,8 +182,11 @@ object StaticAnalyser extends AstNodeScanner {
         case n: EXPR.Name => scope.lookup(n.id.name)
           .map(_.tpe).getOrElse(throw NameError(n.id.name))
 
-        case a: EXPR.Attribute =>
-          getAttributeBase(a).fields.getOrElse(a.attr.name, throw NameError(a.attr.name))
+        case attr: EXPR.Attribute =>
+          inferType(attr.value) match {
+            case p: ESProduct =>
+              p.getAttrType(attr.attr.name).getOrElse(throw NameError(attr.attr.name))
+          }
 
         // TODO: Move type checking to `scan()`.
         case fc: EXPR.Call =>

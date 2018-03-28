@@ -1,21 +1,23 @@
 package encrywm.core.environment.context
 
-import encrywm.backend.executor.context.{ESObject, ESValue}
+import encrywm.backend.env.{ESObject, ESValue}
 import encrywm.core.Types.{ESByteVector, ESLong, ESState}
 
-case class ESStateBuilder(height: Long,
-                          lastBlockTimestamp: Long,
-                          stateDigest: Array[Byte]) {
+case class ESStateData(height: Long,
+                       lastBlockTimestamp: Long,
+                       stateDigest: Array[Byte])
+
+class ESStateBuilder(d: ESStateData) extends EnvComponentBuilder {
 
   val instanceName: String = "state"
 
-  def asVal: ESValue = ESValue(instanceName, ESState)(nativeObject)
+  override def asVal: ESValue = ESValue(instanceName, ESState)(build)
 
-  def nativeObject: ESObject = {
+  override def build: ESObject = {
     val fields = Map(
-      "height" -> ESValue("height", ESLong)(height),
-      "lastBlockTimestamp" -> ESValue("lastBlockTimestamp", ESLong)(lastBlockTimestamp),
-      "stateDigest" -> ESValue("stateDigest", ESByteVector)(stateDigest)
+      "height" -> ESValue("height", ESLong)(d.height),
+      "lastBlockTimestamp" -> ESValue("lastBlockTimestamp", ESLong)(d.lastBlockTimestamp),
+      "stateDigest" -> ESValue("stateDigest", ESByteVector)(d.stateDigest)
     )
     ESObject(ESState.identifier, fields)
   }

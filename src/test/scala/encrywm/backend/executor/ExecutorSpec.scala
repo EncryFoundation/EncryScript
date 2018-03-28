@@ -1,8 +1,8 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast.{AST_NODE, TREE_ROOT}
-import encrywm.backend.executor.context.{ESPredefContext, ScopedRuntimeContext}
-import encrywm.core.environment.context.{ESStateBuilder, ESTransactionBuilder}
+import encrywm.backend.env.{ESPredefEnv, ScopedRuntimeEnv}
+import encrywm.core.environment.context._
 import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.StaticAnalyser
 import fastparse.all._
@@ -17,12 +17,15 @@ class ExecutorSpec extends PropSpec with Matchers {
     parsed
   }
 
-  private val ctx = new ESPredefContext(
-    ESTransactionBuilder(Random.randomBytes(), Random.randomBytes(), Random.randomBytes(), 123456),
-    ESStateBuilder(90000, 123455, Random.randomBytes())
-  )
+  private val ctx = {
+    val transaction = ESTransactionData(Random.randomBytes(), Random.randomBytes(), Random.randomBytes(), 12345567L)
+    val state = ESStateData(99999, 12345678L, Random.randomBytes())
+    val context = new ESContextBuilder(state, transaction)
 
-  private val exc = new Executor(ScopedRuntimeContext.initialized("GLOBAL", 1, ctx))
+    new ESPredefEnv(context)
+  }
+
+  private val exc = new Executor(ScopedRuntimeEnv.initialized("GLOBAL", 1, ctx))
 
   property("Simple contract") {
 
@@ -167,7 +170,7 @@ class ExecutorSpec extends PropSpec with Matchers {
 
     val tree = precess(
       """
-        |let a: Long = state.height
+        |let a: Long = context.state.height
         |
         |unlock if a >= 100
       """.stripMargin)

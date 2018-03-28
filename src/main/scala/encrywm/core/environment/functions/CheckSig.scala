@@ -1,6 +1,6 @@
 package encrywm.core.environment.functions
 
-import encrywm.backend.executor.context.{ESBuiltInFunc, ESValue}
+import encrywm.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError
 import encrywm.core.Types
 import encrywm.core.Types.ESByteVector

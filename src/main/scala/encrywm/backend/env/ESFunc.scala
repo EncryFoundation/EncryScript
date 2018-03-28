@@ -1,4 +1,4 @@
-package encrywm.backend.executor.context
+package encrywm.backend.env
 
 import encrywm.core.Types.ESType
 import encrywm.ast.Ast.STMT
@@ -6,7 +6,7 @@ import encrywm.ast.Ast.STMT
 case class ESFunc(name: String,
                   args: IndexedSeq[(String, ESType)],
                   returnType: ESType,
-                  body: Seq[STMT]) extends ESRuntimeComponent
+                  body: Seq[STMT]) extends ESEnvComponent
 
 object ESFunc {
   val typeId: Byte = 1.toByte

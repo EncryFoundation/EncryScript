@@ -1,6 +1,6 @@
 package encrywm.core
 
-import encrywm.backend.executor.context.ESObject
+import encrywm.backend.env.ESObject
 
 object Types {
 
@@ -63,6 +63,16 @@ object Types {
         if (p.fields.size != this.fields.size) false
         else p.fields.zip(this.fields).forall { case ((f1, _), (f2, _)) => f1 == f2 }
     }
+  }
+
+  case object ESContext extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val identifier: String = "Context"
+
+    override val fields: Map[String, ESType] = Map(
+      "transaction" -> ESTransaction,
+      "state" -> ESState
+    )
   }
 
   case object ESTransaction extends ESType with ESProduct {

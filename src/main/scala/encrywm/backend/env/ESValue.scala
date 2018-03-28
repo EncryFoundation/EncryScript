@@ -1,8 +1,8 @@
-package encrywm.backend.executor.context
+package encrywm.backend.env
 
 import encrywm.core.Types.ESType
 
-sealed trait ESValue extends ESRuntimeComponent {
+sealed trait ESValue extends ESEnvComponent {
 
   val name: String
   val tpe: ESType

@@ -1,12 +1,12 @@
-package encrywm.backend.executor.context
+package encrywm.backend.env
 
-import encrywm.backend.executor.context.ESBuiltInFunc.EvalResult
+import encrywm.backend.env.ESBuiltInFunc.EvalResult
 import encrywm.backend.executor.error.ExecutionError
 import encrywm.core.Types.ESType
 
 case class ESBuiltInFunc(name: String,
                          args: IndexedSeq[(String, ESType)],
-                         body: (Seq[(String, ESValue)]) => EvalResult) extends ESRuntimeComponent
+                         body: (Seq[(String, ESValue)]) => EvalResult) extends ESEnvComponent
 
 object ESBuiltInFunc {
 
