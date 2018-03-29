@@ -66,7 +66,8 @@ object AstCodec {
   implicit def dSet = dEx.bind[EXPR.ESSet](19)
   implicit def dListEx = dEx.bind[EXPR.ESList](20)
   implicit def dTuple = dEx.bind[EXPR.ESTuple](21)
-  implicit def dDecl = dEx.bind[EXPR.Declaration](22)
+  implicit def dSizeOf = dEx.bind[EXPR.SizeOf](22)
+  implicit def dDecl = dEx.bind[EXPR.Declaration](23)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)
   implicit def dLoad = dECTX.bind[EXPR_CTX.Load.type](0)

@@ -77,6 +77,9 @@ object Ast {
     case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
     case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR
 
+    sealed trait Transformer extends EXPR
+    case class SizeOf(coll: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESInt) }
+
     case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
   }
 

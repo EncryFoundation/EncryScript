@@ -188,6 +188,22 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor {
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
+  property("SizeOf list") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |unlock if coll.size > 2
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
   property("BuiltIn function") {
 
     val tree = precess(

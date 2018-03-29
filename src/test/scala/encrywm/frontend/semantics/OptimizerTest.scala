@@ -1,9 +1,9 @@
-package encrywm.frontend
+package encrywm.frontend.semantics
 
 import org.scalatest.{Matchers, PropSpec}
 import utils.SourceProcessor
 
-class AstOptimizerTest extends PropSpec with Matchers with SourceProcessor {
+class OptimizerTest extends PropSpec with Matchers with SourceProcessor {
 
   property("Simple AST optimization") {
 
@@ -13,6 +13,6 @@ class AstOptimizerTest extends PropSpec with Matchers with SourceProcessor {
         |let anotherLongName: String = "SomeString"
       """.stripMargin)
 
-    val optimized = AstOptimizer.scan(tree)
+    val optimized = Optimizer.scan(tree)
   }
 }

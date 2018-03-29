@@ -1,4 +1,4 @@
-package frontend.serializer
+package encrywm.frontend.serializer
 
 import org.scalatest.{Matchers, PropSpec}
 import encrywm.ast.AstCodec._

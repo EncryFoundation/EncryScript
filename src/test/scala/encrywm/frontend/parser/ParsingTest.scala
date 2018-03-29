@@ -1,4 +1,4 @@
-package frontend.parser
+package encrywm.frontend.parser
 
 import encrywm.ast.Ast
 import encrywm.frontend.parser.Statements

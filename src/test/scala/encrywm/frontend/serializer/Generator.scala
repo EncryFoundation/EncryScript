@@ -1,4 +1,4 @@
-package frontend.serializer
+package encrywm.frontend.serializer
 
 import encrywm.ast.Ast.BOOL_OP.And
 import encrywm.ast.Ast._

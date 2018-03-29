@@ -7,11 +7,11 @@ import encrywm.core.Types.ESByteVector
 import encrywm.frontend.semantics.scope.{FuncSymbol, ValSymbol}
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
-object CheckSig {
+object CheckSig extends BuiltInFunctionHolder {
 
   val name: String = "checkSig"
 
-  def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
+  override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
   val args = IndexedSeq("msg" -> ESByteVector, "sig" -> ESByteVector, "pubKey" -> ESByteVector)
 

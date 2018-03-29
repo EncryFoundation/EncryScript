@@ -10,6 +10,8 @@ object Types {
 
     def isPrimitive: Boolean = this.isInstanceOf[ESPrimitive]
 
+    def isCollection: Boolean = this.isInstanceOf[ESCollection]
+
     override def equals(obj: scala.Any): Boolean = obj match {
       case s: ESPrimitive => this.identifier == s.identifier
       case _ => false

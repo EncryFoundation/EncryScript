@@ -128,9 +128,9 @@ object StaticAnalyser extends AstNodeScanner {
         Seq(ifExp.test, ifExp.body, ifExp.orelse).foreach(scanExpr)
 
       case dct: EXPR.ESDictNode =>
-        dct.keys.foreach(scan)
+        dct.keys.foreach(scanExpr)
         if (!dct.keys.forall(k => k.tpeOpt.get.isPrimitive)) throw IllegalExprError
-        dct.values.foreach(scan)
+        dct.values.foreach(scanExpr)
 
       case lst: EXPR.ESList => lst.elts.foreach(scanExpr)
 
@@ -150,6 +150,10 @@ object StaticAnalyser extends AstNodeScanner {
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError
+
+      case EXPR.SizeOf(coll) =>
+        scanExpr(coll)
+        if (!coll.tpeOpt.get.isCollection) throw IllegalExprError
 
       case _ => // Do nothing.
     }

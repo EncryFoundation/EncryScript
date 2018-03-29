@@ -1,4 +1,4 @@
-package frontend.semantics
+package encrywm.frontend.semantics
 import encrywm.ast.Ast
 import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.ComplexityAnalyzer

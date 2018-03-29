@@ -158,6 +158,14 @@ class Executor(globalContext: ScopedRuntimeEnv) {
             acc.updated(eval[keyT.Underlying](k), eval[valT.Underlying](v))
           }
 
+        case EXPR.SizeOf(coll) =>
+          coll.tpeOpt.get match {
+            case ESList(valT) =>
+              eval[List[valT.Underlying]](coll).size
+            case ESDict(keyT, valT) =>
+              eval[Map[keyT.Underlying, valT.Underlying]](coll).size
+          }
+
         case EXPR.Base58Str(s) => Base58.decode(s).get
 
         case EXPR.Str(s) => s
