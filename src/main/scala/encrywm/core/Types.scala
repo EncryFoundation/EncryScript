@@ -12,6 +12,10 @@ object Types {
 
     def isCollection: Boolean = this.isInstanceOf[ESCollection]
 
+    def isOption: Boolean = this.isInstanceOf[ESOption]
+
+    def isProduct: Boolean = this.isInstanceOf[ESProduct]
+
     override def equals(obj: scala.Any): Boolean = obj match {
       case s: ESPrimitive => this.identifier == s.identifier
       case _ => false
@@ -49,7 +53,7 @@ object Types {
     override val identifier: String = "String"
   }
   case object ESByteVector extends ESType with ESPrimitive {
-    override type Underlying = Array[Byte]  // TODO: Switch to scodec.Bytevector
+    override type Underlying = Array[Byte]  // TODO: Switch to scodec.Bytevector?
     override val identifier: String = "Bytes"
   }
 
@@ -139,9 +143,16 @@ object Types {
   case class ESOption(inT: ESType) extends ESType with ESProduct with Parametrized {
     override type Underlying = Option[inT.Underlying]
     override val identifier: String = "Option"
+    override val fields: Map[String, ESType] = ESOption.fields ++ Map("get" -> inT)
   }
 
-  // Placeholder fot inferred type.
+  object ESOption {
+    val fields: Map[String, ESType] = Map(
+      "isDefined" -> ESBoolean
+    )
+  }
+
+  // Placeholder for not inferred type.
   case object NIType extends ESType {
     override type Underlying = Nothing
     override val identifier: String = "NotInferred"

@@ -5,7 +5,7 @@ import encrywm.backend.executor.error.UnsupportedOperationError
 object Arith {
 
   def checkType[T](v: Any): T = v match {
-    case t: T => t
+    case t: T@unchecked => t
     case _ => throw UnsupportedOperationError
   }
 
