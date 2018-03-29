@@ -79,8 +79,7 @@ object StaticAnalyser extends AstNodeScanner {
     case ret: STMT.Return => ret.value.foreach(scan)
 
     case expr: STMT.Expr =>
-      scan(expr.value)
-      inferType(expr.value)
+      scanExpr(expr.value)
 
     case ifStmt: STMT.If =>
       scan(ifStmt.test)
@@ -150,10 +149,6 @@ object StaticAnalyser extends AstNodeScanner {
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError
-
-      case EXPR.SizeOf(coll) =>
-        scanExpr(coll)
-        if (!coll.tpeOpt.get.isCollection) throw IllegalExprError
 
       case _ => // Do nothing.
     }

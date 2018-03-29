@@ -6,7 +6,7 @@ import encrywm.backend.env._
 import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
 import encrywm.core.Types
-import encrywm.core.Types.{ESDict, ESList}
+import encrywm.core.Types.{ESDict, ESList, ESOption}
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -164,6 +164,18 @@ class Executor(globalContext: ScopedRuntimeEnv) {
               eval[List[valT.Underlying]](coll).size
             case ESDict(keyT, valT) =>
               eval[Map[keyT.Underlying, valT.Underlying]](coll).size
+          }
+
+        case EXPR.IsDefined(opt) =>
+          opt.tpeOpt.get match {
+            case ESOption(inT) =>
+              eval[Option[inT.Underlying]](opt).isDefined
+          }
+
+        case EXPR.Get(opt, Some(_)) =>
+          opt.tpeOpt.get match {
+            case ESOption(inT) =>
+              eval[Option[inT.Underlying]](opt).get
           }
 
         case EXPR.Base58Str(s) => Base58.decode(s).get

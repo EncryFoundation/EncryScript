@@ -1,4 +1,4 @@
-package encrywm.core.environment.context
+package encrywm.core.predef.context
 
 import encrywm.backend.env.{ESObject, ESValue}
 

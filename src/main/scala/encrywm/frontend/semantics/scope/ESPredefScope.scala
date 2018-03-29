@@ -1,12 +1,13 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.core.Types.{ESBoolean, ESContext}
-import encrywm.core.environment.functions.CheckSig
+import encrywm.core.Types.{ESBoolean, ESByteVector, ESContext}
+import encrywm.core.predef.functions.{Blake2b256Hash, CheckSig}
 
 object ESPredefScope {
 
   val predefNames: Seq[Symbol] = Seq(
     ValSymbol("context", ESContext),
-    FuncSymbol("checkSig", ESBoolean, params = CheckSig.args.map(arg => ValSymbol(arg._1, arg._2)))
+    FuncSymbol(CheckSig.name, ESBoolean, params = CheckSig.args.map(arg => ValSymbol(arg._1, arg._2))),
+    FuncSymbol(Blake2b256Hash.name, ESByteVector, params = Blake2b256Hash.args.map(arg => ValSymbol(arg._1, arg._2)))
   )
 }

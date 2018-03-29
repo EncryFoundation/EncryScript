@@ -1,7 +1,6 @@
-package encrywm.core.environment.functions
+package encrywm.core.predef.functions
 
 import encrywm.backend.env.ESBuiltInFunc
-import encrywm.core.environment.ESEnvComponent
 
 trait BuiltInFunctionHolder {
   def asFunc: ESBuiltInFunc

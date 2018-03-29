@@ -2,7 +2,7 @@ package encrywm.frontend
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.frontend.parser.Statements
-import encrywm.frontend.semantics.{Binder, Optimizer, StaticAnalyser}
+import encrywm.frontend.semantics.{Transformer, Optimizer, StaticAnalyser}
 import encrywm.ast.AstCodec._
 import fastparse.all._
 
@@ -15,7 +15,7 @@ object ESPreprocessor {
   def process(s: String): Try[Contract] = Try {
     val parsed = (Statements.contract ~ End).parse(s).get.value
     StaticAnalyser.scan(parsed)
-    val bound = Binder.scan(parsed)
+    val bound = Transformer.scan(parsed)
     val optimized = Optimizer.scan(bound)
     optimized.asInstanceOf[Contract]
   }
