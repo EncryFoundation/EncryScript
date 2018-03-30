@@ -3,27 +3,6 @@ import sbt._
 
 name := "encryScript"
 
-lazy val commonSettings = Seq(
-  scalaVersion := "2.12.4",
-  organization := "org.encry",
-  licenses := Seq("GNU GPL 3.0" -> url("https://github.com/oskin1/EncryScript/blob/master/LICENSE")),
-  homepage := Some(url("https://github.com/oskin1/EncryScript")),
-  pomExtra := <scm>
-    <url>git@github.com:oskin1/EncryScript.git</url>
-    <connection>scm:git:git@github.com:oskin1/EncryScript.git</connection>
-  </scm>
-    <developers>
-      <developer>
-        <id>Oskin1</id>
-        <name>Ilya Oskin</name>
-      </developer>
-      <developer>
-        <id>Bromel777</id>
-        <name>Alexander Romanovskiy</name>
-      </developer>
-    </developers>
-)
-
 version := "0.1"
 
 scalaVersion := "2.12.4"
@@ -59,21 +38,18 @@ publishTo in ThisBuild := {
     Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-
 pomExtra in ThisBuild :=
   <scm>
     <url>git@github.com:oskin1/EncryScript.git</url>
     <connection>scm:git:git@github.com:oskin1/EncryScript.git</connection>
   </scm>
-    <developers>
-      <developer>
-        <id>Oskin1</id>
-        <name>Ilya Oskin</name>
-      </developer>
-      <developer>
-        <id>Bromel777</id>
-        <name>Alexander Romanovskiy</name>
-      </developer>
-    </developers>
-
-lazy val encryScript = (project in file(".")).settings(commonSettings: _*)
+  <developers>
+    <developer>
+      <id>Oskin1</id>
+      <name>Ilya Oskin</name>
+    </developer>
+    <developer>
+      <id>Bromel777</id>
+      <name>Alexander Romanovskiy</name>
+    </developer>
+  </developers>

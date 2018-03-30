@@ -59,7 +59,7 @@ object Types {
 
   sealed trait ESProduct extends ESType {
     val superTypeOpt: Option[ESProduct] = None
-    val fields: Map[String, ESType] = superTypeOpt.map(_.fields).getOrElse(Map.empty)
+    def fields: Map[String, ESType] = superTypeOpt.map(_.fields).getOrElse(Map.empty)
 
     // TODO: Write test.
     def getAttrType(n: String): Option[ESType] = fields.get(n)
