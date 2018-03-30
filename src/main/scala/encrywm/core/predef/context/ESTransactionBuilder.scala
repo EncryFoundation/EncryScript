@@ -22,6 +22,6 @@ class ESTransactionBuilder(d: ESTransactionData) extends EnvComponentBuilder {
       "bodyBytes" -> ESValue("bodyBytes", ESByteVector)(d.bodyBytes),
       "timestamp" -> ESValue("timestamp", ESLong)(d.timestamp)
     )
-    ESObject(ESTransaction.identifier, fields)
+    ESObject(ESTransaction.ident, fields)
   }
 }

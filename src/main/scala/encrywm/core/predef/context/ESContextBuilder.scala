@@ -14,6 +14,6 @@ class ESContextBuilder(stateD: ESStateData,
       "transaction" -> ESValue("transaction", ESTransaction)(new ESTransactionBuilder(transactionD).build),
       "state" -> ESValue("state", ESState)(new ESStateBuilder(stateD).build),
     )
-    ESObject(ESContext.identifier, fields)
+    ESObject(ESContext.ident, fields)
   }
 }

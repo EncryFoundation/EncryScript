@@ -1,5 +1,6 @@
 package encrywm.backend
 
+import encrywm.backend.env.ESObject
 import encrywm.backend.executor.error.UnsupportedOperationError
 
 object Compare {
@@ -22,6 +23,8 @@ object Compare {
       case (o1: Double, o2: Long) => o1 == o2
       case (o1: Double, o2: Float) => o1 == o2
       case (o1: Double, o2: Double) => o1 == o2
+      case (o1: Array[Byte], o2: Array[Byte]) => o1 sameElements o2
+      case (o1: ESObject, o2: ESObject) => o1 == o2
       case _ => throw UnsupportedOperationError
     }
   }
