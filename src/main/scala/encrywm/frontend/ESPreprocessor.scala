@@ -15,8 +15,8 @@ object ESPreprocessor {
   def process(s: String): Try[Contract] = Try {
     val parsed = (Statements.contract ~ End).parse(s).get.value
     StaticAnalyser.scan(parsed)
-    val bound = Transformer.scan(parsed)
-    val optimized = Optimizer.scan(bound)
+    val transformed = Transformer.scan(parsed)
+    val optimized = Optimizer.scan(transformed)
     optimized.asInstanceOf[Contract]
   }
 

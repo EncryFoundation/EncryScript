@@ -16,12 +16,12 @@ class Executor(globalContext: ScopedRuntimeEnv) {
 
   import Executor._
 
-  private val ctx: ScopedRuntimeEnv = globalContext
+  private val env: ScopedRuntimeEnv = globalContext
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
   private def execute(statements: Seq[STMT],
-                      context: ScopedRuntimeEnv = ctx): ExecOutcome = Try {
+                      context: ScopedRuntimeEnv = env): ExecOutcome = Try {
 
     var currentCtx = context
 

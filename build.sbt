@@ -8,21 +8,20 @@ lazy val commonSettings = Seq(
   organization := "org.encry",
   licenses := Seq("GNU GPL 3.0" -> url("https://github.com/oskin1/EncryScript/blob/master/LICENSE")),
   homepage := Some(url("https://github.com/oskin1/EncryScript")),
-  pomExtra := (
-    <scm>
-      <url>git@github.com:oskin1/EncryScript.git</url>
-      <connection>scm:git:git@github.com:oskin1/EncryScript.git</connection>
-    </scm>
-      <developers>
-        <developer>
-          <id>Oskin1</id>
-          <name>Ilya Oskin</name>
-        </developer>
-        <developer>
-          <id>Bromel777</id>
-          <name>Alexander Romanovskiy</name>
-        </developer>
-      </developers>)
+  pomExtra := <scm>
+    <url>git@github.com:oskin1/EncryScript.git</url>
+    <connection>scm:git:git@github.com:oskin1/EncryScript.git</connection>
+  </scm>
+    <developers>
+      <developer>
+        <id>Oskin1</id>
+        <name>Ilya Oskin</name>
+      </developer>
+      <developer>
+        <id>Bromel777</id>
+        <name>Alexander Romanovskiy</name>
+      </developer>
+    </developers>
 )
 
 version := "0.1"
