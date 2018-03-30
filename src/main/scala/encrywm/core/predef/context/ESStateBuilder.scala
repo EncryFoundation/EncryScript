@@ -19,6 +19,6 @@ class ESStateBuilder(d: ESStateData) extends EnvComponentBuilder {
       "lastBlockTimestamp" -> ESValue("lastBlockTimestamp", ESLong)(d.lastBlockTimestamp),
       "stateDigest" -> ESValue("stateDigest", ESByteVector)(d.stateDigest)
     )
-    ESObject(ESState.identifier, fields)
+    ESObject(ESState.ident, fields)
   }
 }
