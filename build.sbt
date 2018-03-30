@@ -13,14 +13,14 @@ resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositori
 
 libraryDependencies ++= Seq(
   "com.lihaoyi" %% "fastparse" % "1.0.0",
-  "com.google.guava" % "guava" % "19.+",
+  "com.google" %% "guava" % "19.+",
   "org.scorexfoundation" %% "scrypto" % "2.0.3",
   "org.scodec" %% "scodec-core" % "1.10.3",
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "io.monix" %% "monix-eval" % "3.0.0-RC1",
   "com.github.oskin1" %% "encryScript",
   "org.typelevel" %% "cats-core" % "1.1.0",
-  "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0"
+  "org.bitbucket.inkytonik" %% "kiama" % "2.1.0"
 )
 
 licenses in ThisBuild := Seq("GNU GPL 3.0" -> url("https://github.com/oskin1/EncryScript/blob/master/LICENSE"))
