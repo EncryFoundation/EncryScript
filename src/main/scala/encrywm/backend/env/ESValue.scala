@@ -7,6 +7,11 @@ sealed trait ESValue extends ESEnvComponent {
   val name: String
   val tpe: ESType
   val value: tpe.Underlying
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that: ESValue => that.value == this.value
+    case _ => false
+  }
 }
 
 object ESValue {

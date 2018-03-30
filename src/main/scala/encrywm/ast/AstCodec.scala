@@ -35,7 +35,7 @@ object AstCodec {
   implicit def dAp = dT.bind[Types.AccountProposition.type](17)
   implicit def dBx = dT.bind[Types.ESBox.type](18)
   implicit def dAbx = dT.bind[Types.AssetBox.type](19)
-  implicit def dUnl = dT.bind[Types.ESUnlocker.type](20)
+  implicit def dUnlc = dT.bind[Types.ESUnlocker.type](20)
   implicit def dNi = dT.bind[Types.NIType.type](21)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
