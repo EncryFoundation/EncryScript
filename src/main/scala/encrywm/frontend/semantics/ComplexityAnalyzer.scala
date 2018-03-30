@@ -5,19 +5,21 @@ import encrywm.ast.AstNodeScanner
 
 object ComplexityAnalyzer extends AstNodeScanner {
 
-  def scan(node: AST_NODE): Int = node match {
+  type ScriptComplexityScore = Int
+
+  def scan(node: AST_NODE): ScriptComplexityScore = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
     case _ => 0
   }
 
-  private def scanRoot(root: TREE_ROOT): Int = root match {
+  private def scanRoot(root: TREE_ROOT): ScriptComplexityScore = root match {
     case c: TREE_ROOT.Contract => c.body.map(scan).sum
     case _ => 0
   }
 
-  private def scanStmt(stmt: STMT): Int = stmt match {
+  private def scanStmt(stmt: STMT): ScriptComplexityScore = stmt match {
     case STMT.FunctionDef(_, _, body, _) => 1 + body.map(scanStmt).sum
     case STMT.Return(value) => value.map(scanExpr).getOrElse(0)
     case STMT.Assign(_, value) => scanExpr(value)
@@ -29,7 +31,7 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case _ => 0
   }
 
-  private def scanExpr(expr: EXPR): Int = expr match {
+  private def scanExpr(expr: EXPR): ScriptComplexityScore = expr match {
     case EXPR.BoolOp(_, values) => values.length
     case EXPR.BinOp(left, _, right, _) => scanExpr(left) + scanExpr(right)
     case EXPR.UnaryOp(_, operand, _) => scanExpr(operand)

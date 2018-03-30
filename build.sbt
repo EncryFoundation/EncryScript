@@ -1,9 +1,9 @@
 import sbt.Keys._
 import sbt._
 
-name := "encryScript"
+name := "EncryScript"
 
-version := "0.1"
+version := "0.2"
 
 scalaVersion := "2.12.4"
 
@@ -49,4 +49,4 @@ pomExtra in ThisBuild :=
       </developer>
     </developers>
 
-lazy val encryScript = project in file(".")
+lazy val EncryScript = project in file(".")

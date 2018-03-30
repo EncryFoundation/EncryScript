@@ -1,14 +1,14 @@
-package encrywm.frontend
+package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
-import encrywm.frontend.parser.Statements
-import encrywm.frontend.semantics.{Transformer, Optimizer, StaticAnalyser}
 import encrywm.ast.AstCodec._
+import encrywm.frontend.parser.Statements
+import encrywm.frontend.semantics.{Optimizer, StaticAnalyser, Transformer}
 import fastparse.all._
 
 import scala.util.Try
 
-object ESPreprocessor {
+object ScriptPreprocessor {
 
   type SerializedContract = Array[Byte]
 
