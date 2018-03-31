@@ -1,8 +1,9 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast.TREE_ROOT
-import encrywm.backend.env.{ESPredefEnv, ScopedRuntimeEnv}
-import encrywm.core.predef.context._
+import encrywm.backend.env.ScopedRuntimeEnv
+import encrywm.backend.executor.env.{ESContextBuilder, ESPredefEnv, ESStateData, ESTransactionData}
+import encrywm.core.predef.env._
 import org.scalatest.{Matchers, PropSpec}
 import scorex.utils.Random
 import utils.SourceProcessor
@@ -17,7 +18,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor {
     new ESPredefEnv(context)
   }
 
-  private val exc = new Executor(ScopedRuntimeEnv.initialized("GLOBAL", 1, testEnv))
+  private val exc = new Executor(ScopedRuntimeEnv.initialized("GLOBAL", 1, testEnv.predefMembers))
 
   property("Simple contract") {
 

@@ -29,6 +29,6 @@ object ScopedRuntimeEnv {
   def empty(n: String, l: Int): ScopedRuntimeEnv =
     new ScopedRuntimeEnv(n, l, Map.empty, None)
 
-  def initialized(n: String, l: Int, ctx: ESPredefEnv): ScopedRuntimeEnv =
-    new ScopedRuntimeEnv(n, l, ctx.predefMembers, None)
+  def initialized(n: String, l: Int, env: Map[String, ESEnvComponent]): ScopedRuntimeEnv =
+    new ScopedRuntimeEnv(n, l, env, None)
 }

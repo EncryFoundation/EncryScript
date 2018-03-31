@@ -1,6 +1,6 @@
-package encrywm.backend.env
+package encrywm.backend.executor.env
 
-import encrywm.core.predef.context.ESContextBuilder
+import encrywm.backend.env.ESEnvComponent
 import encrywm.core.predef.functions.{Blake2b256Hash, CheckSig}
 
 class ESPredefEnv(contextBuilder: ESContextBuilder) {
