@@ -6,6 +6,7 @@ import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
 
+// This module is very incomplete.
 object Optimizer extends AstNodeScanner {
 
   override def scan(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
