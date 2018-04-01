@@ -3,12 +3,12 @@ package encrywm.common
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
 import encrywm.frontend.parser.Statements
-import encrywm.frontend.semantics.{Optimizer, StaticAnalyser, Transformer}
+import encrywm.frontend.semantics.{ComplexityAnalyzer, Optimizer, StaticAnalyser, Transformer}
 import fastparse.all._
 
 import scala.util.Try
 
-object ScriptPreprocessor {
+object SourceProcessor {
 
   type SerializedContract = Array[Byte]
 
@@ -20,7 +20,13 @@ object ScriptPreprocessor {
     optimized.asInstanceOf[Contract]
   }
 
-  def processAndSerialize(s: String): Try[SerializedContract] = process(s).map { p =>
+  def source2Contract(s: String): Try[ESContract] = process(s).map { c =>
+    val complexityScore = ComplexityAnalyzer.scan(c)
+    val serializedScript = ScriptSerializer.serialize(c)
+    ESContract(serializedScript, ScriptMeta(complexityScore))
+  }
+
+  def source2SerializedContract(s: String): Try[SerializedContract] = process(s).map { p =>
     codec.encode(p).require.toByteArray
   }
 }

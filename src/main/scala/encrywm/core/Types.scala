@@ -152,7 +152,7 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESBox)
 
     override val fields: Map[String, ESType] = Map(
-      "proposition" -> AccountProposition,
+      "proposition" -> ESProposition,
       "amount" -> ESLong
     )
   }
@@ -177,7 +177,7 @@ object Types {
       "timestamp" -> ESLong,
       "signature" -> ESByteVector,
       "unlockers" -> ESList(ESUnlocker),
-      "bodyBytes" -> ESByteVector
+      "messageToSign" -> ESByteVector
     )
   }
 
