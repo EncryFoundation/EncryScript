@@ -14,9 +14,4 @@ class TypesTest extends PropSpec with Matchers {
 
     Signature25519.getAttrType("typeId") shouldBe Some(ESInt)
   }
-
-  property("Supertype attr shadowing by inheritor's one") {
-
-    AssetBox.getAttrType("proposition") shouldBe Some(AccountProposition)
-  }
 }

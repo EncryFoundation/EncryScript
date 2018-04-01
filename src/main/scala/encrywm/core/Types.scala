@@ -152,7 +152,6 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESBox)
 
     override val fields: Map[String, ESType] = Map(
-      "proposition" -> ESProposition,
       "amount" -> ESLong
     )
   }
