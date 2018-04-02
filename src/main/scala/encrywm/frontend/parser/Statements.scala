@@ -56,7 +56,7 @@ class Statements(indent: Int){
     val testsStm = P( testlist )
     val letStm = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
     val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
-    val caseStm = P( kwd("case") ~/ ( expr | branchParamDeclaration ) ~ ":" ~~ block )
+    val caseStm = P( kwd("case") ~/ ( branchParamDeclaration | genericCond | expr ) ~ ":" ~~ block )
 
     P(
       augStm.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
@@ -69,6 +69,7 @@ class Statements(indent: Int){
         } |
         caseStm.map {
           case (cond: Ast.EXPR.BranchParamDeclaration, body) => Ast.STMT.Case(cond, body.toList)
+          case (cond: Ast.EXPR.GenericCond.type, body) => Ast.STMT.Case(cond, body.toList, isDefault = true)
           case (cond, body) => Ast.STMT.Case(cond, body.toList)
         }
     )

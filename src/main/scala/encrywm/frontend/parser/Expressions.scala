@@ -176,6 +176,8 @@ object Expressions {
     Ast.EXPR.BranchParamDeclaration(name, tpe)
   }
 
+  val genericCond: P[Ast.EXPR.GenericCond.type] = P( "_" ).map(_ => Ast.EXPR.GenericCond)
+
   val plain_argument: core.Parser[EXPR, Char, String] = P( test )
 
   val named_argument: core.Parser[Ast.Keyword, Char, String] = P( NAME ~ "=" ~ test ).map(Ast.Keyword.tupled)

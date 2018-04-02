@@ -80,6 +80,7 @@ object AstCodec {
   implicit def dGet = dEx.bind[EXPR.Get](24)
   implicit def dDecl = dEx.bind[EXPR.Declaration](25)
   implicit def dBpd = dEx.bind[EXPR.BranchParamDeclaration](26)
+  implicit def dGc = dEx.bind[EXPR.GenericCond.type](27)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)
   implicit def dLoad = dECTX.bind[EXPR_CTX.Load.type](0)

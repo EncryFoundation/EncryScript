@@ -202,6 +202,22 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
+  property("Match statement (Type matching in branch)") {
+    val source =
+      """
+        |match proof:
+        |   case sig -> Signature25519:
+        |       checkSig(sig)
+        |   case _:
+        |       0 * 1000
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    println(parsed)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
   property("Complex expression") {
     val source =
       """

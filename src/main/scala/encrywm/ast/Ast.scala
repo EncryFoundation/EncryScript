@@ -27,7 +27,7 @@ object Ast {
     case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
     case class Match(target: EXPR, branches: List[STMT]) extends STMT
-    case class Case(cond: EXPR, body: List[STMT]) extends STMT
+    case class Case(cond: EXPR, body: List[STMT], isDefault: Boolean = false) extends STMT
 
     case class Assert(test: EXPR, msg: Option[EXPR]) extends STMT
 
@@ -86,6 +86,9 @@ object Ast {
 
     case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
     case class BranchParamDeclaration(name: Identifier, tipe: Identifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
+
+    // Used to define default condition in `case` branch.
+    case object GenericCond extends EXPR { override var tpeOpt: Option[ESType] = Some(ESUnit) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses
