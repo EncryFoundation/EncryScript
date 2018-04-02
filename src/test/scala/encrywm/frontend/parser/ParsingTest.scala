@@ -197,8 +197,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 
-    println(parsed)
-
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
@@ -212,8 +210,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
         |       0 * 1000
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
-
-    println(parsed)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
