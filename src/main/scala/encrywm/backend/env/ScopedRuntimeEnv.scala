@@ -3,7 +3,7 @@ package encrywm.backend.env
 class ScopedRuntimeEnv(val name: String,
                        val level: Int,
                        override val members: Map[String, ESEnvComponent],
-                       parentOpt: Option[ScopedRuntimeEnv] = None) extends RuntimeEnv {
+                       val parentOpt: Option[ScopedRuntimeEnv] = None) extends RuntimeEnv {
 
   def updated(s: ESEnvComponent): ScopedRuntimeEnv =
     new ScopedRuntimeEnv(name, level, members.updated(s.name, s), parentOpt)

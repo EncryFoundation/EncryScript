@@ -27,8 +27,8 @@ object Lexer {
     "and",       "not",       "true",      "false",
     "as",        "elif",      "abort",     "or",
     "assert",    "else",      "if",        "pass",
-    "break",     "except",    "unlock",    "print",
-    "with",      "exec",      "in",        "raise",
+    "case",      "except",    "unlock",    "print",
+    "match",     "exec",     "in",       "raise",
     "continue",  "let",       "is",        "return",
     "def",       "for",       "lambda",    "try"
   )

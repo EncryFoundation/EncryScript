@@ -4,7 +4,7 @@ import encrywm.ast.Ast
 import encrywm.ast.Ast.EXPR
 import encrywm.frontend.parser.Lexer.kwd
 import encrywm.frontend.parser.WsApi._
-import fastparse.core
+import fastparse.{core, noApi}
 import fastparse.noApi._
 
 /**
@@ -172,11 +172,15 @@ object Expressions {
     P( dict | set )
   }
 
+  val branchParamDeclaration: P[Ast.EXPR.BranchParamDeclaration] = P( NAME ~ "->" ~ NAME ).map { case (name, tpe) =>
+    Ast.EXPR.BranchParamDeclaration(name, tpe)
+  }
+
   val plain_argument: core.Parser[EXPR, Char, String] = P( test )
 
   val named_argument: core.Parser[Ast.Keyword, Char, String] = P( NAME ~ "=" ~ test ).map(Ast.Keyword.tupled)
 
-  val arglist = {
+  val arglist: noApi.Parser[(Seq[EXPR], Seq[Ast.Keyword])] = {
     val inits = P((plain_argument ~ !"=").rep(0, ","))
     val later = P(named_argument.rep(0, ","))
     P( inits ~ ",".? ~ later )

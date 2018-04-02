@@ -52,15 +52,24 @@ class Statements(indent: Int){
   val smallStmt: P[Ast.STMT] = P( flowStmt | assertStmt | exprStmt)
 
   val exprStmt: P[Ast.STMT] = {
-    val aug = P( testlist ~ augassign ~ test )
-    val tstl = P( testlist )
-    val let = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
+    val augStm = P( testlist ~ augassign ~ test ) // TODO: Do we need this.
+    val testsStm = P( testlist )
+    val letStm = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
+    val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
+    val caseStm = P( kwd("case") ~/ ( expr | branchParamDeclaration ) ~ ":" ~~ block )
 
     P(
-      aug.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
-        tstl.map(a => Ast.STMT.Expr(tuplize(a))) |
-        let.map {
-          case (a, t, b) => Ast.STMT.Assign(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
+      augStm.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
+        testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
+        letStm.map { case (a, t, b) =>
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
+        } |
+        globalLetStm.map { case (a, t, b) =>
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b, global = true)
+        } |
+        caseStm.map {
+          case (cond: Ast.EXPR.BranchParamDeclaration, body) => Ast.STMT.Case(cond, body.toList)
+          case (cond, body) => Ast.STMT.Case(cond, body.toList)
         }
     )
   }
@@ -88,7 +97,7 @@ class Statements(indent: Int){
 
   val assertStmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
-  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef | unlockIfStmt )
+  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef | unlockIfStmt | matchStmt )
   val ifStmt: P[Ast.STMT.If] = {
     val firstIf = P( kwd("if") ~/ test ~ ":" ~~ block )
     val elifs = P( (spaceIndents ~~ kwd("elif") ~/ test ~ ":" ~~ block).repX )
@@ -105,8 +114,13 @@ class Statements(indent: Int){
   val spaceIndents: P0 = P( spaces.repX ~~ " ".repX(indent) )
 
   val unlockIfStmt: P[Ast.STMT.UnlockIf] = {
-    val firstIf = P( kwd("unlock") ~/ kwd("if") ~/ test )
-    P( firstIf ).map(test => Ast.STMT.UnlockIf(test))
+    P( kwd("unlock") ~/ kwd("if") ~/ test ).map(test => Ast.STMT.UnlockIf(test))
+  }
+
+  val matchStmt: P[Ast.STMT.Match] = {
+    P( kwd("match") ~/ test ~ ":" ~~ block ).map { case (test, cases) =>
+      Ast.STMT.Match(test, cases.toList)
+    }
   }
 
   // TODO: Remove?

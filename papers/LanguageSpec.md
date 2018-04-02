@@ -7,41 +7,71 @@ Language abilities:
 * Binary operations
 * Boolean operations
 * Accessing fields of the predefined data structures via dot-notation.
-* Control-flow (if)
+* Control-flow (if, match)
 * Constants definition
 * Functions definition (Recursive calls are prohibited)
 
 ## Available data types
 
-    * any
-    * bool
-    * str
-    * byte
-    * bytes
-    * long
-    * int
-    * float
-    * double
-    * dict
-    * list
-    * <type>?               // Option[<type>]
+    * Any
+    * Bool
+    * String
+    * Bytes
+    * Long
+    * Int
+    * Float
+    * Double
+    * Dict[T0, T1]
+    * List[T]
+    * Option[T]
 
 ## Predefined data structures
 
     * Context
         
         Transaction
-            senderPubKey
+            accountPubKey
+            fee
             timestamp
-            id
-        
+            sig
+            unlockers:
+                Unlocker
+                    boxId
+                    proofOpt:
+                        Proof (Abstract type)
+                        -> Signature25519
+                        -> MultiProof
+            boxes:
+                Box (Abstract type)
+                    proposition:
+                        Proposition (Abstract type)
+                            typeId
+                        -> ContractProposition
+                            script
+                        -> AccountProposition
+                            address
+                -> AssetBox
+                    amount
+                -> GenericBox (?)
+                    fields:
+                        Seq[GBoxField]
+                            GBoxField:
+                                name
+                                value
+                                type
+                                    GBoxFieldType (Abstract type)
+                                    -> GBInt
+                                    -> GBString
+                                    -> GBByteVector
+
         State
             height
-            networkTime
-            
-    * Proof
-        typeId
-        body                    // SigBytes in case of Signature25519
+            lastBlockTimestamp
+            stateDigest
+
+        Proof
+            typeId
+            body                    // SigBytes in case of Signature25519
         
     * Reference
         Signature25519           // Object
@@ -53,6 +83,12 @@ Language abilities:
     checkSig(msg: bytes, sig: bytes, pk: bytes): bool
     pkFromAddress(addr: string): bytes
     unixTime(ts: string): long
+
+## Type matching
+
+    proof match:
+        case sig -> Signature25519:
+            unlock if checkSig()
 
 ## Use cases
 Threshold signature (2 of 3):

@@ -18,7 +18,7 @@ object Ast {
     case class FunctionDef(name: Identifier, args: Arguments, body: List[STMT], returnType: Identifier) extends STMT
     case class Return(value: Option[EXPR]) extends STMT
 
-    case class Assign(target: EXPR, value: EXPR) extends STMT
+    case class Let(target: EXPR, value: EXPR, global: Boolean = false) extends STMT
 
     // Reassignment could be introduced later.
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT
@@ -26,6 +26,8 @@ object Ast {
     // For loop could be introduced later.
     case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT
+    case class Match(target: EXPR, branches: List[STMT]) extends STMT
+    case class Case(cond: EXPR, body: List[STMT]) extends STMT
 
     case class Assert(test: EXPR, msg: Option[EXPR]) extends STMT
 
@@ -35,7 +37,7 @@ object Ast {
     case object Halt extends STMT
 
     // col_offset is the byte offset in the utf8 string the parser uses
-    case class attributes(lineno: Int, col_offset: Int)
+    case class Attributes(lineno: Int, col_offset: Int)
   }
 
   sealed trait EXPR extends AST_NODE { var tpeOpt: Option[ESType] }
@@ -83,6 +85,7 @@ object Ast {
     case class Get(opt: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer
 
     case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
+    case class BranchParamDeclaration(name: Identifier, tipe: Identifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
   }
 
   // col_offset is the byte offset in the utf8 string the parser uses

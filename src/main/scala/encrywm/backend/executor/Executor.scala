@@ -200,7 +200,8 @@ class Executor(globalContext: ScopedRuntimeEnv) {
 
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
-      case STMT.Assign(EXPR.Declaration(EXPR.Name(id, _, _), _), value) =>
+      // TODO: Handle global env updating.
+      case STMT.Let(EXPR.Declaration(EXPR.Name(id, _, _), _), value, global) =>
         val valT = value.tpeOpt.get
         currentCtx = currentCtx.updated(
           ESValue(id.name, valT)(eval[valT.Underlying](value))
@@ -264,6 +265,11 @@ class Executor(globalContext: ScopedRuntimeEnv) {
     case Failure(e) =>
       e.printStackTrace()
       Left(ESUnit)
+  }
+
+  private def getGlobalEnv(env: ScopedRuntimeEnv): ScopedRuntimeEnv = env.parentOpt match {
+    case Some(e) => getGlobalEnv(e)
+    case None => env
   }
 }
 

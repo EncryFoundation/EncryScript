@@ -33,7 +33,7 @@ object StaticAnalyser extends AstNodeScanner {
 
   private def scanStmt(node: STMT): Unit = node match {
 
-    case asg: STMT.Assign =>
+    case asg: STMT.Let =>
       scan(asg.value)
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
