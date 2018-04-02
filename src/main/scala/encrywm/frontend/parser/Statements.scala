@@ -61,11 +61,11 @@ class Statements(indent: Int){
     P(
       augStm.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
-        letStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
-        } |
         globalLetStm.map { case (a, t, b) =>
           Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b, global = true)
+        } |
+        letStm.map { case (a, t, b) =>
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
         } |
         caseStm.map {
           case (cond: Ast.EXPR.BranchParamDeclaration, body) => Ast.STMT.Case(cond, body.toList)

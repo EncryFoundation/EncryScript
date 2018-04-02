@@ -21,7 +21,27 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   property("Long int") {
     val source =
       """
-        |let a = 13l
+        |13l
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Let") {
+    val source =
+      """
+        |let a = 13
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Global let") {
+    val source =
+      """
+        |global let a = 13
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 
@@ -31,7 +51,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   property("Double int") {
     val source =
       """
-        |let a = 13.44
+        |13.44
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 
@@ -41,7 +61,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   property("Float int") {
     val source =
       """
-        |let a = 12.45f
+        |12.45f
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 

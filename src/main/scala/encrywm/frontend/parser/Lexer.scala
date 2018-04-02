@@ -29,7 +29,7 @@ object Lexer {
     "assert",    "else",      "if",        "pass",
     "case",      "except",    "unlock",    "print",
     "match",     "exec",     "in",       "raise",
-    "continue",  "let",       "is",        "return",
+    "global",    "let",       "is",        "return",
     "def",       "for",       "lambda",    "try"
   )
 

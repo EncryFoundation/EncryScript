@@ -11,7 +11,7 @@ import scorex.crypto.encode.Base58
 
 import scala.util.Random
 
-object StaticAnalyser extends AstNodeScanner {
+class StaticAnalyser extends AstNodeScanner {
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
@@ -38,11 +38,11 @@ object StaticAnalyser extends AstNodeScanner {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val typeDeclOpt = typeOpt.map(t =>
-            typeByIdent(t.name).getOrElse(throw NameError(t.name))
-          )
+          val typeDeclOpt = typeOpt.map(t => typeByIdent(t.name)
+            .getOrElse(throw NameError(t.name)))
           typeDeclOpt.foreach(tpe => assertEquals(tpe, valueType))
-          addNameToScope(name, valueType)
+          if (asg.global) addNameToGlobalScope(name, valueType)
+          else addNameToScope(name, valueType)
         case _ => // ???
       }
 
@@ -181,6 +181,10 @@ object StaticAnalyser extends AstNodeScanner {
 
   private def addNameToScope(name: EXPR.Name, tpe: ESType): Unit = {
     currentScopeOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
+  }
+
+  private def addNameToGlobalScope(name: EXPR.Name, tpe: ESType): Unit = {
+    scopes.lastOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
   }
 
   private def findReturns(stmts: Seq[STMT]): Seq[STMT.Return] = {

@@ -9,7 +9,8 @@ trait SourceProcessor {
 
   def precess(s: String): AST_NODE = {
     val parsed = (Statements.contract ~ End).parse(s).get.value
-    StaticAnalyser.scan(parsed)
+    val analyser = new StaticAnalyser
+    analyser.scan(parsed)
     Transformer.scan(parsed)
   }
 }
