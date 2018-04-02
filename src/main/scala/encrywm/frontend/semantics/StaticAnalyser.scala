@@ -168,8 +168,8 @@ object StaticAnalyser extends AstNodeScanner {
           // TODO: Complete for other SLICE_OPs.
         }
 
-      case EXPR.BranchParamDeclaration(_, typeIdent) =>
-        assertDefined(typeIdent.name)
+      case EXPR.BranchParamDeclaration(_, tpe) =>
+        typeByIdent(tpe.name).getOrElse(throw UnresolvedSymbolError(tpe.name))
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError

@@ -20,6 +20,8 @@ case class NotAnObjectError(n: String) extends SemanticError(s"$n is not an obje
 
 case object TypeError extends SemanticError("Missed type.")
 
+case class UnresolvedSymbolError(s: String) extends SemanticError(s"Can not resolve symbol $s")
+
 case object Base58DecodeError extends SemanticError("Base58 decode error.")
 
 case class TypeMismatchError(t1: String, t2: String) extends SemanticError(s"Expected type $t1, got $t2.")

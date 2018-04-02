@@ -487,7 +487,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe false
   }
 
-  property("Match statement") {
+  property("Valid match statement") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |match context.proof:
@@ -495,6 +495,23 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |       sig.sigBytes
         |   case _:
         |       0 * 1000
+      """.stripMargin)
+
+    val analyzer = StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Invalid match statement (No default branch)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |match context.proof:
+        |   case sig -> Signature25519:
+        |       sig.sigBytes
       """.stripMargin)
 
     val analyzer = StaticAnalyser

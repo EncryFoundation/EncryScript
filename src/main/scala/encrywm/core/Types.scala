@@ -246,9 +246,31 @@ object Types {
     override val ident: String = "NotInferred"
   }
 
-  lazy val primitiveTypes: Seq[ESPrimitive] = Seq(ESUnit, ESBoolean, ESInt, ESLong, ESString, ESByteVector)
-  lazy val productTypes: Seq[ESProduct] = Seq(ESTransaction, ESOption(NIType))
-  lazy val collTypes: Seq[ESCollection] = Seq(ESDict(NIType, NIType), ESList(NIType))
+  lazy val primitiveTypes: Seq[ESPrimitive] = Seq(
+    ESUnit,
+    ESBoolean,
+    ESInt,
+    ESLong,
+    ESString,
+    ESByteVector
+  )
+
+  lazy val productTypes: Seq[ESProduct] = Seq(
+    ESTransaction,
+    ESProof,
+    ESProposition,
+    ESContext,
+    ESBox,
+    Signature25519,
+    AssetBox,
+    AccountProposition,
+    ESOption(NIType)
+  )
+
+  lazy val collTypes: Seq[ESCollection] = Seq(
+    ESDict(NIType, NIType),
+    ESList(NIType)
+  )
 
   lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes
 
