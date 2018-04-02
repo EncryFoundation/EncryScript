@@ -82,14 +82,35 @@ object StaticAnalyser extends AstNodeScanner {
       scanExpr(expr.value)
 
     case ifStmt: STMT.If =>
-      scan(ifStmt.test)
+      scanExpr(ifStmt.test)
       val bodyScope = ScopedSymbolTable(s"if_body_${Random.nextInt()}", currentScopeOpt.get)
       scopes.push(bodyScope)
-      ifStmt.body.foreach(scan)
+      ifStmt.body.foreach(scanStmt)
       scopes.popHead()
       val elseScope = ScopedSymbolTable(s"if_else_${Random.nextInt()}", currentScopeOpt.get)
       scopes.push(elseScope)
-      ifStmt.orelse.foreach(scan)
+      ifStmt.orelse.foreach(scanStmt)
+      scopes.popHead()
+
+    case STMT.Match(target, branches) =>
+      scanExpr(target)
+      if (!branches.forall(_.isInstanceOf[STMT.Case]))
+        throw UnexpectedStatementError("Case clause is expected")
+      else if (!branches.last.asInstanceOf[STMT.Case].isDefault)
+        throw DefaultBranchUndefinedError
+      branches.foreach(scanStmt)
+
+    case STMT.Case(cond, body, _) =>
+      scanExpr(cond)
+      val bodyScope = ScopedSymbolTable(s"case_branch_${Random.nextInt()}", currentScopeOpt.get)
+      scopes.push(bodyScope)
+      cond match {
+        case EXPR.BranchParamDeclaration(local, tpe) =>
+          val localT = typeByIdent(tpe.name).getOrElse(throw TypeError)
+          currentScopeOpt.foreach(_.insert(ValSymbol(local.name, localT)))
+        case _ => // Do nothing.
+      }
+      body.foreach(scanStmt)
       scopes.popHead()
 
     case STMT.UnlockIf(test) =>
@@ -146,6 +167,9 @@ object StaticAnalyser extends AstNodeScanner {
             }
           // TODO: Complete for other SLICE_OPs.
         }
+
+      case EXPR.BranchParamDeclaration(_, typeIdent) =>
+        assertDefined(typeIdent.name)
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError

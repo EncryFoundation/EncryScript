@@ -83,6 +83,7 @@ object Types {
     override val ident: String = "Context"
 
     override val fields: Map[String, ESType] = Map(
+      "proof" -> ESProof,
       "transaction" -> ESTransaction,
       "state" -> ESState
     )
