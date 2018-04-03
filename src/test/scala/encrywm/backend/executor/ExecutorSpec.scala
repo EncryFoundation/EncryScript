@@ -205,6 +205,68 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor {
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
+  property("Match statement") {
+
+    val tree = precess(
+      """
+        |let a = true
+        |
+        |match a:
+        |    case true:
+        |        unlock if true
+        |    case _:
+        |        unlock if false
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("Match statement (Default branch execution)") {
+
+    val tree = precess(
+      """
+        |let a = false
+        |
+        |match a:
+        |    case true:
+        |        unlock if true
+        |    case _:
+        |        abort
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
+  }
+
+  property("Global value declaration") {
+
+    val tree = precess(
+      """
+        |let a = true
+        |
+        |match a:
+        |    case true:
+        |        global let unlockFlag = true
+        |    case _:
+        |        abort
+        |
+        |unlock if unlockFlag
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
   property("BuiltIn function") {
 
     val tree = precess(

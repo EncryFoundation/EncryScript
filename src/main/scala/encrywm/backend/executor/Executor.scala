@@ -12,23 +12,23 @@ import scorex.crypto.encode.Base58
 import scala.util.{Failure, Random, Success, Try}
 
 // TODO: Throw single error type inside the executor?
-class Executor(globalContext: ScopedRuntimeEnv) {
+class Executor(globalEnv: ScopedRuntimeEnv) {
 
   import Executor._
 
-  private val env: ScopedRuntimeEnv = globalContext
+  private var _globalEnv: ScopedRuntimeEnv = globalEnv
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
   private def execute(statements: Seq[STMT],
-                      context: ScopedRuntimeEnv = env): ExecOutcome = Try {
+                      localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Try {
 
-    var currentCtx = context
+    var currentEnv = localEnv
 
     def eval[T](expr: EXPR): T = {
       (expr match {
         case EXPR.Name(id, _, _) =>
-          currentCtx.get(id.name).map {
+          getFromEnv(id.name).map {
             case v: ESValue => v.value
             case o: ESObject => o
             case _: ESFunc => throw IsFunctionError(id.name)
@@ -78,7 +78,7 @@ class Executor(globalContext: ScopedRuntimeEnv) {
           }
 
         case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, _) =>
-          currentCtx.get(id.name).map {
+          getFromEnv(id.name).map {
             case ESFunc(_, fnArgs, _, body) =>
               val argMap = args.zip(fnArgs).map { case (exp, (argN, _)) =>
                 val expT = exp.tpeOpt.get
@@ -86,7 +86,7 @@ class Executor(globalContext: ScopedRuntimeEnv) {
                 ESValue(argN, expT)(expV)
               }.map(v => v.name -> v).toMap
               val nestedCtx =
-                ScopedRuntimeEnv(id.name, currentCtx.level + 1, argMap) // TODO: Add kwargs.
+                ScopedRuntimeEnv(id.name, currentEnv.level + 1, argMap) // TODO: Add kwargs.
               execute(body, nestedCtx) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => throw UnlockException
@@ -200,12 +200,14 @@ class Executor(globalContext: ScopedRuntimeEnv) {
 
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
-      // TODO: Handle global env updating.
       case STMT.Let(EXPR.Declaration(EXPR.Name(id, _, _), _), value, global) =>
         val valT = value.tpeOpt.get
-        currentCtx = currentCtx.updated(
-          ESValue(id.name, valT)(eval[valT.Underlying](value))
-        )
+        val esVal = ESValue(id.name, valT)(eval[valT.Underlying](value))
+        if (global) {
+          _globalEnv = _globalEnv.updated(esVal)
+        } else {
+          currentEnv = currentEnv.updated(esVal)
+        }
         Left(ESUnit)
 
       case STMT.Expr(expr) =>
@@ -218,7 +220,7 @@ class Executor(globalContext: ScopedRuntimeEnv) {
           n.name -> Types.typeByIdent(t.name).get
         }.toIndexedSeq
         val retT = Types.typeByIdent(returnType.name).get
-        currentCtx = currentCtx.updated(
+        currentEnv = currentEnv.updated(
           ESFunc(id.name, fnArgs, retT, body)
         )
         Left(ESUnit)
@@ -226,20 +228,23 @@ class Executor(globalContext: ScopedRuntimeEnv) {
       case STMT.Match(target, branches) =>
         val targetT = target.tpeOpt.get
         val targetV = eval[targetT.Underlying](target)
-        for (_ <- branches) {
+        for (branch <- branches) branch match {
+          case STMT.Case(_, body, isDefault) if isDefault =>
+            val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
+            return execute(body, nestedCtx)
           case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, isDefault) =>
             val localT = Types.typeByIdent(tpeN.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) || isDefault =>
-                val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
-                return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj)))
+                val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
+                return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj.asInstanceOf[localT.Underlying])))
               case _ => throw IllegalOperationError
             }
-          case STMT.Case(cond, body, isDefault) =>
+          case STMT.Case(cond, body, _) =>
             val condT = cond.tpeOpt.get
             val condV = eval[condT.Underlying](cond)
-            if (Compare.eq(condV, targetV) || isDefault) {
-              val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
+            if (Compare.eq(condV, targetV)) {
+              val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
               return execute(body, nestedCtx)
             }
           case _ => throw IllegalOperationError
@@ -247,7 +252,7 @@ class Executor(globalContext: ScopedRuntimeEnv) {
         Left(ESUnit)
 
       case STMT.If(test, body, orelse) =>
-        val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
+        val nestedCtx = currentEnv.emptyChild(s"if_stmt_${Random.nextInt()}")
         if (eval[Boolean](test)) execute(body, nestedCtx)
         else execute(orelse, nestedCtx)
 
@@ -278,6 +283,9 @@ class Executor(globalContext: ScopedRuntimeEnv) {
       }
       Left(ESUnit)
     }
+
+    def getFromEnv(n: String): Option[ESEnvComponent] =
+      currentEnv.get(n).orElse(_globalEnv.get(n))
 
     execMany(statements)
   } match {
