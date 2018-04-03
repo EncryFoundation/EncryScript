@@ -10,9 +10,9 @@ class ScopedRuntimeEnv(val name: String,
   def updated(s: ESEnvComponent): ScopedRuntimeEnv =
     new ScopedRuntimeEnv(name, level, members.updated(s.name, s), parentOpt)
 
-  def emptyChild(n: String): ScopedRuntimeEnv = ScopedRuntimeEnv.empty(n, level + 1)
+  def emptyChild(n: String): ScopedRuntimeEnv = ScopedRuntimeEnv.empty(n, level + 1, Some(this))
 
-  override def get(id: String): Option[ESEnvComponent] = super.get(id).orElse(parentOpt.flatMap(_.get(id)))
+  override def get(id: String): Option[ESEnvComponent] = members.get(id).orElse(parentOpt.flatMap(_.get(id)))
 
   override def toString: String = s"<ScopedContext name=$name lvl=$level size=${members.size}>"
 }
@@ -25,8 +25,8 @@ object ScopedRuntimeEnv {
             parentOpt: Option[ScopedRuntimeEnv] = None): ScopedRuntimeEnv =
     new ScopedRuntimeEnv(name, level, members, parentOpt)
 
-  def empty(n: String, l: Int): ScopedRuntimeEnv =
-    new ScopedRuntimeEnv(n, l, Map.empty, None)
+  def empty(n: String, l: Int, parent: Option[ScopedRuntimeEnv] = None): ScopedRuntimeEnv =
+    new ScopedRuntimeEnv(n, l, Map.empty, parent)
 
   def initialized(n: String, l: Int, env: Map[String, ESEnvComponent]): ScopedRuntimeEnv =
     new ScopedRuntimeEnv(n, l, env ++ ESPredefEnv.predefFunctions, None)

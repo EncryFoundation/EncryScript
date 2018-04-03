@@ -8,6 +8,8 @@ import org.scalatest.{Matchers, PropSpec}
 import scorex.utils.Random
 import utils.SourceProcessor
 
+import scala.util.Try
+
 class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Execution {
 
   property("Simple contract") {
