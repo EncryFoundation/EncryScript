@@ -257,6 +257,23 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
+  property("Executor scoping (Referencing from inner scope)") {
+
+    val tree = precess(
+      """
+        |let a = true
+        |
+        |if true:
+        |    unlock if a
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
   property("BuiltIn function") {
 
     val tree = precess(
@@ -265,7 +282,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |let sig = base58"FRQ91MwL3MV3LVEG8Ej3ZspTLgUJqSLtcHM66Zk11xY1"
         |let pk = base58"117gRnfiknXThwHF6fb4A8WQdgNxA6ZDxYApqu7MztH"
         |
-        |unlock if not checkSig(msg, sig, pk)
+        |unlock if not checkSig(sig, msg, pk)
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])

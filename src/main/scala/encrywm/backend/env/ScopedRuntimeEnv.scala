@@ -12,10 +12,7 @@ class ScopedRuntimeEnv(val name: String,
 
   def emptyChild(n: String): ScopedRuntimeEnv = ScopedRuntimeEnv.empty(n, level + 1)
 
-  override def get(id: String): Option[ESEnvComponent] = super.get(id) match {
-    case None => parentOpt.flatMap(_.get(id))
-    case Some(r) => Some(r)
-  }
+  override def get(id: String): Option[ESEnvComponent] = super.get(id).orElse(parentOpt.flatMap(_.get(id)))
 
   override def toString: String = s"<ScopedContext name=$name lvl=$level size=${members.size}>"
 }

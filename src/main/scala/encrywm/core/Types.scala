@@ -108,7 +108,7 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESProof)
 
     override val fields: Map[String, ESType] = Map(
-      "sigBytes" -> ESTransaction
+      "sigBytes" -> ESByteVector
     )
   }
 
