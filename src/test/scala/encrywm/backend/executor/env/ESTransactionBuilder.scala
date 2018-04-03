@@ -13,6 +13,8 @@ class ESTransactionBuilder(d: ESTransactionData) extends ESEnvConvertable {
 
   val instanceName: String = "transaction"
 
+  override val esType: ESProduct = ESTransaction
+
   override def asVal: ESValue = ESValue(instanceName, ESTransaction)(convert)
 
   override def convert: ESObject = {
@@ -22,6 +24,6 @@ class ESTransactionBuilder(d: ESTransactionData) extends ESEnvConvertable {
       "bodyBytes" -> ESValue("bodyBytes", ESByteVector)(d.bodyBytes),
       "timestamp" -> ESValue("timestamp", ESLong)(d.timestamp)
     )
-    ESObject(ESTransaction.ident, fields)
+    ESObject(ESTransaction.ident, fields, esType)
   }
 }

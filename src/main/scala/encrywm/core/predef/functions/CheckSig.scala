@@ -13,7 +13,7 @@ object CheckSig extends BuiltInFunctionHolder {
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
-  val args = IndexedSeq("msg" -> ESByteVector, "sig" -> ESByteVector, "pubKey" -> ESByteVector)
+  val args = IndexedSeq("sig" -> ESByteVector, "msg" -> ESByteVector, "pubKey" -> ESByteVector)
 
   private val body = (args: Seq[(String, ESValue)]) => {
     val validNumberOfArgs = args.size == 3

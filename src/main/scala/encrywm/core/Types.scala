@@ -68,7 +68,6 @@ object Types {
 
     def typeOfField(fn: String): Option[ESType] = fields.get(fn)
 
-    // TODO: Write test.
     def isSubtypeOf(thatT: ESType): Boolean =
       superTypeOpt.exists(parT => parT == thatT || parT.isSubtypeOf(thatT))
 

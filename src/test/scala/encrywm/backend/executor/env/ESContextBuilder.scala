@@ -9,6 +9,8 @@ class ESContextBuilder(stateD: ESStateData,
 
   val instanceName: String = "context"
 
+  override val esType: ESProduct = ESContext
+
   override def asVal: ESValue = ESValue(instanceName, ESContext)(convert)
 
   override def convert: ESObject = {
@@ -16,6 +18,6 @@ class ESContextBuilder(stateD: ESStateData,
       "transaction" -> ESValue("transaction", ESTransaction)(new ESTransactionBuilder(transactionD).convert),
       "state" -> ESValue("state", ESState)(new ESStateBuilder(stateD).convert),
     )
-    ESObject(ESContext.ident, fields)
+    ESObject(ESContext.ident, fields, esType)
   }
 }

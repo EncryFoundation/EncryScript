@@ -232,13 +232,13 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
           case STMT.Case(_, body, isDefault) if isDefault =>
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
             return execute(body, nestedCtx)
-          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, isDefault) =>
+          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, _) =>
             val localT = Types.typeByIdent(tpeN.name).get
             targetV match {
-              case obj: ESObject if obj.isInstanceOf(localT) || isDefault =>
+              case obj: ESObject if obj.isInstanceOf(localT) =>
                 val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
                 return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj.asInstanceOf[localT.Underlying])))
-              case _ => throw IllegalOperationError
+              case _ => // Do nothing.
             }
           case STMT.Case(cond, body, _) =>
             val condT = cond.tpeOpt.get
