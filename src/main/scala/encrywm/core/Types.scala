@@ -75,6 +75,7 @@ object Types {
       case p: ESProduct =>
         if (p.fields.size != this.fields.size) false
         else p.fields.zip(this.fields).forall { case ((f1, _), (f2, _)) => f1 == f2 }
+      case _ => false
     }
   }
 
