@@ -223,19 +223,28 @@ class Executor(globalContext: ScopedRuntimeEnv) {
         )
         Left(ESUnit)
 
-//      case STMT.Match(target, branches) =>
-//        val targetT = target.tpeOpt.get
-//        val targetV = eval[targetT.Underlying](target)
-//        for (branch <- branches) {
-//          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body) =>
-//            val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
-//            val localT = Types.typeByIdent(tpeN.name).get
-//            targetV match {
-//              case obj: ESObject if obj.isInstanceOf(localT) =>
-//                execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj)))
-//              case _ =>
-//            }
-//        }
+      case STMT.Match(target, branches) =>
+        val targetT = target.tpeOpt.get
+        val targetV = eval[targetT.Underlying](target)
+        for (_ <- branches) {
+          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, isDefault) =>
+            val localT = Types.typeByIdent(tpeN.name).get
+            targetV match {
+              case obj: ESObject if obj.isInstanceOf(localT) || isDefault =>
+                val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
+                return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj)))
+              case _ => throw IllegalOperationError
+            }
+          case STMT.Case(cond, body, isDefault) =>
+            val condT = cond.tpeOpt.get
+            val condV = eval[condT.Underlying](cond)
+            if (Compare.eq(condV, targetV) || isDefault) {
+              val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
+              return execute(body, nestedCtx)
+            }
+          case _ => throw IllegalOperationError
+        }
+        Left(ESUnit)
 
       case STMT.If(test, body, orelse) =>
         val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
