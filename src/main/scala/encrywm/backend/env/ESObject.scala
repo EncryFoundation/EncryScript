@@ -1,6 +1,6 @@
 package encrywm.backend.env
 
-import encrywm.core.Types.{ESProduct, ESType}
+import encrywm.lib.Types.{ESProduct, ESType}
 
 case class ESObject(name: String,
                     attrs: Map[String, ESValue],

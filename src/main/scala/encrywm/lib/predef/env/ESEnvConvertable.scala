@@ -1,7 +1,7 @@
-package encrywm.core.predef.env
+package encrywm.lib.predef.env
 
 import encrywm.backend.env.{ESObject, ESValue}
-import encrywm.core.Types.{ESProduct, ESType}
+import encrywm.lib.Types.{ESProduct, ESType}
 
 trait ESEnvConvertable {
   val esType: ESProduct

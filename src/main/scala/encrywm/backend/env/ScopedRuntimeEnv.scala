@@ -1,6 +1,6 @@
 package encrywm.backend.env
 
-import encrywm.core.predef.ESPredefEnv
+import encrywm.lib.predef.ESPredefEnv
 
 class ScopedRuntimeEnv(val name: String,
                        val level: Int,

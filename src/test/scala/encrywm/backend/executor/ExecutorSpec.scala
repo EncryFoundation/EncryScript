@@ -1,14 +1,8 @@
 package encrywm.backend.executor
 
 import encrywm.ast.Ast.TREE_ROOT
-import encrywm.backend.env.ScopedRuntimeEnv
-import encrywm.backend.executor.env.{ESContextBuilder, ESPredefTestEnv, ESStateData, ESTransactionData}
-import encrywm.core.predef.env._
 import org.scalatest.{Matchers, PropSpec}
-import scorex.utils.Random
 import utils.SourceProcessor
-
-import scala.util.Try
 
 class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Execution {
 

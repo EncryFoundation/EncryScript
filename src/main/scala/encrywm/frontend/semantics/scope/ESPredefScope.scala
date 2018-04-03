@@ -1,7 +1,7 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.core.Types.{ESBoolean, ESByteVector, ESContext}
-import encrywm.core.predef.functions.{Blake2b256Hash, CheckSig}
+import encrywm.lib.Types.{ESBoolean, ESByteVector, ESContext}
+import encrywm.lib.predef.functions.{Blake2b256Hash, CheckSig}
 
 object ESPredefScope {
 

@@ -1,6 +1,6 @@
-package encrywm.core
+package encrywm.lib
 
-import encrywm.core.Types._
+import encrywm.lib.Types._
 import org.scalatest.{Matchers, PropSpec}
 
 class TypesTest extends PropSpec with Matchers {

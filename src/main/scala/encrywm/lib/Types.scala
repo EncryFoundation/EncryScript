@@ -1,4 +1,4 @@
-package encrywm.core
+package encrywm.lib
 
 import encrywm.backend.env.ESObject
 

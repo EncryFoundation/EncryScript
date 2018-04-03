@@ -1,8 +1,8 @@
 package encrywm.backend.executor.env
 
 import encrywm.backend.env.{ESObject, ESValue}
-import encrywm.core.Types._
-import encrywm.core.predef.env._
+import encrywm.lib.Types._
+import encrywm.lib.predef.env._
 
 class ESContextBuilder(stateD: ESStateData,
                        transactionD: ESTransactionData) extends ESEnvConvertable {

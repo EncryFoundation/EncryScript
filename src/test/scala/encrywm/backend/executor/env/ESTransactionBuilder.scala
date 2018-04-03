@@ -1,8 +1,8 @@
 package encrywm.backend.executor.env
 
 import encrywm.backend.env.{ESObject, ESValue}
-import encrywm.core.Types.{ESTransaction, _}
-import encrywm.core.predef.env.ESEnvConvertable
+import encrywm.lib.Types.{ESTransaction, _}
+import encrywm.lib.predef.env.ESEnvConvertable
 
 case class ESTransactionData(accountPubKey: Array[Byte],
                              signature: Array[Byte],

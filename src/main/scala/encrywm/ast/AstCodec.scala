@@ -1,7 +1,7 @@
 package encrywm.ast
 
-import encrywm.core.Types
-import encrywm.core.Types.ESType
+import encrywm.lib.Types
+import encrywm.lib.Types.ESType
 import encrywm.ast.Ast._
 import scodec.Codec
 import scodec.codecs.{Discriminated, uint2, uint4, uint8}

@@ -5,6 +5,7 @@ import encrywm.ast.AstCodec._
 import encrywm.frontend.parser.Statements
 import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
 import fastparse.all._
+import scorex.crypto.hash.Blake2b256
 
 import scala.util.Try
 
@@ -23,7 +24,8 @@ object SourceProcessor {
   def source2Contract(s: String): Try[ESContract] = process(s).map { c =>
     val complexityScore = ComplexityAnalyzer.scan(c)
     val serializedScript = ScriptSerializer.serialize(c)
-    ESContract(serializedScript, ScriptMeta(complexityScore))
+    val fingerprint = Blake2b256.hash(serializedScript).take(8)
+    ESContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
   }
 
   def source2SerializedContract(s: String): Try[SerializedContract] = process(s).map { p =>

@@ -1,6 +1,6 @@
 package encrywm.backend.env
 
-import encrywm.core.Types.ESType
+import encrywm.lib.Types.ESType
 
 sealed trait ESValue extends ESEnvComponent {
 

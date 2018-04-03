@@ -1,4 +1,4 @@
-package encrywm.core
+package encrywm.lib
 
 import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._

@@ -1,6 +1,6 @@
 package encrywm.backend.env
 
-import encrywm.core.Types.ESType
+import encrywm.lib.Types.ESType
 import encrywm.ast.Ast.STMT
 
 case class ESFunc(name: String,

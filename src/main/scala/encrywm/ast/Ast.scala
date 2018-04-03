@@ -2,7 +2,7 @@ package encrywm.ast
 
 object Ast {
 
-  import encrywm.core.Types._
+  import encrywm.lib.Types._
 
   sealed trait AST_NODE
 

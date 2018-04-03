@@ -3,7 +3,7 @@ package encrywm.common
 import encrywm.frontend.semantics.ComplexityAnalyzer
 import encrywm.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
 
-case class ScriptMeta(complexityScore: ScriptComplexityScore)
+case class ScriptMeta(complexityScore: ScriptComplexityScore, scriptFingerprint: ScriptFingerprint)
 
 case class ESContract(serializedScript: SerializedScript, meta: ScriptMeta) {
 

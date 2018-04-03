@@ -5,8 +5,8 @@ import encrywm.ast.Ast._
 import encrywm.backend.env._
 import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
-import encrywm.core.Types
-import encrywm.core.Types.{ESDict, ESList, ESOption}
+import encrywm.lib.Types
+import encrywm.lib.Types.{ESDict, ESList, ESOption}
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}

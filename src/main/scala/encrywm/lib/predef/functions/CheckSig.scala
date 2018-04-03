@@ -1,9 +1,9 @@
-package encrywm.core.predef.functions
+package encrywm.lib.predef.functions
 
 import encrywm.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError
-import encrywm.core.Types
-import encrywm.core.Types.ESByteVector
+import encrywm.lib.Types
+import encrywm.lib.Types.ESByteVector
 import encrywm.frontend.semantics.scope.{FuncSymbol, ValSymbol}
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
