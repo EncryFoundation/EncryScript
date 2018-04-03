@@ -191,8 +191,10 @@ class StaticAnalyser extends AstNodeScanner {
 
     def findReturnsIn(stmt: STMT): Seq[STMT.Return] = stmt match {
       case ret: STMT.Return => Seq(ret)
-      case ifStmt: STMT.If => findReturns(ifStmt.body) ++ findReturns(ifStmt.orelse)
-      case fn: STMT.FunctionDef => findReturns(fn.body)
+      case STMT.If(_, body, orelse) => findReturns(body) ++ findReturns(orelse)
+      case STMT.Match(_, branches) => findReturns(branches)
+      case STMT.Case(_, body, _) => findReturns(body)
+      case STMT.FunctionDef(_, _, body, _) => findReturns(body)
       case _ => Seq.empty
     }
 

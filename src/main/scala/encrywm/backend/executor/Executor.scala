@@ -223,6 +223,20 @@ class Executor(globalContext: ScopedRuntimeEnv) {
         )
         Left(ESUnit)
 
+//      case STMT.Match(target, branches) =>
+//        val targetT = target.tpeOpt.get
+//        val targetV = eval[targetT.Underlying](target)
+//        for (branch <- branches) {
+//          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body) =>
+//            val nestedCtx = currentCtx.emptyChild(s"match_stmt_${Random.nextInt()}")
+//            val localT = Types.typeByIdent(tpeN.name).get
+//            targetV match {
+//              case obj: ESObject if obj.isInstanceOf(localT) =>
+//                execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj)))
+//              case _ =>
+//            }
+//        }
+
       case STMT.If(test, body, orelse) =>
         val nestedCtx = currentCtx.emptyChild(s"if_stmt_${Random.nextInt()}")
         if (eval[Boolean](test)) execute(body, nestedCtx)
