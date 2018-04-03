@@ -17,7 +17,8 @@ object Types {
     def isProduct: Boolean = this.isInstanceOf[ESProduct]
 
     override def equals(obj: scala.Any): Boolean = obj match {
-      case s: ESPrimitive => this.ident == s.ident
+      case s: ESPrimitive => s.ident == this.ident
+      case p: ESProduct => p == this
       case _ => false
     }
   }
