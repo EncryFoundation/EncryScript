@@ -24,11 +24,13 @@ object SourceProcessor {
   def source2Contract(s: String): Try[ESContract] = process(s).map { c =>
     val complexityScore = ComplexityAnalyzer.scan(c)
     val serializedScript = ScriptSerializer.serialize(c)
-    val fingerprint = Blake2b256.hash(serializedScript).take(8)
+    val fingerprint = getScriptFingerprint(serializedScript)
     ESContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
   }
 
   def source2SerializedContract(s: String): Try[SerializedContract] = process(s).map { p =>
     codec.encode(p).require.toByteArray
   }
+
+  def getScriptFingerprint(ss: SerializedScript): ScriptFingerprint = Blake2b256.hash(ss).take(8)
 }

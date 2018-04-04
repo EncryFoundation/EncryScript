@@ -8,6 +8,7 @@ case class ScriptMeta(complexityScore: ScriptComplexityScore, scriptFingerprint:
 case class ESContract(serializedScript: SerializedScript, meta: ScriptMeta) {
 
   def validMeta: Boolean = {
+    (SourceProcessor.getScriptFingerprint(serializedScript) sameElements meta.scriptFingerprint) &&
     ScriptSerializer.deserialize(serializedScript).map { s =>
       val complexity = ComplexityAnalyzer.scan(s)
       complexity == meta.complexityScore
