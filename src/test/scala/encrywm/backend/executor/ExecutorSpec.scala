@@ -217,7 +217,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val tree = precess(
       """
-        |let a = false
+        |let a = true
         |
         |match a:
         |    case true:
@@ -230,7 +230,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Halt.type] shouldBe true
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
   property("Global value declaration") {
