@@ -3,7 +3,7 @@ package encrywm.common
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
 import encrywm.frontend.parser.Statements
-import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
+import encrywm.frontend.semantics.{ComplexityAnalyzer, Optimizer, StaticAnalyser, Transformer}
 import fastparse.all._
 import scorex.crypto.hash.Blake2b256
 
@@ -18,7 +18,8 @@ object SourceProcessor {
     val analyzer = new StaticAnalyser
     analyzer.scan(parsed)
     val transformed = Transformer.scan(parsed)
-    transformed.asInstanceOf[Contract]
+    val optimized = Optimizer.scan(transformed)
+    optimized.asInstanceOf[Contract]
   }
 
   def source2Contract(s: String): Try[ESContract] = process(s).map { c =>

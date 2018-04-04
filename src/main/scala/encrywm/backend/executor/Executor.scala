@@ -208,12 +208,12 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         } else {
           currentEnv = currentEnv.updated(esVal)
         }
-        Left(ESUnit)
+        Right(Result(Nothing))
 
       case STMT.Expr(expr) =>
         val exprT = expr.tpeOpt.get
         eval[exprT.Underlying](expr)
-        Left(ESUnit)
+        Right(Result(Nothing))
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
@@ -223,7 +223,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         currentEnv = currentEnv.updated(
           ESFunc(id.name, fnArgs, retT, body)
         )
-        Left(ESUnit)
+        Right(Result(Nothing))
 
       case STMT.Match(target, branches) =>
         val targetT = target.tpeOpt.get
@@ -249,7 +249,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             }
           case _ => throw IllegalOperationError
         }
-        Left(ESUnit)
+        Right(Result(Nothing))
 
       case STMT.If(test, body, orelse) =>
         val nestedCtx = currentEnv.emptyChild(s"if_stmt_${Random.nextInt()}")
@@ -258,11 +258,11 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.UnlockIf(test) =>
         if (eval[Boolean](test)) throw UnlockException
-        else Left(ESUnit)
+        else Right(Result(Nothing))
 
       case STMT.Halt => throw ExecAbortException
 
-      case STMT.Return(None) => Left(ESUnit)
+      case STMT.Return(None) => Right(Result(Nothing))
 
       case STMT.Return(Some(v)) =>
         val valT = v.tpeOpt.get
@@ -281,7 +281,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
           case _ => // Do nothing
         }
       }
-      Left(ESUnit)
+      Right(Result(Nothing))
     }
 
     def getFromEnv(n: String): Option[ESEnvComponent] =
@@ -291,22 +291,14 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
   } match {
     case Failure(_: UnlockException.type) => Right(Result(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Result(Halt))
-    case Success(Right(out)) => Right(out)
-    case Success(Left(_)) => Left(ESUnit)
-    case Failure(e) =>
-      e.printStackTrace()
-      Left(ESUnit)
-  }
-
-  private def getGlobalEnv(env: ScopedRuntimeEnv): ScopedRuntimeEnv = env.parentOpt match {
-    case Some(e) => getGlobalEnv(e)
-    case None => env
+    case Success(Right(result)) => Right(result)
+    case _ => Left(ExecutionFailed)
   }
 }
 
 object Executor {
 
-  type ExecOutcome = Either[ESUnit.type, Result]
+  type ExecOutcome = Either[ExecutionFailed.type, Result]
 
   case class Result(r: Any)
 
@@ -316,5 +308,7 @@ object Executor {
 
   case object Halt
 
-  case object ESUnit
+  case object Nothing
+
+  case object ExecutionFailed
 }

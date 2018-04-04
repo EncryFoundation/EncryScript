@@ -17,7 +17,9 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isLeft shouldBe true
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Nothing.type] shouldBe true
   }
 
   property("Contract with UnlockIf-stmt") {

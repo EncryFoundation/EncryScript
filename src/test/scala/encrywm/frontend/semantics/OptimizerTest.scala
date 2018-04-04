@@ -1,18 +1,22 @@
 package encrywm.frontend.semantics
 
+import encrywm.ast.Ast.TREE_ROOT
+import encrywm.backend.executor.Execution
 import org.scalatest.{Matchers, PropSpec}
 import utils.SourceProcessor
 
-class OptimizerTest extends PropSpec with Matchers with SourceProcessor {
+class OptimizerTest extends PropSpec with Matchers with SourceProcessor with Execution {
 
   property("Simple AST optimization") {
 
-    val tree = precess(
-      """
-        |let longName = 999
-        |let anotherLongName: String = "SomeString"
-      """.stripMargin)
+    def sample(i: Int) = s"let longName$i = 999\n"
 
-    val optimized = Optimizer.scan(tree)
+    val tree = precess((0 to 100).map(sample).reduce(_ + _))
+
+    val optimized = Optimizer.scan(tree).asInstanceOf[TREE_ROOT.Contract]
+
+    val execR = exc.executeContract(optimized)
+
+    execR.isRight shouldBe true
   }
 }
