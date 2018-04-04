@@ -11,7 +11,6 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
 
-// TODO: Throw single error type inside the executor?
 class Executor(globalEnv: ScopedRuntimeEnv) {
 
   import Executor._
