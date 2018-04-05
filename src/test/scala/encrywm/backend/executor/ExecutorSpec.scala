@@ -118,10 +118,12 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     val tree = precess(
       """
         |let lst = [0, 1, 2, 3, 4]
-        |let a: Int = lst[3]
+        |let a = lst[3]
         |
-        |unlock if a >= lst[1]
+        |unlock if a.get >= 0
       """.stripMargin)
+
+    println(tree)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
@@ -135,9 +137,9 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     val tree = precess(
       """
         |let map = {"2" : 2, "1" : 1}
-        |let a: Int = map["2"]
+        |let a = map["2"]
         |
-        |unlock if a >= map["1"]
+        |unlock if a.get >= 1
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])

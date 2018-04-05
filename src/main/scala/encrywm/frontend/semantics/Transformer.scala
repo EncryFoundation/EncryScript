@@ -2,6 +2,7 @@ package encrywm.frontend.semantics
 
 import encrywm.ast.Ast.EXPR
 import encrywm.ast.{Ast, AstNodeScanner}
+import encrywm.lib.Types.ESOption
 import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 
 object Transformer extends AstNodeScanner {
@@ -18,9 +19,11 @@ object Transformer extends AstNodeScanner {
       Some(EXPR.IsDefined(value))
 
     // Rule: Attribute(option, "get") -> Get(option)
-    case EXPR.Attribute(value, attr, _, _)
-      if value.tpeOpt.get.isOption && attr.name == "get" =>
-      Some(EXPR.Get(value))
+    case EXPR.Attribute(value, attr, _, _) if attr.name == "get" =>
+      value.tpeOpt.get match {
+        case ESOption(inT) => Some(EXPR.Get(value, Some(inT)))
+        case _ => None
+      }
 
     case _ => None
   })))(node)

@@ -138,9 +138,11 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
               val idxT = idx.tpeOpt.get
               eval[expT.Underlying](exp) match {
                 case lst: List[idxT.Underlying@unchecked] =>
-                  lst(eval[Int](idx))
+                  val idxV = eval[Int](idx)
+                  if (lst.length > idxV) Some(lst(idxV))
+                  else None
                 case dct: Map[idxT.Underlying@unchecked, _] =>
-                  dct(eval[idxT.Underlying](idx))
+                  dct.get(eval[idxT.Underlying](idx))
                 case _ => throw IllegalOperationError
               }
 
@@ -291,7 +293,9 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
     case Failure(_: UnlockException.type) => Right(Result(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Result(Halt))
     case Success(Right(result)) => Right(result)
-    case _ => Left(ExecutionFailed)
+    case Failure(e) =>
+      e.printStackTrace()
+      Left(ExecutionFailed)
   }
 }
 

@@ -262,8 +262,8 @@ class StaticAnalyser extends AstNodeScanner {
 
         case EXPR.Subscript(value, SLICE.Index(_), _, _) =>
           inferType(value) match {
-            case list: ESList => list.valT
-            case dict: ESDict => dict.valT
+            case list: ESList => ESOption(list.valT)
+            case dict: ESDict => ESOption(dict.valT)
           }
 
         case _ => throw IllegalExprError

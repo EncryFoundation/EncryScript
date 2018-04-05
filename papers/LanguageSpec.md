@@ -106,13 +106,13 @@ Threshold signature (2 of 3):
         
 Time-window lock:
 
-    let unlockedFrom: long = unixTime('16-00-00:22-12-2018')
-    let unlockedUntil: long = unixTime('16-00-00:25-12-2018')
+    let unlockedFrom: Long = unixTime('16-00-00:22-12-2018')
+    let unlockedUntil: Long = unixTime('16-00-00:25-12-2018')
     
-    unlock if ctx.networkTime >= unlockedFrom && ctx.networkTime <= unlockedUntil
+    unlock if context.state.lastBlockTimestamp >= unlockedFrom && ctx.lastBlockTimestamp <= unlockedUntil
         
 State height lock:
 
     let unlockedFrom: int = 100000
     
-    unlock if ctx.state.height >= unlockedFrom
+    unlock if context.state.height >= unlockedFrom
