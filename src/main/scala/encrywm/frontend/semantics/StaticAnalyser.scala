@@ -38,12 +38,20 @@ class StaticAnalyser extends AstNodeScanner {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val typeDeclOpt = typeOpt.map(t => typeByIdent(t.ident.name)
-            .getOrElse(throw NameError(t.ident.name)))
-          typeDeclOpt.foreach(tpe => assertEquals(tpe, valueType))
+          val typeDeclOpt = typeOpt.map { t =>
+            val mainT = typeByIdent(t.ident.name).getOrElse(throw NameError(t.ident.name))
+            val typeParams = t.typeParams.map(id => typeByIdent(id.name).getOrElse(throw NameError(id.name)))
+            mainT -> typeParams
+          }
+          typeDeclOpt.foreach {
+            case (ESOption(_), typeParams) => assertEquals(ESOption(typeParams.head), valueType)
+            case (ESList(_), typeParams) => assertEquals(ESList(typeParams.head), valueType)
+            case (ESDict(_, _), typeParams) => assertEquals(ESDict(typeParams.head, typeParams.last), valueType)
+            case (otherT, _) => assertEquals(otherT, valueType)
+          }
           if (asg.global) addNameToGlobalScope(name, valueType)
           else addNameToScope(name, valueType)
-        case _ => // ???
+        case _ => throw IllegalExprError
       }
 
     case fd: STMT.FunctionDef =>
