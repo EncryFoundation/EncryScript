@@ -38,8 +38,8 @@ class StaticAnalyser extends AstNodeScanner {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val typeDeclOpt = typeOpt.map(t => typeByIdent(t.name)
-            .getOrElse(throw NameError(t.name)))
+          val typeDeclOpt = typeOpt.map(t => typeByIdent(t.ident.name)
+            .getOrElse(throw NameError(t.ident.name)))
           typeDeclOpt.foreach(tpe => assertEquals(tpe, valueType))
           if (asg.global) addNameToGlobalScope(name, valueType)
           else addNameToScope(name, valueType)
@@ -52,7 +52,7 @@ class StaticAnalyser extends AstNodeScanner {
       val paramSymbols = fd.args.args.map { arg =>
         arg.target match {
           case n: EXPR.Name =>
-            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.name))
+            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
               .getOrElse(throw IllegalExprError)
             ValSymbol(n.id.name, valT)
           case _ => throw IllegalExprError
@@ -106,7 +106,7 @@ class StaticAnalyser extends AstNodeScanner {
       scopes.push(bodyScope)
       cond match {
         case EXPR.BranchParamDeclaration(local, tpe) =>
-          val localT = typeByIdent(tpe.name).getOrElse(throw TypeError)
+          val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
           currentScopeOpt.foreach(_.insert(ValSymbol(local.name, localT)))
         case _ => // Do nothing.
       }
@@ -169,7 +169,7 @@ class StaticAnalyser extends AstNodeScanner {
         }
 
       case EXPR.BranchParamDeclaration(_, tpe) =>
-        typeByIdent(tpe.name).getOrElse(throw UnresolvedSymbolError(tpe.name))
+        typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolError(tpe.ident.name))
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError

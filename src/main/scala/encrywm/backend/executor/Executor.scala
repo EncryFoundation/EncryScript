@@ -218,7 +218,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
-          n.name -> Types.typeByIdent(t.name).get
+          n.name -> Types.typeByIdent(t.ident.name).get
         }.toIndexedSeq
         val retT = Types.typeByIdent(returnType.name).get
         currentEnv = currentEnv.updated(
@@ -234,7 +234,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
             return execute(body, nestedCtx)
           case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, _) =>
-            val localT = Types.typeByIdent(tpeN.name).get
+            val localT = Types.typeByIdent(tpeN.ident.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) =>
                 val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")

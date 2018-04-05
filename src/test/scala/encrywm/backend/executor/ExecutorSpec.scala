@@ -123,8 +123,6 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a.get >= 0
       """.stripMargin)
 
-    println(tree)
-
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
     excR.isRight shouldBe true

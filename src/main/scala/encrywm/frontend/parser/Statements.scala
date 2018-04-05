@@ -42,7 +42,15 @@ class Statements(indent: Int){
     case (name, args, tpe, blc) => Ast.STMT.FunctionDef(name, args, blc.toList, tpe)
   }
 
-  val typeDecl: P[Ast.Identifier] = P( ":" ~ NAME )
+  val typeParams: P[Seq[Ast.Identifier]] = P( "[" ~ NAME.rep(sep = ",") ~ "]" )
+
+  val typeDeclarationSemi: P[Ast.TypeIdentifier] = P( ":" ~ NAME ~ typeParams.? ).map { case (tpeN, tpsOpt) =>
+    Ast.TypeIdentifier(tpeN, tpsOpt.map(_.toList).getOrElse(List.empty))
+  }
+
+  val typeDeclarationArrow: P[Ast.TypeIdentifier] = P( "->" ~ NAME ~ typeParams.? ).map { case (tpeN, tpsOpt) =>
+    Ast.TypeIdentifier(tpeN, tpsOpt.map(_.toList).getOrElse(List.empty))
+  }
 
   val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
 
@@ -54,8 +62,8 @@ class Statements(indent: Int){
   val exprStmt: P[Ast.STMT] = {
     val augStm = P( testlist ~ augassign ~ test ) // TODO: Do we need this.
     val testsStm = P( testlist )
-    val letStm = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
-    val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
+    val letStm = P( kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
+    val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
     val caseStm = P( kwd("case") ~/ ( branchParamDeclaration | genericCond | expr ) ~ ":" ~~ block )
 
     P(
