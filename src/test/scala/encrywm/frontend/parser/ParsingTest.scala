@@ -109,6 +109,26 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
+  property("Type declaration with type parameter") {
+    val source =
+      """
+        |let a: Option[Int] = numbers[1]
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Type declaration with many type parameters") {
+    val source =
+      """
+        |let a: Map[String, Int] = {"Str" : 1}
+      """.stripMargin
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
   property("Variable referencing") {
     val source =
       """

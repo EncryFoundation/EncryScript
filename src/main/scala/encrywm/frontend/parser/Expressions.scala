@@ -172,7 +172,7 @@ object Expressions {
     P( dict | set )
   }
 
-  val branchParamDeclaration: P[Ast.EXPR.BranchParamDeclaration] = P( NAME ~ "->" ~ NAME ).map { case (name, tpe) =>
+  val branchParamDeclaration: P[Ast.EXPR.BranchParamDeclaration] = P( NAME ~ Statements.typeDeclarationArrow).map { case (name, tpe) =>
     Ast.EXPR.BranchParamDeclaration(name, tpe)
   }
 
@@ -192,7 +192,7 @@ object Expressions {
 
   val varargslist: P[Ast.Arguments] = {
     val named_arg = P( fpdef )
-    val x = P( (named_arg ~/ Statements.typeDecl).rep(sep = ",") ).map(args => Ast.Arguments(args.toList.map {
+    val x = P( (named_arg ~/ Statements.typeDeclarationSemi).rep(sep = ",") ).map(args => Ast.Arguments(args.toList.map {
       case (a, t) => Ast.EXPR.Declaration(a, Some(t)) }))
     P( x )
   }

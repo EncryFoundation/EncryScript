@@ -138,9 +138,11 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
               val idxT = idx.tpeOpt.get
               eval[expT.Underlying](exp) match {
                 case lst: List[idxT.Underlying@unchecked] =>
-                  lst(eval[Int](idx))
+                  val idxV = eval[Int](idx)
+                  if (lst.length > idxV) Some(lst(idxV))
+                  else None
                 case dct: Map[idxT.Underlying@unchecked, _] =>
-                  dct(eval[idxT.Underlying](idx))
+                  dct.get(eval[idxT.Underlying](idx))
                 case _ => throw IllegalOperationError
               }
 
@@ -216,7 +218,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
-          n.name -> Types.typeByIdent(t.name).get
+          n.name -> Types.typeByIdent(t.ident.name).get
         }.toIndexedSeq
         val retT = Types.typeByIdent(returnType.name).get
         currentEnv = currentEnv.updated(
@@ -232,7 +234,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
             return execute(body, nestedCtx)
           case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, _) =>
-            val localT = Types.typeByIdent(tpeN.name).get
+            val localT = Types.typeByIdent(tpeN.ident.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) =>
                 val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
@@ -291,7 +293,9 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
     case Failure(_: UnlockException.type) => Right(Result(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Result(Halt))
     case Success(Right(result)) => Right(result)
-    case _ => Left(ExecutionFailed)
+    case Failure(e) =>
+      e.printStackTrace()
+      Left(ExecutionFailed)
   }
 }
 

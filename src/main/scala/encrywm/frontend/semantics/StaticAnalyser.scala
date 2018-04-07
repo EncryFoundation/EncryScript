@@ -38,12 +38,20 @@ class StaticAnalyser extends AstNodeScanner {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
-          val typeDeclOpt = typeOpt.map(t => typeByIdent(t.name)
-            .getOrElse(throw NameError(t.name)))
-          typeDeclOpt.foreach(tpe => assertEquals(tpe, valueType))
+          val typeDeclOpt = typeOpt.map { t =>
+            val mainT = typeByIdent(t.ident.name).getOrElse(throw NameError(t.ident.name))
+            val typeParams = t.typeParams.map(id => typeByIdent(id.name).getOrElse(throw NameError(id.name)))
+            mainT -> typeParams
+          }
+          typeDeclOpt.foreach {
+            case (ESOption(_), typeParams) => assertEquals(ESOption(typeParams.head), valueType)
+            case (ESList(_), typeParams) => assertEquals(ESList(typeParams.head), valueType)
+            case (ESDict(_, _), typeParams) => assertEquals(ESDict(typeParams.head, typeParams.last), valueType)
+            case (otherT, _) => assertEquals(otherT, valueType)
+          }
           if (asg.global) addNameToGlobalScope(name, valueType)
           else addNameToScope(name, valueType)
-        case _ => // ???
+        case _ => throw IllegalExprError
       }
 
     case fd: STMT.FunctionDef =>
@@ -52,7 +60,7 @@ class StaticAnalyser extends AstNodeScanner {
       val paramSymbols = fd.args.args.map { arg =>
         arg.target match {
           case n: EXPR.Name =>
-            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.name))
+            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
               .getOrElse(throw IllegalExprError)
             ValSymbol(n.id.name, valT)
           case _ => throw IllegalExprError
@@ -106,7 +114,7 @@ class StaticAnalyser extends AstNodeScanner {
       scopes.push(bodyScope)
       cond match {
         case EXPR.BranchParamDeclaration(local, tpe) =>
-          val localT = typeByIdent(tpe.name).getOrElse(throw TypeError)
+          val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
           currentScopeOpt.foreach(_.insert(ValSymbol(local.name, localT)))
         case _ => // Do nothing.
       }
@@ -169,7 +177,7 @@ class StaticAnalyser extends AstNodeScanner {
         }
 
       case EXPR.BranchParamDeclaration(_, tpe) =>
-        typeByIdent(tpe.name).getOrElse(throw UnresolvedSymbolError(tpe.name))
+        typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolError(tpe.ident.name))
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError
@@ -262,8 +270,8 @@ class StaticAnalyser extends AstNodeScanner {
 
         case EXPR.Subscript(value, SLICE.Index(_), _, _) =>
           inferType(value) match {
-            case list: ESList => list.valT
-            case dict: ESDict => dict.valT
+            case list: ESList => ESOption(list.valT)
+            case dict: ESDict => ESOption(dict.valT)
           }
 
         case _ => throw IllegalExprError

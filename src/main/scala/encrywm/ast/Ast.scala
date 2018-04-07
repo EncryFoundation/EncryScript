@@ -84,8 +84,8 @@ object Ast {
     case class IsDefined(opt: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
     case class Get(opt: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer
 
-    case class Declaration(target: EXPR, typeOpt: Option[Identifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
-    case class BranchParamDeclaration(name: Identifier, tipe: Identifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
+    case class Declaration(target: EXPR, typeOpt: Option[TypeIdentifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
+    case class BranchParamDeclaration(name: Identifier, tipe: TypeIdentifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
 
     // Used to define default condition in `case` branch.
     case object GenericCond extends EXPR { override var tpeOpt: Option[ESType] = Some(ESUnit) }
@@ -164,6 +164,8 @@ object Ast {
   }
 
   case class Identifier(name: String)
+
+  case class TypeIdentifier(ident: Identifier, typeParams: List[Identifier])
 
   case class Arguments(args: List[EXPR.Declaration]) extends AST_NODE
 
