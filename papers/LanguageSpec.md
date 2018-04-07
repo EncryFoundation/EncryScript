@@ -34,14 +34,14 @@ Language abilities:
             fee
             timestamp
             sig
-            unlockers:
+            inputs:
                 Unlocker
                     boxId
                     proofOpt:
                         Proof (Abstract type)
                         -> Signature25519
                         -> MultiProof
-            boxes:
+            outputs:
                 Box (Abstract type)
                     proposition:
                         Proposition (Abstract type)

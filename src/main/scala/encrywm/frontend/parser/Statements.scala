@@ -52,14 +52,12 @@ class Statements(indent: Int){
   val smallStmt: P[Ast.STMT] = P( flowStmt | assertStmt | exprStmt)
 
   val exprStmt: P[Ast.STMT] = {
-    val augStm = P( testlist ~ augassign ~ test ) // TODO: Do we need this.
     val testsStm = P( testlist )
     val letStm = P( kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
     val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDecl.? ~ ("=" ~ test) )
     val caseStm = P( kwd("case") ~/ ( branchParamDeclaration | genericCond | expr ) ~ ":" ~~ block )
 
     P(
-      augStm.map { case (a, b, c) => Ast.STMT.AugAssign(tuplize(a), b, c) } |
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
         globalLetStm.map { case (a, t, b) =>
           Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b, global = true)
@@ -74,16 +72,6 @@ class Statements(indent: Int){
         }
     )
   }
-
-  val augassign: P[Ast.OPERATOR] = P(
-     "+=".!.map(_ => Ast.OPERATOR.Add) |
-      "-=".!.map(_ => Ast.OPERATOR.Sub) |
-      "*=".!.map(_ => Ast.OPERATOR.Mult) |
-      "/=".!.map(_ => Ast.OPERATOR.Div) |
-      "%=".!.map(_ => Ast.OPERATOR.Mod) |
-      "**=".!.map(_ => Ast.OPERATOR.Pow) |
-      "//=".!.map(_ => Ast.OPERATOR.FloorDiv)
-  )
 
   val abortStmt: P[Ast.STMT.Halt.type] = P(kwd("abort") ).map(_ => Ast.STMT.Halt)
 
