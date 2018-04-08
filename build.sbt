@@ -49,4 +49,10 @@ pomExtra in ThisBuild :=
       </developer>
     </developers>
 
+fork in run := true
+
+outputStrategy := Some(StdoutOutput)
+
+connectInput in run := true
+
 lazy val EncryScript = project in file(".")
