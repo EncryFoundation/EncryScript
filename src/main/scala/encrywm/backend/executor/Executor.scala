@@ -6,7 +6,7 @@ import encrywm.backend.env._
 import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
 import encrywm.lib.Types
-import encrywm.lib.Types.{ESDict, ESList, ESOption}
+import encrywm.lib.Types.{ESDict, ESList, ESOption, ESType}
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -23,6 +23,8 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                       localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Try {
 
     var currentEnv = localEnv
+
+    def randCode: Int = Random.nextInt()
 
     def eval[T](expr: EXPR): T = {
       (expr match {
@@ -84,9 +86,8 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
               }.map(v => v.name -> v).toMap
-              val nestedCtx =
-                ScopedRuntimeEnv(id.name, currentEnv.level + 1, argMap) // TODO: Add kwargs.
-              execute(body, nestedCtx) match {
+              val nestedEnv = currentEnv.child(id.name, argMap) // TODO: Add kwargs.
+              execute(body, nestedEnv) match {
                 case Right(Result(Val(v))) => v
                 case Right(Result(Unlocked)) => throw UnlockException
                 case Right(Result(Halt)) => throw ExecAbortException
@@ -199,6 +200,14 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
       }).asInstanceOf[T]
     }
 
+    def execLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
+      val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
+      execute(List(STMT.Expr(body)), nestedEnv) match {
+        case Right(Result(r: T@unchecked)) => r
+        case _ => throw new ExecutionError("Lambda execution error")
+      }
+    }
+
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
       case STMT.Let(EXPR.Declaration(EXPR.Name(id, _, _), _), value, global) =>
@@ -213,8 +222,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.Expr(expr) =>
         val exprT = expr.tpeOpt.get
-        eval[exprT.Underlying](expr)
-        Right(Result(Nothing))
+        Right(Result(eval[exprT.Underlying](expr)))
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
@@ -231,13 +239,13 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         val targetV = eval[targetT.Underlying](target)
         for (branch <- branches) branch match {
           case STMT.Case(_, body, isDefault) if isDefault =>
-            val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
+            val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
             return execute(body, nestedCtx)
           case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, _) =>
             val localT = Types.typeByIdent(tpeN.ident.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) =>
-                val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
+                val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
                 return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj.asInstanceOf[localT.Underlying])))
               case _ => // Do nothing.
             }
@@ -245,7 +253,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             val condT = cond.tpeOpt.get
             val condV = eval[condT.Underlying](cond)
             if (Compare.eq(condV, targetV)) {
-              val nestedCtx = currentEnv.emptyChild(s"match_stmt_${Random.nextInt()}")
+              val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
               return execute(body, nestedCtx)
             }
           case _ => throw IllegalOperationError
@@ -253,7 +261,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         Right(Result(Nothing))
 
       case STMT.If(test, body, orelse) =>
-        val nestedCtx = currentEnv.emptyChild(s"if_stmt_${Random.nextInt()}")
+        val nestedCtx = currentEnv.emptyChild(s"if_stmt_$randCode")
         if (eval[Boolean](test)) execute(body, nestedCtx)
         else execute(orelse, nestedCtx)
 

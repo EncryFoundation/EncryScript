@@ -73,7 +73,6 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
   }
 
-
   property("Contract with fn call in If-stmt test") {
 
     val tree = precess(
