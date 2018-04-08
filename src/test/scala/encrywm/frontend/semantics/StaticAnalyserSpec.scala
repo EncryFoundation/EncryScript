@@ -127,7 +127,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe false
   }
 
-  property("Valid AST with If-expression analysis") {
+  property("Valid If-expression") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a: Int = 9 if 6 > 10 else 0
@@ -142,10 +142,40 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe true
   }
 
-  property("Analysis of invalid AST with If expression and undefined ref inside") {
+  property("Invalid If expression and undefined ref inside") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a: Int = 9 if b < 0 else 0
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Valid lambda def") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |lambda (a: Int, b: Int) = a * b
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Invalid lambda def (unresolved name in body)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |lambda (a: Int, b: Int) = a * c
       """.stripMargin)
 
     val analyzer = new StaticAnalyser

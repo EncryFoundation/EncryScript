@@ -60,9 +60,9 @@ class StaticAnalyser extends AstNodeScanner {
       val paramSymbols = fd.args.args.map { arg =>
         arg.target match {
           case n: EXPR.Name =>
-            val valT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
+            val argT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
               .getOrElse(throw IllegalExprError)
-            ValSymbol(n.id.name, valT)
+            ValSymbol(n.id.name, argT)
           case _ => throw IllegalExprError
         }
       }
@@ -137,6 +137,22 @@ class StaticAnalyser extends AstNodeScanner {
 
       case bin: EXPR.BinOp =>
         Seq(bin.left, bin.right).foreach(scanExpr)
+
+      case EXPR.Lambda(args, body, _) =>
+        val paramSymbols = args.args.map { arg =>
+          arg.target match {
+            case n: EXPR.Name =>
+              val argT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
+                .getOrElse(throw IllegalExprError)
+              ValSymbol(n.id.name, argT)
+            case _ => throw IllegalExprError
+          }
+        }
+        val bodyScope = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
+        scopes.push(bodyScope)
+        paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s)))
+        scanExpr(body)
+        scopes.popHead()
 
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
         currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
@@ -273,6 +289,9 @@ class StaticAnalyser extends AstNodeScanner {
             case list: ESList => ESOption(list.valT)
             case dict: ESDict => ESOption(dict.valT)
           }
+
+        case EXPR.Lambda(_, body, _) =>
+          inferType(body)
 
         case _ => throw IllegalExprError
       }
