@@ -1,10 +1,9 @@
-package encrywm.lib.predef.functions
+package encrywm.lib.predef.functions.signature
 
 import encrywm.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.backend.executor.error.BuiltInFunctionExecError
-import encrywm.lib.Types
 import encrywm.lib.Types.ESByteVector
-import encrywm.frontend.semantics.scope.{FuncSymbol, ValSymbol}
+import encrywm.lib.predef.functions.BuiltInFunctionHolder
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 object CheckSig extends BuiltInFunctionHolder {
