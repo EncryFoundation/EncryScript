@@ -58,13 +58,8 @@ class StaticAnalyser extends AstNodeScanner {
       val declaredRetType = typeByIdent(fd.returnType.name)
         .getOrElse(throw NameError(fd.returnType.name))
       val paramSymbols = fd.args.args.map { arg =>
-        arg.target match {
-          case n: EXPR.Name =>
-            val argT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
-              .getOrElse(throw IllegalExprError)
-            ValSymbol(n.id.name, argT)
-          case _ => throw IllegalExprError
-        }
+        val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
+        ValSymbol(arg._1.name, argT)
       }
       currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, declaredRetType, paramSymbols)))
       val fnScope = ScopedSymbolTable(fd.name.name, currentScopeOpt.get)
@@ -140,13 +135,8 @@ class StaticAnalyser extends AstNodeScanner {
 
       case EXPR.Lambda(args, body, _) =>
         val paramSymbols = args.args.map { arg =>
-          arg.target match {
-            case n: EXPR.Name =>
-              val argT = arg.typeOpt.flatMap(t => typeByIdent(t.ident.name))
-                .getOrElse(throw IllegalExprError)
-              ValSymbol(n.id.name, argT)
-            case _ => throw IllegalExprError
-          }
+          val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
+          ValSymbol(arg._1.name, argT)
         }
         val bodyScope = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
         scopes.push(bodyScope)

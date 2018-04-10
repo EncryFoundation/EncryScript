@@ -225,7 +225,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         Right(Result(eval[exprT.Underlying](expr)))
 
       case STMT.FunctionDef(id, args, body, returnType) =>
-        val fnArgs = args.args.map { case EXPR.Declaration(EXPR.Name(n, _, _), Some(t)) =>
+        val fnArgs = args.args.map { case (n, t) =>
           n.name -> Types.typeByIdent(t.ident.name).get
         }.toIndexedSeq
         val retT = Types.typeByIdent(returnType.name).get

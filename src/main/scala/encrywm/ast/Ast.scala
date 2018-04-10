@@ -81,8 +81,8 @@ object Ast {
 
     sealed trait Transformer extends EXPR
     case class SizeOf(coll: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESInt) }
+    case class Exists(coll: EXPR, predicate: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
     case class IsDefined(opt: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
-    case class Exists(predicate: EXPR) extends EXPR with Transformer { override var tpeOpt: Option[ESType] = Some(ESBoolean) }
     case class Get(opt: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer
 
     case class Declaration(target: EXPR, typeOpt: Option[TypeIdentifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
@@ -168,7 +168,7 @@ object Ast {
 
   case class TypeIdentifier(ident: Identifier, typeParams: List[Identifier])
 
-  case class Arguments(args: List[EXPR.Declaration]) extends AST_NODE
+  case class Arguments(args: List[(Identifier, TypeIdentifier)]) extends AST_NODE
 
   // keyword arguments supplied to call
   case class Keyword(arg: Identifier, value: EXPR) extends AST_NODE
