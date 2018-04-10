@@ -180,6 +180,23 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
               eval[Option[inT.Underlying]](opt).get
           }
 
+        case EXPR.Exists(coll, EXPR.Lambda(args, body, Some(Types.ESFunc(_: Types.ESBoolean.type)))) =>
+          coll.tpeOpt.get match {
+            case ESList(tpe) if args.args.size == 1 =>
+              val localN = args.args.head._1.name
+              val localT = Types.typeByIdent(args.args.head._2.ident.name).get
+              if (tpe != localT) { throw IllegalOperationError }
+              def untilTrue: T = {
+                for (elt <- eval[List[tpe.Underlying]](coll)) {
+                  val localV = ESValue(localN, tpe)(elt)
+                  if (execLambda[Boolean](Map(localN -> localV), body))
+                    return true.asInstanceOf[T]
+                }
+                false.asInstanceOf[T]
+              }
+              untilTrue
+          }
+
         case EXPR.Base58Str(s) => Base58.decode(s).get
 
         case EXPR.Str(s) => s
@@ -203,7 +220,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
     def execLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
       execute(List(STMT.Expr(body)), nestedEnv) match {
-        case Right(Result(r: T@unchecked)) => r
+        case Right(Result(Val(v: T@unchecked))) => v
         case _ => throw new ExecutionError("Lambda execution error")
       }
     }
@@ -222,7 +239,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.Expr(expr) =>
         val exprT = expr.tpeOpt.get
-        Right(Result(eval[exprT.Underlying](expr)))
+        Right(Result(Val(eval[exprT.Underlying](expr))))
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case (n, t) =>

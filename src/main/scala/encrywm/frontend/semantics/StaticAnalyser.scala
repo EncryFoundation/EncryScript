@@ -147,8 +147,25 @@ class StaticAnalyser extends AstNodeScanner {
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
         currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
           if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
+          val argTypes = params.map(_.tpe)
+          args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
+            if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+          }
           id.name
         }.getOrElse(throw NameError(id.name))
+        args.foreach(scanExpr)
+        keywords.map(_.value).foreach(scanExpr)
+
+      case EXPR.Call(EXPR.Attribute(value, id, _, _), args, keywords, _) =>
+        currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
+          if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
+          val argTypes = params.map(_.tpe)
+          args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
+            if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+          }
+          id.name
+        }.getOrElse(throw NameError(id.name))
+        scanExpr(value)
         args.foreach(scanExpr)
         keywords.map(_.value).foreach(scanExpr)
 
@@ -230,17 +247,15 @@ class StaticAnalyser extends AstNodeScanner {
               p.getAttrType(attr.attr.name).getOrElse(throw NameError(attr.attr.name))
           }
 
-        // TODO: Move type checking to `scan()`.
         case fc: EXPR.Call =>
           fc.func match {
-            case n: EXPR.Name =>
-              scope.lookup(n.id.name).map { case sym: FuncSymbol =>
-                val argTypes = sym.params.map(_.tpe)
-                fc.args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
-                  if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
-                }
-                sym.tpe
-              }.getOrElse(throw IllegalExprError)
+            case EXPR.Name(n, _, _) =>
+              scope.lookup(n.name).map { case FuncSymbol(_, t, _) => t }
+                .getOrElse(throw IllegalExprError)
+
+            case EXPR.Attribute(_, n, _, _) =>
+              scope.lookup(n.name).map { case FuncSymbol(_, t, _) => t }
+                .getOrElse(throw IllegalExprError)
 
             case _ => throw IllegalExprError
           }
@@ -281,7 +296,7 @@ class StaticAnalyser extends AstNodeScanner {
           }
 
         case EXPR.Lambda(_, body, _) =>
-          inferType(body)
+          ESFunc(inferType(body))
 
         case _ => throw IllegalExprError
       }

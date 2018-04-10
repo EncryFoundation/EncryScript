@@ -92,7 +92,7 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
   property("Lambda definition") {
     val source =
       """
-        |lambda (a: Int, b: Int) = a + b
+        |lamb (a: Int, b: Int) = a + b
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
 

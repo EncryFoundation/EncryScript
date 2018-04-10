@@ -16,6 +16,8 @@ object Types {
 
     def isProduct: Boolean = this.isInstanceOf[ESProduct]
 
+    def isFunc: Boolean = this.isInstanceOf[ESFunc]
+
     override def equals(obj: scala.Any): Boolean = obj match {
       case s: ESPrimitive => s.ident == this.ident
       case p: ESProduct => p == this
@@ -195,38 +197,32 @@ object Types {
 
   sealed trait Parametrized
 
-  sealed trait ESCollection extends ESProduct with Parametrized
+  sealed trait ESCollection extends ESProduct with Parametrized {
+
+    override def fields: Map[String, ESType] = Map(
+      "size" -> ESInt,
+      "exists" -> ESBoolean
+    )
+  }
 
   case class ESList(valT: ESType) extends ESType with ESCollection {
     override type Underlying = List[valT.Underlying]
     override val ident: String = "List"
-    override val fields: Map[String, ESType] = ESList.fields
 
     override def equals(obj: Any): Boolean = obj match {
       case l: ESList => l.valT == this.valT
       case _ => false
     }
   }
-  object ESList {
-    val fields: Map[String, ESType] = Map(
-      "size" -> ESInt
-    )
-  }
 
   case class ESDict(keyT: ESType, valT: ESType) extends ESType with ESCollection {
     override type Underlying = Map[keyT.Underlying, valT.Underlying]
     override val ident: String = "Dict"
-    override val fields: Map[String, ESType] = ESDict.fields
 
     override def equals(obj: Any): Boolean = obj match {
       case d: ESDict => d.keyT == this.keyT && d.valT == this.valT
       case _ => false
     }
-  }
-  object ESDict {
-    val fields: Map[String, ESType] = Map(
-      "size" -> ESInt
-    )
   }
 
   case class ESOption(inT: ESType) extends ESType with ESProduct with Parametrized {
@@ -239,6 +235,17 @@ object Types {
     val fields: Map[String, ESType] = Map(
       "isDefined" -> ESBoolean
     )
+  }
+
+  // TODO: Add attrs for deeper type checking.
+  case class ESFunc(retT: ESType) extends ESType {
+    override type Underlying = retT.Underlying
+    override val ident: String = "func"
+
+    override def equals(obj: Any): Boolean = obj match {
+      case f: ESFunc => this.retT == f.retT
+      case _ => false
+    }
   }
 
   // Placeholder for not inferred type.
@@ -273,7 +280,7 @@ object Types {
     ESList(NIType)
   )
 
-  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes
+  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes :+ ESFunc(NIType)
 
   lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.ident -> t).toMap
 

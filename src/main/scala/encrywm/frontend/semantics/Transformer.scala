@@ -8,6 +8,15 @@ import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 object Transformer extends AstNodeScanner {
 
   override def scan(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
+
+    // Rule: Call(Attribute(coll, "exists"), Lambda) -> Exists(coll, lambda)
+    case EXPR.Call(EXPR.Attribute(value, attr, _, _), args, _, _)
+      if value.tpeOpt.get.isCollection &&
+        attr.name == "exists" &&
+        args.size == 1 &&
+        args.head.tpeOpt.get.isFunc =>
+      Some(EXPR.Exists(value, args.head))
+
     // Rule: Attribute(coll, "size") -> SizeOf(coll)
     case EXPR.Attribute(value, attr, _, _)
       if value.tpeOpt.get.isCollection && attr.name == "size" =>

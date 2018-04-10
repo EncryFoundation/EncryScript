@@ -30,7 +30,7 @@ object Lexer {
     "case",      "except",    "unlock",    "print",
     "match",     "exec",     "in",       "raise",
     "global",    "let",       "is",        "return",
-    "def",       "for",       "lambda",    "try"
+    "def",       "for",       "lamb",    "try"
   )
 
   val stringliteral: P[String] = P( stringprefix.? ~ (longstring | shortstring) )

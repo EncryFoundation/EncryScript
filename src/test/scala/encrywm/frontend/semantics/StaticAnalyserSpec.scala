@@ -160,7 +160,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Valid lambda def") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |lambda (a: Int, b: Int) = a * b
+        |lamb (a: Int, b: Int) = a * b
       """.stripMargin)
 
     val analyzer = new StaticAnalyser
@@ -175,7 +175,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
   property("Invalid lambda def (unresolved name in body)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
-        |lambda (a: Int, b: Int) = a * c
+        |lamb (a: Int, b: Int) = a * c
       """.stripMargin)
 
     val analyzer = new StaticAnalyser

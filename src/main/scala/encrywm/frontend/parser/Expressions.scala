@@ -1,11 +1,11 @@
 package encrywm.frontend.parser
 
 import encrywm.ast.Ast
-import encrywm.ast.Ast.{EXPR, Identifier}
+import encrywm.ast.Ast.EXPR
 import encrywm.frontend.parser.Lexer.kwd
 import encrywm.frontend.parser.WsApi._
-import fastparse.{core, noApi}
 import fastparse.noApi._
+import fastparse.{core, noApi}
 
 /**
   * Expression grammar. This is stuff that can be used within a larger
@@ -128,8 +128,7 @@ object Expressions {
   val tupleContents = P( test ~ "," ~ listContents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
   val tuple = P( tupleContents ).map(tcs => Ast.EXPR.ESTuple(tcs.toList, Ast.EXPR_CTX.Load))
 
-  // TODO: Do we need lambdas?
-  val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lambda") ~ "(" ~ varargslist ~ ")" ~ "=" ~ test ).map { case (args, exp) => Ast.EXPR.Lambda(args, exp) }
+  val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lamb") ~ "(" ~ varargslist ~ ")" ~ "=" ~ test ).map { case (args, exp) => Ast.EXPR.Lambda(args, exp) }
 
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
     val call = P("(" ~ arglist ~ ")").map { case (args, keywords) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args.toList, keywords.toList) }

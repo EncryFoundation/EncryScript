@@ -19,7 +19,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Nothing.type] shouldBe true
+    excR.right.get.r.isInstanceOf[Executor.Val] shouldBe true
   }
 
   property("Contract with UnlockIf-stmt") {
@@ -183,6 +183,38 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if coll.size > 2
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("list.Exists(predicate) (true case)") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |unlock if coll.exists(lamb (i: Int) = i == 2)
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    excR.isRight shouldBe true
+
+    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  }
+
+  property("list.Exists(predicate) (false case)") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |unlock if not coll.exists(lamb (i: Int) = i == 9)
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])

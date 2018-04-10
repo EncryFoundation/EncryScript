@@ -1,6 +1,6 @@
 package encrywm.frontend.semantics.scope
 
-import encrywm.lib.Types.{ESBoolean, ESByteVector, ESContext}
+import encrywm.lib.Types.{ESBoolean, ESByteVector, ESContext, ESFunc}
 import encrywm.lib.predef.functions.hash._
 import encrywm.lib.predef.functions.signature._
 import encrywm.lib.predef.functions.time._
@@ -16,5 +16,6 @@ object ESPredefScope {
     FuncSymbol(Keccak512Hash.name, ESByteVector, params = Keccak512Hash.args.map(arg => ValSymbol(arg._1, arg._2))),
     FuncSymbol(Sha256Hash.name, ESByteVector, params = Sha256Hash.args.map(arg => ValSymbol(arg._1, arg._2))),
     FuncSymbol(Str2Time.name, ESByteVector, params = Str2Time.args.map(arg => ValSymbol(arg._1, arg._2))),
+    FuncSymbol("exists", ESBoolean, params = IndexedSeq(ValSymbol("predicate", ESFunc(ESBoolean))))
   )
 }
