@@ -4,6 +4,6 @@ import encrywm.backend.env.ESEnvComponent
 
 object ESPredefTime {
   val predefFunctions: Map[String, ESEnvComponent] = Map(
-    FromStr2Timestamp.name -> FromStr2Timestamp.asFunc
+    Str2Time.name -> Str2Time.asFunc
   )
 }

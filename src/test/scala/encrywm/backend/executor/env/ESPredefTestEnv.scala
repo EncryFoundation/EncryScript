@@ -14,7 +14,7 @@ class ESPredefTestEnv(contextBuilder: ESContextBuilder) {
     Keccak256Hash.name -> Blake2b256Hash.asFunc,
     Keccak512Hash.name -> Keccak512Hash.asFunc,
     Sha256Hash.name -> Sha256Hash.asFunc,
-    FromStr2Timestamp.name -> FromStr2Timestamp.asFunc,
+    Str2Time.name -> Str2Time.asFunc,
     contextBuilder.instanceName -> contextBuilder.asVal,
   )
 }

@@ -15,6 +15,6 @@ object ESPredefScope {
     FuncSymbol(Keccak256Hash.name, ESByteVector, params = Keccak256Hash.args.map(arg => ValSymbol(arg._1, arg._2))),
     FuncSymbol(Keccak512Hash.name, ESByteVector, params = Keccak512Hash.args.map(arg => ValSymbol(arg._1, arg._2))),
     FuncSymbol(Sha256Hash.name, ESByteVector, params = Sha256Hash.args.map(arg => ValSymbol(arg._1, arg._2))),
-    FuncSymbol(FromStr2Timestamp.name, ESByteVector, params = FromStr2Timestamp.args.map(arg => ValSymbol(arg._1, arg._2))),
+    FuncSymbol(Str2Time.name, ESByteVector, params = Str2Time.args.map(arg => ValSymbol(arg._1, arg._2))),
   )
 }

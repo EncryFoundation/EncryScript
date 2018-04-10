@@ -7,9 +7,9 @@ import encrywm.backend.executor.error.BuiltInFunctionExecError
 import encrywm.lib.Types.ESString
 import encrywm.lib.predef.functions.BuiltInFunctionHolder
 
-object FromStr2Timestamp extends BuiltInFunctionHolder {
+object Str2Time extends BuiltInFunctionHolder {
 
-  val name = "FromStr2Timestamp"
+  val name = "unixTime"
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
