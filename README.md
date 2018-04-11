@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/oskin1/EncryScript.svg?branch=master)](https://travis-ci.org/oskin1/EncryScript)
 
-Statically-typed contract-oriented scripting language for EncryCore protocol.
+Statically-typed contract-oriented scripting language for [EncryCore](https://github.com/oskin1/EncryCore) protocol.
+
+* [Language specification](https://github.com/oskin1/EncryScript/blob/master/docs/LanguageSpec.md)
 
 EncryScript supports:
 * Binary operations
