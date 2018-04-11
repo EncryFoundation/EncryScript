@@ -6,7 +6,7 @@ import encrywm.backend.env._
 import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
 import encrywm.lib.Types
-import encrywm.lib.Types.{ESDict, ESList, ESOption, ESType}
+import encrywm.lib.Types.{ESDict, ESList, ESOption}
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -185,14 +185,14 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             case ESList(tpe) if args.args.size == 1 =>
               val localN = args.args.head._1.name
               val localT = Types.typeByIdent(args.args.head._2.ident.name).get
-              if (tpe != localT) { throw IllegalOperationError }
-              def untilTrue: T = {
+              if (tpe != localT) throw IllegalOperationError
+              def untilTrue: Boolean = {
                 for (elt <- eval[List[tpe.Underlying]](coll)) {
                   val localV = ESValue(localN, tpe)(elt)
-                  if (execLambda[Boolean](Map(localN -> localV), body))
-                    return true.asInstanceOf[T]
+                  if (applyLambda[Boolean](Map(localN -> localV), body))
+                    return true
                 }
-                false.asInstanceOf[T]
+                false
               }
               untilTrue
           }
@@ -217,7 +217,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
       }).asInstanceOf[T]
     }
 
-    def execLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
+    def applyLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
       execute(List(STMT.Expr(body)), nestedEnv) match {
         case Right(Result(Val(v: T@unchecked))) => v
