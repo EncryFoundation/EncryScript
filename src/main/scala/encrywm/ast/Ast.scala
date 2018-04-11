@@ -35,6 +35,7 @@ object Ast {
 
     case class UnlockIf(test: EXPR) extends STMT
     case object Halt extends STMT
+    case object Pass extends STMT
 
     // col_offset is the byte offset in the utf8 string the parser uses
     case class Attributes(lineno: Int, col_offset: Int)

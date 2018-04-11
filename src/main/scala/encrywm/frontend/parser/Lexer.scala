@@ -22,15 +22,14 @@ object Lexer {
   val uppercase: all.Parser[Unit] =     P( CharIn('A' to 'Z') )
   val digit: all.Parser[Unit] =         P( CharIn('0' to '9') )
 
-  // TODO: Cleanup.
   val keywords = Set(
-    "and",       "not",       "true",      "false",
-    "as",        "elif",      "abort",     "or",
-    "assert",    "else",      "if",        "pass",
-    "case",      "except",    "unlock",    "print",
-    "match",     "exec",     "in",       "raise",
-    "global",    "let",       "is",        "return",
-    "def",       "for",       "lamb",    "try"
+    "and",       "not",       "true",      "return",
+    "elif",      "abort",     "or",        "pass",
+    "assert",    "else",      "if",
+    "case",      "unlock",    "print",
+    "match",     "exec",      "in",
+    "global",    "let",       "is",
+    "def",       "lamb",      "false",
   )
 
   val stringliteral: P[String] = P( stringprefix.? ~ (longstring | shortstring) )

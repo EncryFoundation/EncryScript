@@ -81,11 +81,13 @@ class Statements(indent: Int){
     )
   }
 
-  val abortStmt: P[Ast.STMT.Halt.type] = P(kwd("abort") ).map(_ => Ast.STMT.Halt)
+  val abortStmt: P[Ast.STMT.Halt.type] = P( kwd("abort") ).map(_ => Ast.STMT.Halt)
 
-  val returnStmt: P[Ast.STMT.Return] = P(kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
+  val passStmt: P[Ast.STMT.Pass.type] = P( kwd("pass") ).map(_ => Ast.STMT.Pass)
 
-  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt )
+  val returnStmt: P[Ast.STMT.Return] = P( kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
+
+  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | passStmt )
 
   val dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
     .map(Ast.Alias.tupled)

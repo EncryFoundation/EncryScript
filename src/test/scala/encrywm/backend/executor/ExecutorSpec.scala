@@ -19,7 +19,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Val] shouldBe true
+    excR.right.get.isInstanceOf[Executor.Nothing.type] shouldBe true
   }
 
   property("Contract with UnlockIf-stmt") {
@@ -34,9 +34,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Boolean operation in UnlockIf-stmt test (||)") {
@@ -53,7 +51,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Boolean operation in UnlockIf-stmt test (&&)") {
@@ -70,7 +68,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     excR.isRight shouldBe true
 
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Contract with fn call in If-stmt test") {
@@ -88,9 +86,26 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
+    didUnlocked(excR) shouldBe true
+  }
 
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+  property("Return stmt in function body") {
+
+    val tree = precess(
+      """
+        |let a = 10
+        |let b = 30
+        |
+        |def fn(a: Int, b: Int) -> Bool:
+        |    return a < b
+        |    abort
+        |
+        |unlock if fn(a, b)
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    didUnlocked(excR) shouldBe true
   }
 
   property("If-expression in assignment") {
@@ -107,9 +122,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("List subscription") {
@@ -124,9 +137,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Dict subscription") {
@@ -141,9 +152,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Object attribute reference") {
@@ -157,9 +166,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Unary operation in test expr") {
@@ -171,9 +178,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("SizeOf list") {
@@ -187,9 +192,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("list.Exists(predicate) (true case)") {
@@ -203,9 +206,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("list.Exists(predicate) (false case)") {
@@ -219,9 +220,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Match statement") {
@@ -239,9 +238,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Match statement (Default branch execution)") {
@@ -259,9 +256,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Global value declaration") {
@@ -274,16 +269,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |    case true:
         |        global let unlockFlag = true
         |    case _:
-        |        abort
+        |        pass
         |
         |unlock if unlockFlag
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("Executor scoping (Referencing from inner scope)") {
@@ -298,9 +291,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 
   property("BuiltIn function") {
@@ -316,8 +307,6 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
 
-    excR.isRight shouldBe true
-
-    excR.right.get.r.isInstanceOf[Executor.Unlocked.type] shouldBe true
+    didUnlocked(excR) shouldBe true
   }
 }

@@ -86,11 +86,11 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
               }.map(v => v.name -> v).toMap
-              val nestedEnv = currentEnv.child(id.name, argMap) // TODO: Add kwargs.
+              val nestedEnv = currentEnv.child(id.name, argMap) // TODO: Handle kwargs.
               execute(body, nestedEnv) match {
-                case Right(Result(Val(v))) => v
-                case Right(Result(Unlocked)) => throw UnlockException
-                case Right(Result(Halt)) => throw ExecAbortException
+                case Right(Return(Val(v))) => v
+                case Right(Return(Unlocked)) => throw UnlockException
+                case Right(Return(Halt)) => throw ExecAbortException
                 case _ => // Do nothing.
               }
 
@@ -219,8 +219,8 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
     def applyLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
-      execute(List(STMT.Expr(body)), nestedEnv) match {
-        case Right(Result(Val(v: T@unchecked))) => v
+      execute(List(STMT.Return(Some(body))), nestedEnv) match {
+        case Right(Return(Val(v: T@unchecked))) => v
         case _ => throw new ExecutionError("Lambda execution error")
       }
     }
@@ -235,11 +235,10 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         } else {
           currentEnv = currentEnv.updated(esVal)
         }
-        Right(Result(Nothing))
+        Right(Nothing)
 
-      case STMT.Expr(expr) =>
-        val exprT = expr.tpeOpt.get
-        Right(Result(Val(eval[exprT.Underlying](expr))))
+      case STMT.Expr(_) =>
+        Right(Nothing)
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case (n, t) =>
@@ -249,7 +248,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
         currentEnv = currentEnv.updated(
           ESFunc(id.name, fnArgs, retT, body)
         )
-        Right(Result(Nothing))
+        Right(Nothing)
 
       case STMT.Match(target, branches) =>
         val targetT = target.tpeOpt.get
@@ -275,7 +274,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
             }
           case _ => throw IllegalOperationError
         }
-        Right(Result(Nothing))
+        Right(Nothing)
 
       case STMT.If(test, body, orelse) =>
         val nestedCtx = currentEnv.emptyChild(s"if_stmt_$randCode")
@@ -284,30 +283,28 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
       case STMT.UnlockIf(test) =>
         if (eval[Boolean](test)) throw UnlockException
-        else Right(Result(Nothing))
+        else Right(Nothing)
 
       case STMT.Halt => throw ExecAbortException
 
-      case STMT.Return(None) => Right(Result(Nothing))
+      case STMT.Pass => Right(Nothing)
+
+      case STMT.Return(None) => Right(Return(Nothing))
 
       case STMT.Return(Some(v)) =>
         val valT = v.tpeOpt.get
-        Right(Result(Val(eval[valT.Underlying](v))))
+        Right(Return(Val(eval[valT.Underlying](v))))
     }
 
     def execMany(stmts: Seq[STMT]): ExecOutcome = {
       for (stmt <- stmts) {
         exec(stmt) match {
-          case Right(Result(u: Unlocked.type)) =>
-            return Right(Result(u))
-          case Right(Result(h: Halt.type)) =>
-            return Right(Result(h))
-          case Right(Result(Val(v))) =>
-            return Right(Result(Val(v)))
+          case Right(Return(r)) =>
+            return Right(Return(r))
           case _ => // Do nothing
         }
       }
-      Right(Result(Nothing))
+      Right(Nothing)
     }
 
     def getFromEnv(n: String): Option[ESEnvComponent] =
@@ -315,8 +312,8 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
 
     execMany(statements)
   } match {
-    case Failure(_: UnlockException.type) => Right(Result(Unlocked))
-    case Failure(_: ExecAbortException.type) => Right(Result(Halt))
+    case Failure(_: UnlockException.type) => Right(Return(Unlocked))
+    case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
     case Failure(e) =>
       e.printStackTrace()
@@ -328,15 +325,17 @@ object Executor {
 
   type ExecOutcome = Either[ExecutionFailed.type, Result]
 
-  case class Result(r: Any)
+  sealed trait Result
+
+  case class Return(r: Any) extends Result
+
+  case object Nothing extends Result
 
   case class Val(v: Any)
 
   case object Unlocked
 
   case object Halt
-
-  case object Nothing
 
   case object ExecutionFailed
 }
