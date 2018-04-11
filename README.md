@@ -8,13 +8,22 @@ EncryScript supports:
 * Binary operations
 * Boolean operations
 * Accessing fields of the predefined data structures via dot-notation.
-* Control-flow (if, match)
+* Control-flow (`if`, `match`)
+* Collections (`List[T]`, `Dict[T1, T2]`)
+* Collection subscription by index (`Dict[T1, T2]` also supports by-key subscription)
 * Constants definition
-* Functions definition (Recursive calls are prohibited)
+* Functions definition
+* Lambdas definition
+
+EncryScript does not support:
+* `while` and `for` loops
+* Recursive calls
+* Nested collections
 
 ## Available data types
 
-    * Any
+    // Primitives
+    * Unit
     * Bool
     * String
     * Bytes
@@ -22,9 +31,22 @@ EncryScript supports:
     * Int
     * Float
     * Double
+    
+    // Collections
     * Dict[T0, T1]
     * List[T]
+    
     * Option[T]
+    
+    // Built-in complex types
+    * Transaction
+    * Proof
+    * Proposition
+    * Context
+    * Box
+    * Signature25519
+    * AssetBox
+    * AccountProposition
     
 ## Contract examples
 
@@ -45,7 +67,7 @@ Time-window lock:
         
 State height lock:
 
-    let unlockedFrom: int = 100000
+    let unlockedFrom: Int = 100000
     unlock if context.state.height >= unlockedFrom
 
 ## License
