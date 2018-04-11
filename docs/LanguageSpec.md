@@ -79,16 +79,56 @@ Language abilities:
        
 ## Built-in functions
     
-    checkType(proof: bytes, type: any): bool
-    checkSig(msg: bytes, sig: bytes, pk: bytes): bool
-    pkFromAddress(addr: string): bytes
-    unixTime(ts: string): long
+    checkSig(msg: bytes, sig: bytes, pk: bytes): Bool
+    pkFromAddress(addr: string): Bytes
+    unixTime(ts: string): Long
 
-## Type matching
+    // Hash-functions
+    blake2b256Hash(input: Bytes): Bytes
+    blake2b512Hash(input: Bytes): Bytes
+    keccak256Hash(input: Bytes): Bytes
+    keccak512Hash(input: Bytes): Bytes
+    sha256Hash(input: Bytes): Bytes
 
-    proof match:
+## Syntax
+
+    // Constant definition
+    let a: Int = 10                     // Explicit type declaration
+    let b = 100                         // Type will be inferred automatically
+    let c = true if a < b else false    // Conditional assignment
+    global let d = "string"             // Global declaration
+
+    // Function definition
+    def sum(a: Int, b: Int) -> Int:
+        return a + b
+
+    // If statement
+    if (10 < 100):
+        pass
+    elif (10 == 100):
+        pass
+    else:
+        pass
+
+    // Base58 string
+    let pubKeyBytes: Bytes = base58'75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p'
+
+    // Collections
+    let ageList: List[Int] = [1, 2, 3, 4]   // Note, types could also be inferred implicitly by preprecessor.
+    let ageDict: Dict[String, Int] = {'Alice' : 4, 'Bob' : 9, 'Tom' : 17}
+
+    let someonesAge = ageList[0].get        // Will result in `1`
+    let aliceAge = ageDict['Alice'].get     // Will result in `4`
+
+    // Lambdas application
+    let deesExist: Bool = ageList.exists(lamb (i: Int) = i > 3)     // Will result in `true`
+
+    // Matching
+    match poof:
         case sig -> Signature25519:
-            unlock if checkSig()
+            unlock if checkSig()        // Unlock condition
+        case _:
+            abort                       // Halt script execution
 
 ## Use cases
 Threshold signature (2 of 3):
@@ -113,6 +153,6 @@ Time-window lock:
         
 State height lock:
 
-    let unlockedFrom: int = 100000
+    let unlockedFrom: Int = 100000
     
     unlock if context.state.height >= unlockedFrom
