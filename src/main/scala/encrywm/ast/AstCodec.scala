@@ -52,6 +52,7 @@ object AstCodec {
   implicit def dMatch = dSt.bind[STMT.Match](9)
   implicit def dCase = dSt.bind[STMT.Case](10)
   implicit def dHalt = dSt.bind[STMT.Halt.type](11)
+  implicit def dPass = dSt.bind[STMT.Pass.type](12)
 
   implicit def dEx = Discriminated[EXPR, Int](uint8)
   implicit def dBoolOp = dEx.bind[EXPR.BoolOp](0)
