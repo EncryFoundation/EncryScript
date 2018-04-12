@@ -7,7 +7,7 @@ import scorex.utils.Random
 
 trait Execution {
 
-  def didUnlocked(r: Executor.ExecOutcome): Boolean = r match {
+  def didUnlock(r: Executor.ExecOutcome): Boolean = r match {
     case Right(Return(_: Unlocked.type)) => true
     case _ => false
   }
