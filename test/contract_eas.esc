@@ -1,0 +1,27 @@
+// EAS contract draft.
+
+// TODO: How to check identity of the asset.
+// What if someone decide to create asset with the same structure?
+
+// Asset structure declaration
+scheme MyCoin(
+    name: String,
+    value: Long
+)
+
+def getValueOfMyCoin(box: Box) -> Long:
+    match box:
+        case genericBox -> GenericBox:
+            match genericBox.scheme:
+                case myCoin -> MyCoin:
+                    return myCoin.value
+                case _:
+                    return 0L
+        case _:
+            return 0L
+
+let txInputsAmount = context.transaction.inputs.map(getValueOfMyCoin).sum
+
+let txOutputsAmount = context.transaction.outputs.map(getValueOfMyCoin).sum
+
+unlock if txInputsAmount >= txOutputsAmount
