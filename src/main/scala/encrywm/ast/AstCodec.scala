@@ -81,9 +81,10 @@ object AstCodec {
   implicit def dIsD = dEx.bind[EXPR.IsDefined](23)
   implicit def dExi = dEx.bind[EXPR.Exists](24)
   implicit def dGet = dEx.bind[EXPR.Get](25)
-  implicit def dDecl = dEx.bind[EXPR.Declaration](26)
-  implicit def dBpd = dEx.bind[EXPR.BranchParamDeclaration](27)
-  implicit def dGc = dEx.bind[EXPR.GenericCond.type](28)
+  implicit def dSum = dEx.bind[EXPR.Sum](26)
+  implicit def dDecl = dEx.bind[EXPR.Declaration](27)
+  implicit def dBpd = dEx.bind[EXPR.BranchParamDeclaration](28)
+  implicit def dGc = dEx.bind[EXPR.GenericCond.type](29)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)
   implicit def dLoad = dECTX.bind[EXPR_CTX.Load.type](0)

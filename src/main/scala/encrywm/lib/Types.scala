@@ -207,12 +207,10 @@ object Types {
     override val ident: String = "List"
 
     override def fields: Map[String, ESType] =
-      if (valT == ESLong) {
-        Map("sum" -> ESLong)
-      } else if (valT == ESInt) {
-        Map("sum" -> ESInt)
+      if (numericTypes.contains(valT)) {
+        super.fields ++ Map("sum" -> valT)
       } else {
-        Map.empty
+        super.fields
       }
 
     override def equals(obj: Any): Boolean = obj match {
