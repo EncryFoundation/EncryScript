@@ -64,11 +64,8 @@ object Types {
     val superTypeOpt: Option[ESProduct] = None
     def fields: Map[String, ESType] = superTypeOpt.map(_.fields).getOrElse(Map.empty)
 
-    // TODO: Write test.
     def getAttrType(n: String): Option[ESType] = fields.get(n)
       .orElse(superTypeOpt.flatMap(_.getAttrType(n)))
-
-    def typeOfField(fn: String): Option[ESType] = fields.get(fn)
 
     def isSubtypeOf(thatT: ESType): Boolean =
       superTypeOpt.exists(parT => parT == thatT || parT.isSubtypeOf(thatT))
@@ -209,6 +206,15 @@ object Types {
     override type Underlying = List[valT.Underlying]
     override val ident: String = "List"
 
+    override def fields: Map[String, ESType] =
+      if (valT == ESLong) {
+        Map("sum" -> ESLong)
+      } else if (valT == ESInt) {
+        Map("sum" -> ESInt)
+      } else {
+        Map.empty
+      }
+
     override def equals(obj: Any): Boolean = obj match {
       case l: ESList => l.valT == this.valT
       case _ => false
@@ -278,6 +284,11 @@ object Types {
   lazy val collTypes: Seq[ESCollection] = Seq(
     ESDict(NIType, NIType),
     ESList(NIType)
+  )
+
+  lazy val numericTypes: Seq[ESType] = Seq(
+    ESInt,
+    ESLong
   )
 
   lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes :+ ESFunc(NIType)

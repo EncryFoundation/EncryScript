@@ -195,6 +195,20 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     didUnlock(excR) shouldBe true
   }
 
+  property("Sum list") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |unlock if coll.sum > 5
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    didUnlock(excR) shouldBe true
+  }
+
   property("list.Exists(predicate) (true case)") {
 
     val tree = precess(

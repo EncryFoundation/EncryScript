@@ -2,7 +2,7 @@ package encrywm.frontend.semantics
 
 import encrywm.ast.Ast.EXPR
 import encrywm.ast.{Ast, AstNodeScanner}
-import encrywm.lib.Types.ESOption
+import encrywm.lib.Types.{ESList, ESOption}
 import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 
 object Transformer extends AstNodeScanner {
@@ -21,6 +21,15 @@ object Transformer extends AstNodeScanner {
     case EXPR.Attribute(value, attr, _, _)
       if value.tpeOpt.get.isCollection && attr.name == "size" =>
         Some(EXPR.SizeOf(value))
+
+    // Rule: Attribute(coll, "sum") -> SizeOf(coll)
+    case EXPR.Attribute(value, attr, _, _)
+      if value.tpeOpt.get.isCollection && attr.name == "sum" =>
+      value.tpeOpt match {
+        case Some(ESList(valT)) =>
+          Some(EXPR.Sum(value, Some(valT)))
+        case _ => None
+      }
 
     // Rule: Attribute(option, "isDefined") -> IsDefined(option)
     case EXPR.Attribute(value, attr, _, _)
