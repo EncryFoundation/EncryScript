@@ -1,6 +1,7 @@
 package encrywm.frontend.semantics
 
-import encrywm.lib.ESMath
+import encrywm.ast.Ast.EXPR.{Lambda, Name}
+import encrywm.lib.{ESMath, Types}
 import encrywm.lib.Types._
 import encrywm.ast.Ast._
 import encrywm.ast.AstNodeScanner
@@ -57,14 +58,14 @@ class StaticAnalyser extends AstNodeScanner {
     case fd: STMT.FunctionDef =>
       val declaredRetType = typeByIdent(fd.returnType.name)
         .getOrElse(throw NameError(fd.returnType.name))
-      val paramSymbols = fd.args.args.map { arg =>
+      val params = fd.args.args.map { arg =>
         val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
-        ValSymbol(arg._1.name, argT)
+        arg._1.name -> argT
       }
-      currentScopeOpt.foreach(_.insert(FuncSymbol(fd.name.name, declaredRetType, paramSymbols)))
+      currentScopeOpt.foreach(_.insert(Symbol(fd.name.name, ESFunc(params, declaredRetType))))
       val fnScope = ScopedSymbolTable(fd.name.name, currentScopeOpt.get)
       scopes.push(fnScope)
-      paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s)))
+      params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2))))
       fd.body.foreach(scan)
 
       val retType = findReturns(fd.body).map(_.value.map { exp =>
@@ -110,7 +111,7 @@ class StaticAnalyser extends AstNodeScanner {
       cond match {
         case EXPR.BranchParamDeclaration(local, tpe) =>
           val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
-          currentScopeOpt.foreach(_.insert(ValSymbol(local.name, localT)))
+          currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
         case _ => // Do nothing.
       }
       body.foreach(scanStmt)
@@ -136,7 +137,7 @@ class StaticAnalyser extends AstNodeScanner {
       case EXPR.Lambda(args, body, _) =>
         val paramSymbols = args.args.map { arg =>
           val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
-          ValSymbol(arg._1.name, argT)
+          Symbol(arg._1.name, argT)
         }
         val bodyScope = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
         scopes.push(bodyScope)
@@ -145,9 +146,9 @@ class StaticAnalyser extends AstNodeScanner {
         scopes.popHead()
 
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
-        currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
+        currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
           if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
-          val argTypes = params.map(_.tpe)
+          val argTypes = params.map(_._2)
           args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
             if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
           }
@@ -157,17 +158,27 @@ class StaticAnalyser extends AstNodeScanner {
         keywords.map(_.value).foreach(scanExpr)
 
       case EXPR.Call(EXPR.Attribute(value, id, _, _), args, keywords, _) =>
-        currentScopeOpt.flatMap(_.lookup(id.name)).map { case FuncSymbol(_, _, params) =>
-          if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
-          val argTypes = params.map(_.tpe)
-          args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
-            if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
-          }
-          id.name
-        }.getOrElse(throw NameError(id.name))
         scanExpr(value)
         args.foreach(scanExpr)
         keywords.map(_.value).foreach(scanExpr)
+        value.tpeOpt.get match {
+          case coll: ESCollection if args.size == 1 =>
+            coll.getAttrType(id.name) match {
+              case Some(f: ESFunc) =>
+                args.map(inferType).zip(f.args.map(_._2)).foreach { case (t1, t2) =>
+                  if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+                }
+            }
+          case _ =>
+            currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
+              if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
+              val argTypes = params.map(_._2)
+              args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
+                if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+              }
+              id.name
+            }.getOrElse(throw NameError(id.name))
+        }
 
       case cmp: EXPR.Compare =>
         cmp.comparators.foreach(scanExpr)
@@ -211,11 +222,11 @@ class StaticAnalyser extends AstNodeScanner {
   }
 
   private def addNameToScope(name: EXPR.Name, tpe: ESType): Unit = {
-    currentScopeOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
+    currentScopeOpt.foreach(_.insert(Symbol(name.id.name, tpe)))
   }
 
   private def addNameToGlobalScope(name: EXPR.Name, tpe: ESType): Unit = {
-    scopes.lastOpt.foreach(_.insert(ValSymbol(name.id.name, tpe)))
+    scopes.lastOpt.foreach(_.insert(Symbol(name.id.name, tpe)))
   }
 
   private def findReturns(stmts: Seq[STMT]): Seq[STMT.Return] = {
@@ -250,12 +261,18 @@ class StaticAnalyser extends AstNodeScanner {
         case fc: EXPR.Call =>
           fc.func match {
             case EXPR.Name(n, _, _) =>
-              scope.lookup(n.name).map { case FuncSymbol(_, t, _) => t }
+              scope.lookup(n.name).map { case Symbol(_, t) => t }
                 .getOrElse(throw IllegalExprError)
 
-            case EXPR.Attribute(_, n, _, _) =>
-              scope.lookup(n.name).map { case FuncSymbol(_, t, _) => t }
-                .getOrElse(throw IllegalExprError)
+            case EXPR.Attribute(value, n, _, _) =>
+              inferType(value) match {
+                case pt: ESProduct =>
+                  pt.getAttrType(n.name) match {
+                    case Some(funcT: ESFunc) => funcT
+                    case _ => throw IllegalExprError
+                  }
+                case _ => throw IllegalExprError
+              }
 
             case _ => throw IllegalExprError
           }
@@ -295,8 +312,9 @@ class StaticAnalyser extends AstNodeScanner {
             case dict: ESDict => ESOption(dict.valT)
           }
 
-        case EXPR.Lambda(_, body, _) =>
-          ESFunc(inferType(body))
+        case EXPR.Lambda(args, body, _) =>
+          ESFunc(args.args.map { case (argId, typeId) =>
+            argId.name -> Types.typeByIdent(typeId.ident).get }, inferType(body))
 
         case _ => throw IllegalExprError
       }

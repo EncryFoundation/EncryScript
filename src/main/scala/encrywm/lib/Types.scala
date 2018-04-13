@@ -197,8 +197,7 @@ object Types {
   sealed trait ESCollection extends ESProduct with Parametrized {
 
     override def fields: Map[String, ESType] = Map(
-      "size" -> ESInt,
-      "exists" -> ESBoolean
+      "size" -> ESInt
     )
   }
 
@@ -208,9 +207,14 @@ object Types {
 
     override def fields: Map[String, ESType] =
       if (numericTypes.contains(valT)) {
-        super.fields ++ Map("sum" -> valT)
+        super.fields ++ Map(
+          "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+          "sum" -> valT
+        )
       } else {
-        super.fields
+        super.fields ++ Map(
+          "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+        )
       }
 
     override def equals(obj: Any): Boolean = obj match {
@@ -222,6 +226,10 @@ object Types {
   case class ESDict(keyT: ESType, valT: ESType) extends ESType with ESCollection {
     override type Underlying = Map[keyT.Underlying, valT.Underlying]
     override val ident: String = "Dict"
+
+    override def fields: Map[String, ESType] = super.fields ++ Map(
+      "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> keyT, "any" -> valT), ESBoolean)), ESBoolean)
+    )
 
     override def equals(obj: Any): Boolean = obj match {
       case d: ESDict => d.keyT == this.keyT && d.valT == this.valT
@@ -241,13 +249,13 @@ object Types {
     )
   }
 
-  // TODO: Add attrs for deeper type checking.
-  case class ESFunc(retT: ESType) extends ESType {
+  case class ESFunc(args: List[(String, ESType)], retT: ESType) extends ESType {
     override type Underlying = retT.Underlying
     override val ident: String = "func"
 
     override def equals(obj: Any): Boolean = obj match {
-      case f: ESFunc => this.retT == f.retT
+      case f: ESFunc =>
+        this.retT == f.retT && this.args.zip(f.args).forall { case ((_, a1), (_, a2)) => a1 == a2 }
       case _ => false
     }
   }
@@ -289,7 +297,7 @@ object Types {
     ESLong
   )
 
-  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes :+ ESFunc(NIType)
+  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes :+ ESFunc(List.empty, NIType)
 
   lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.ident -> t).toMap
 

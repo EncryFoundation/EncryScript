@@ -1,6 +1,6 @@
 package encrywm.backend.executor
 
-import encrywm.ast.Ast.EXPR.{IntConst, LongConst}
+import encrywm.ast.Ast.EXPR.{IntConst, Lambda, LongConst, Name}
 import encrywm.ast.Ast._
 import encrywm.backend.env._
 import encrywm.backend.executor.error._

@@ -249,6 +249,82 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe false
   }
 
+  property("Valid lambda application to coll") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |list.exists(lamb (n: Int) = n > 10)
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Valid function application to coll") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |def isGreaterThan10(n: Int) -> Bool:
+        |    return n > 10
+        |
+        |list.exists(isGreaterThan10)
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.get
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Inalid lambda application to coll (Wrong argument type)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |list.exists(lamb (n: String) = n > 10)
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
+  property("Invalid function application to coll (Wrong argument type)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |def isGreaterThan10(n: String) -> Bool:
+        |    return n > 10
+        |
+        |list.exists(isGreaterThan10)
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
+  }
+
   // Type checking
 
   property("Type checking of valid assignment") {

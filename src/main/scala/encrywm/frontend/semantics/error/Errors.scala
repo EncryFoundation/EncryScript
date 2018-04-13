@@ -16,6 +16,8 @@ case object MissedContextError extends SemanticError(s"Missed context for AST pr
 
 case class WrongNumberOfArgumentsError(fn: String) extends SemanticError(s"Wrong number of arguments in $fn.")
 
+case class UnapplicableFunctionError(fn: String, coll: String) extends SemanticError(s"$fn is unapplicable to $coll")
+
 case class NotAnObjectError(n: String) extends SemanticError(s"$n is not an object.")
 
 case object TypeError extends SemanticError("Missed type.")
