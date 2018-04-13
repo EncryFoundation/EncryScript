@@ -188,21 +188,30 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
               eval[Option[inT.Underlying]](opt).get
           }
 
-        case EXPR.Exists(coll, EXPR.Lambda(args, body, Some(Types.ESFunc(_: Types.ESBoolean.type)))) =>
-          coll.tpeOpt.get match {
-            case ESList(tpe) if args.args.size == 1 =>
-              val localN = args.args.head._1.name
-              val localT = Types.typeByIdent(args.args.head._2.ident.name).get
-              if (tpe != localT) throw IllegalOperationError
-              def untilTrue: Boolean = {
-                for (elt <- eval[List[tpe.Underlying]](coll)) {
-                  val localV = ESValue(localN, tpe)(elt)
-                  if (applyLambda[Boolean](Map(localN -> localV), body))
-                    return true
-                }
-                false
+        case EXPR.Exists(coll, predicate) =>
+          predicate.tpeOpt.get match {
+            case Types.ESFunc(args, _: ESBoolean.type) =>
+              coll.tpeOpt.get match {
+                case ESList(tpe) if args.size == 1 =>
+                  val localN = args.head._1
+                  def untilTrue: Boolean = {
+                    for (elt <- eval[List[tpe.Underlying]](coll)) {
+                      val localV = ESValue(localN, tpe)(elt)
+                      predicate match {
+                        case lamb: Lambda =>
+                          if (applyLambda[Boolean](Map(localN -> localV), lamb.body))
+                            return true
+                        case Name(id, _, _) => getFromEnv(id.name).foreach {
+                          case ESFunc(_, _, _, body) =>
+                            if (applyFunc[Boolean](Map(localN -> localV), body))
+                              return true
+                        }
+                      }
+                    }
+                    false
+                  }
+                  untilTrue
               }
-              untilTrue
           }
 
         case EXPR.Base58Str(s) => Base58.decode(s).get
@@ -230,6 +239,14 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
       execute(List(STMT.Return(Some(body))), nestedEnv) match {
         case Right(Return(Val(v: T@unchecked))) => v
         case _ => throw new ExecutionError("Lambda execution error")
+      }
+    }
+
+    def applyFunc[T](argMap: Map[String, ESValue], body: Seq[STMT]): T = {
+      val nestedEnv = currentEnv.child(s"fn_$randCode", argMap)
+      execute(body, nestedEnv) match {
+        case Right(Return(Val(v: T@unchecked))) => v
+        case _ => throw new ExecutionError("Function execution error")
       }
     }
 

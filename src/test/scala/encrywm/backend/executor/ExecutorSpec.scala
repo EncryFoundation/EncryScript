@@ -209,13 +209,30 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     didUnlock(excR) shouldBe true
   }
 
-  property("list.Exists(predicate) (true case)") {
+  property("list.Exists(lambda) (true case)") {
 
     val tree = precess(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if coll.exists(lamb (i: Int) = i == 2)
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    didUnlock(excR) shouldBe true
+  }
+
+  property("list.Exists(func) (true case)") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |def equals2(n: Int) -> Bool:
+        |    return n == 2
+        |
+        |unlock if coll.exists(equals2)
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
