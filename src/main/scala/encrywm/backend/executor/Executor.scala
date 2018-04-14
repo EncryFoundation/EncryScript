@@ -384,9 +384,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
     case Failure(_: UnlockException.type) => Right(Return(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
-    case Failure(e) =>
-      e.printStackTrace()
-      Left(ExecutionFailed)
+    case Failure(_) => Left(ExecutionFailed)
   }
 }
 
