@@ -150,7 +150,7 @@ class StaticAnalyser extends AstNodeScanner {
           if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
           val argTypes = params.map(_._2)
           args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
-            if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+            matchType(t1, t2)
           }
           id.name
         }.getOrElse(throw NameError(id.name))
@@ -166,7 +166,7 @@ class StaticAnalyser extends AstNodeScanner {
             coll.getAttrType(id.name) match {
               case Some(f: ESFunc) =>
                 args.map(inferType).zip(f.args.map(_._2)).foreach { case (t1, t2) =>
-                  if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+                  matchType(t1, t2)
                 }
             }
           case _ =>
@@ -174,7 +174,7 @@ class StaticAnalyser extends AstNodeScanner {
               if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
               val argTypes = params.map(_._2)
               args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
-                if (t1 != t2) throw TypeMismatchError(t2.ident, t1.ident)
+                matchType(t1, t2)
               }
               id.name
             }.getOrElse(throw NameError(id.name))
@@ -205,7 +205,9 @@ class StaticAnalyser extends AstNodeScanner {
             sub.value.tpeOpt match {
               case Some(ESList(_)) => matchType(idxT, ESInt)
               case Some(ESDict(keyT, _)) => matchType(idxT, keyT)
-              case _ => throw IllegalExprError
+              case o =>
+                println(o)
+                throw IllegalExprError
             }
           // TODO: Complete for other SLICE_OPs.
         }
@@ -264,6 +266,21 @@ class StaticAnalyser extends AstNodeScanner {
               scope.lookup(n.name).map { case Symbol(_, t) => t }
                 .getOrElse(throw IllegalExprError)
 
+            // Special handler for `.map()`
+            case EXPR.Attribute(value, n, _, _)
+              if n.name == "map" && fc.args.size == 1 =>
+              inferType(value) match {
+                case coll: ESCollection =>
+                  coll.getAttrType(n.name) match {
+                    case Some(_: ESFunc) =>
+                      inferType(fc.args.head) match {
+                        case ESFunc(args, retT) => ESList(retT)
+                      }
+                    case _ => throw IllegalExprError
+                  }
+                case _ => throw IllegalExprError
+              }
+
             case EXPR.Attribute(value, n, _, _) =>
               inferType(value) match {
                 case pt: ESProduct =>
@@ -293,7 +310,8 @@ class StaticAnalyser extends AstNodeScanner {
         case uop: EXPR.UnaryOp => inferType(uop.operand)
 
         case EXPR.ESList(elts, _, _) =>
-          val listT = elts.headOption.map(inferType).getOrElse(ESUnit)  // TODO: Allow creating empty colls?
+          val listT = elts.headOption.map(inferType)
+            .getOrElse(throw IllegalExprError)
           elts.tail.foreach(e => matchType(listT, inferType(e)))
           ensureNestedColl(elts)
           ESList(listT)

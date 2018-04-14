@@ -1,7 +1,5 @@
 package encrywm.lib
 
-import java.util
-
 import encrywm.backend.env.ESObject
 
 object Types {
@@ -269,7 +267,9 @@ object Types {
 
     override def equals(obj: Any): Boolean = obj match {
       case f: ESFunc =>
-        this.retT == f.retT && this.args.zip(f.args).forall { case ((_, a1), (_, a2)) => a1 == a2 }
+        (this.retT == f.retT || this.retT.isSubtypeOf(f.retT)) &&
+          this.args.size == f.args.size &&
+          this.args.zip(f.args).forall { case ((_, a1), (_, a2)) => a1 == a2 }
       case _ => false
     }
   }

@@ -283,9 +283,45 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
 
     val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
 
-    analyzeTry.get
+    analyzeTry.isSuccess shouldBe true
+  }
+
+  property("`.map()` application to coll") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |let mapped = list.map(lamb (n: Int) = n * 100)
+        |
+        |mapped[2].get + 10
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
 
     analyzeTry.isSuccess shouldBe true
+  }
+
+  property("Invalid `.map()` application to coll (Wrong number of arguments)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let list = [1, 2, 3, 4, 5]
+        |
+        |let mapped = list.map(lamb (n: Int, s: String) = n)
+        |
+        |mapped[2].get + 10
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.isSuccess shouldBe false
   }
 
   property("Inalid lambda application to coll (Wrong argument type)") {
