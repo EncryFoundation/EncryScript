@@ -11,11 +11,13 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
 
-class Executor(globalEnv: ScopedRuntimeEnv) {
+class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
 
   import Executor._
 
   private var _globalEnv: ScopedRuntimeEnv = globalEnv
+
+  private var stepsCount: Int = 0
 
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
@@ -27,6 +29,10 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
     def randCode: Int = Random.nextInt()
 
     def eval[T](expr: EXPR): T = {
+      if (stepsCount > maxSteps) {
+        throw IllegalOperationError
+      } else stepsCount += 1
+      println(stepsCount)
       (expr match {
         case EXPR.Name(id, _, _) =>
           getFromEnv(id.name).map {
@@ -151,11 +157,13 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
           }
 
         case EXPR.ESList(elts, _, Some(ESList(valT))) =>
+          if (elts.size > 50) throw IllegalOperationError
           elts.foldLeft(List[valT.Underlying]()) { case (acc, exp) =>
             acc :+ eval[valT.Underlying](exp)
           }
 
         case EXPR.ESDictNode(keys, values, Some(ESDict(keyT, valT))) =>
+          if (keys.size > 50) throw IllegalOperationError
           keys.zip(values).foldLeft(Map[keyT.Underlying, valT.Underlying]()) { case (acc, (k, v)) =>
             acc.updated(eval[keyT.Underlying](k), eval[valT.Underlying](v))
           }
@@ -202,6 +210,21 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                       case Name(id, _, _) => getFromEnv(id.name).map {
                         case fn: ESFunc =>
                           applyFunc[inT.Underlying](Map(localN -> localV), fn.body)
+                      }.get
+                    }
+                  }
+                case ESDict(keyT, valT) if args.size == 2 =>
+                  val keyN = args.head._1
+                  val valN = args.last._1
+                  eval[Map[keyT.Underlying, valT.Underlying]](coll).map { case (k, v) =>
+                    val keyV = ESValue(keyN, keyT)(k)
+                    val valV = ESValue(valN, valT)(v)
+                    func match {
+                      case lamb: Lambda =>
+                        applyLambda[inT.Underlying](Map(keyN -> keyV, valN -> valV), lamb.body)
+                      case Name(id, _, _) => getFromEnv(id.name).map {
+                        case fn: ESFunc =>
+                          applyFunc[inT.Underlying](Map(keyN -> keyV, valN -> valV), fn.body)
                       }.get
                     }
                   }
