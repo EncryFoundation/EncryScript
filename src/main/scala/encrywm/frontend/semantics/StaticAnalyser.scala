@@ -45,10 +45,10 @@ class StaticAnalyser extends AstNodeScanner {
             mainT -> typeParams
           }
           typeDeclOpt.foreach {
-            case (ESOption(_), typeParams) => assertEquals(ESOption(typeParams.head), valueType)
-            case (ESList(_), typeParams) => assertEquals(ESList(typeParams.head), valueType)
-            case (ESDict(_, _), typeParams) => assertEquals(ESDict(typeParams.head, typeParams.last), valueType)
-            case (otherT, _) => assertEquals(otherT, valueType)
+            case (ESOption(_), typeParams) => matchType(ESOption(typeParams.head), valueType)
+            case (ESList(_), typeParams) => matchType(ESList(typeParams.head), valueType)
+            case (ESDict(_, _), typeParams) => matchType(ESDict(typeParams.head, typeParams.last), valueType)
+            case (otherT, _) => matchType(otherT, valueType)
           }
           if (asg.global) addNameToGlobalScope(name, valueType)
           else addNameToScope(name, valueType)
@@ -73,10 +73,10 @@ class StaticAnalyser extends AstNodeScanner {
         exp.tpeOpt.get
       }).foldLeft(Seq[ESType]()) { case (acc, tOpt) =>
         val tpe = tOpt.getOrElse(ESUnit)
-        if (acc.nonEmpty) assertEquals(acc.head, tpe)
+        if (acc.nonEmpty) matchType(acc.head, tpe)
         acc :+ tpe
       }.headOption.getOrElse(ESUnit)
-      assertEquals(declaredRetType, retType)
+      matchType(declaredRetType, retType)
 
       scopes.popHead()
 
@@ -203,8 +203,8 @@ class StaticAnalyser extends AstNodeScanner {
             scanExpr(idx)
             val idxT = idx.tpeOpt.get
             sub.value.tpeOpt match {
-              case Some(ESList(_)) => assertEquals(idxT, ESInt)
-              case Some(ESDict(keyT, _)) => assertEquals(idxT, keyT)
+              case Some(ESList(_)) => matchType(idxT, ESInt)
+              case Some(ESDict(keyT, _)) => matchType(idxT, keyT)
               case _ => throw IllegalExprError
             }
           // TODO: Complete for other SLICE_OPs.
@@ -294,15 +294,15 @@ class StaticAnalyser extends AstNodeScanner {
 
         case EXPR.ESList(elts, _, _) =>
           val listT = elts.headOption.map(inferType).getOrElse(ESUnit)  // TODO: Allow creating empty colls?
-          elts.tail.foreach(e => assertEquals(listT, inferType(e)))
+          elts.tail.foreach(e => matchType(listT, inferType(e)))
           ensureNestedColl(elts)
           ESList(listT)
 
         case EXPR.ESDictNode(keys, vals, _) =>
           val keyT = keys.headOption.map(inferType).getOrElse(ESUnit)
           val valT = vals.headOption.map(inferType).getOrElse(ESUnit)
-          keys.tail.foreach(k => assertEquals(keyT, inferType(k)))
-          vals.tail.foreach(v => assertEquals(valT, inferType(v)))
+          keys.tail.foreach(k => matchType(keyT, inferType(k)))
+          vals.tail.foreach(v => matchType(valT, inferType(v)))
           ensureNestedColl(vals)
           ESDict(keyT, valT)
 
@@ -330,8 +330,8 @@ class StaticAnalyser extends AstNodeScanner {
     if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict]) throw NestedCollectionError
   }
 
-  private def assertEquals(t1: ESType, t2: ESType): Unit =
-    if (t1 != t2) throw TypeMismatchError(t1.ident, t2.ident)
+  private def matchType(t1: ESType, t2: ESType): Unit =
+    if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchError(t1.ident, t2.ident)
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
 }

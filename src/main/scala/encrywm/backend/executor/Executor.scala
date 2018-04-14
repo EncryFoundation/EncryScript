@@ -202,8 +202,8 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                           if (applyLambda[Boolean](Map(localN -> localV), lamb.body))
                             return true
                         case Name(id, _, _) => getFromEnv(id.name).foreach {
-                          case ESFunc(_, _, _, body) =>
-                            if (applyFunc[Boolean](Map(localN -> localV), body))
+                          case fn: ESFunc =>
+                            if (applyFunc[Boolean](Map(localN -> localV), fn.body))
                               return true
                         }
                       }

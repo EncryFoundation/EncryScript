@@ -1,5 +1,7 @@
 package encrywm.lib
 
+import java.util
+
 import encrywm.backend.env.ESObject
 
 object Types {
@@ -18,6 +20,11 @@ object Types {
 
     def isFunc: Boolean = this.isInstanceOf[ESFunc]
 
+    def isSubtypeOf(thatT: ESType): Boolean = thatT match {
+      case _: ESAny.type => true
+      case _ => false
+    }
+
     override def equals(obj: scala.Any): Boolean = obj match {
       case s: ESPrimitive => s.ident == this.ident
       case p: ESProduct => p == this
@@ -27,6 +34,10 @@ object Types {
 
   sealed trait ESPrimitive extends ESType
 
+  case object ESAny extends ESType with ESPrimitive {
+    override type Underlying = Unit
+    override val ident: String = "Any"
+  }
   case object ESUnit extends ESType with ESPrimitive {
     override type Underlying = Unit
     override val ident: String = "Unit"
@@ -67,7 +78,7 @@ object Types {
     def getAttrType(n: String): Option[ESType] = fields.get(n)
       .orElse(superTypeOpt.flatMap(_.getAttrType(n)))
 
-    def isSubtypeOf(thatT: ESType): Boolean =
+    override def isSubtypeOf(thatT: ESType): Boolean =
       superTypeOpt.exists(parT => parT == thatT || parT.isSubtypeOf(thatT))
 
     override def equals(obj: Any): Boolean = obj match {
@@ -208,12 +219,14 @@ object Types {
     override def fields: Map[String, ESType] =
       if (numericTypes.contains(valT)) {
         super.fields ++ Map(
-          "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+          "exists" -> ESFunc(List("predicate" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+          "map" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESAny)), ESList(ESAny)),
           "sum" -> valT
         )
       } else {
         super.fields ++ Map(
-          "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+          "exists" -> ESFunc(List("predicate" -> ESFunc(List("any" -> valT), ESBoolean)), ESBoolean),
+          "map" -> ESFunc(List("fn" -> ESFunc(List("any" -> valT), ESAny)), ESList(ESAny))
         )
       }
 
@@ -228,7 +241,8 @@ object Types {
     override val ident: String = "Dict"
 
     override def fields: Map[String, ESType] = super.fields ++ Map(
-      "exists" -> ESFunc(List("fn" -> ESFunc(List("any" -> keyT, "any" -> valT), ESBoolean)), ESBoolean)
+      "exists" -> ESFunc(List("predicate" -> ESFunc(List("any" -> keyT, "any" -> valT), ESBoolean)), ESBoolean),
+      "map" -> ESFunc(List("fn" -> ESFunc(List("any" -> keyT, "any" -> valT), ESAny)), ESList(ESAny))
     )
 
     override def equals(obj: Any): Boolean = obj match {
