@@ -254,6 +254,22 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
     didUnlock(excR) shouldBe true
   }
 
+  property("list.Map(func)") {
+
+    val tree = precess(
+      """
+        |let coll = [1, 2, 3, 4, 5]
+        |
+        |let mapped = coll.map(lamb (n: Int) = n * 1000)
+        |
+        |unlock if mapped.sum > 10000
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+
+    didUnlock(excR) shouldBe true
+  }
+
   property("Match statement") {
 
     val tree = precess(

@@ -123,6 +123,7 @@ class StaticAnalyser extends AstNodeScanner {
   }
 
   private def scanExpr(node: EXPR): Unit = {
+    def scanMany(exprs: Seq[EXPR]): Unit = exprs.foreach(scanExpr)
     node match {
       case n: EXPR.Name =>
         assertDefined(n.id.name)
@@ -156,27 +157,25 @@ class StaticAnalyser extends AstNodeScanner {
         args.foreach(scanExpr)
         keywords.map(_.value).foreach(scanExpr)
 
-      case EXPR.Call(EXPR.Attribute(value, id, _, _), args, keywords, _) =>
-        scanExpr(value)
-        args.foreach(scanExpr)
-        keywords.map(_.value).foreach(scanExpr)
-        value.tpeOpt.get match {
+      case EXPR.Call(func: EXPR.Attribute, args, keywords, _) =>
+        scanMany(Seq(func, func.value) ++ args ++ keywords.map(_.value))
+        func.value.tpeOpt.get match {
           case coll: ESCollection if args.size == 1 =>
-            coll.getAttrType(id.name) match {
+            coll.getAttrType(func.attr.name) match {
               case Some(f: ESFunc) =>
                 args.map(inferType).zip(f.args.map(_._2)).foreach { case (t1, t2) =>
                   matchType(t1, t2)
                 }
             }
           case _ =>
-            currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
-              if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name)
+            currentScopeOpt.flatMap(_.lookup(func.attr.name)).map { case Symbol(_, ESFunc(params, _)) =>
+              if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(func.attr.name)
               val argTypes = params.map(_._2)
               args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
                 matchType(t1, t2)
               }
-              id.name
-            }.getOrElse(throw NameError(id.name))
+              func.attr.name
+            }.getOrElse(throw NameError(func.attr.name))
         }
 
       case cmp: EXPR.Compare =>

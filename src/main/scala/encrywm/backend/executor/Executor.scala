@@ -188,9 +188,30 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
               eval[Option[inT.Underlying]](opt).get
           }
 
+        case EXPR.Map(coll, func, Some(ESList(inT))) =>
+          func.tpeOpt.get match {
+            case Types.ESFunc(args, _) =>
+              coll.tpeOpt.get match {
+                case ESList(valT) if args.size == 1 =>
+                  val localN = args.head._1
+                  eval[List[valT.Underlying]](coll).map { elt =>
+                    val localV = ESValue(localN, valT)(elt)
+                    func match {
+                      case lamb: Lambda =>
+                        applyLambda[inT.Underlying](Map(localN -> localV), lamb.body)
+                      case Name(id, _, _) => getFromEnv(id.name).map {
+                        case fn: ESFunc =>
+                          applyFunc[inT.Underlying](Map(localN -> localV), fn.body)
+                      }.get
+                    }
+                  }
+              }
+            case _ => throw IllegalOperationError
+          }
+
         case EXPR.Exists(coll, predicate) =>
           predicate.tpeOpt.get match {
-            case Types.ESFunc(args, _: ESBoolean.type) =>
+            case Types.ESFunc(args, _) =>
               coll.tpeOpt.get match {
                 case ESList(tpe) if args.size == 1 =>
                   val localN = args.head._1
@@ -212,6 +233,7 @@ class Executor(globalEnv: ScopedRuntimeEnv) {
                   }
                   untilTrue
               }
+            case _ => throw IllegalOperationError
           }
 
         case EXPR.Base58Str(s) => Base58.decode(s).get

@@ -9,13 +9,21 @@ object Transformer extends AstNodeScanner {
 
   override def scan(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
 
-    // Rule: Call(Attribute(coll, "exists"), Lambda) -> Exists(coll, lambda)
+    // Rule: Call(Attribute(coll, "exists"), Func) -> Exists(coll, Func)
     case EXPR.Call(EXPR.Attribute(value, attr, _, _), args, _, _)
       if value.tpeOpt.get.isCollection &&
         attr.name == "exists" &&
         args.size == 1 &&
         args.head.tpeOpt.get.isFunc =>
       Some(EXPR.Exists(value, args.head))
+
+    // Rule: Call(Attribute(coll, "map"), Func) -> Map(coll, Func)
+    case EXPR.Call(EXPR.Attribute(value, attr, _, _), args, _, Some(tpe))
+      if value.tpeOpt.get.isCollection &&
+        attr.name == "map" &&
+        args.size == 1 &&
+        args.head.tpeOpt.get.isFunc =>
+      Some(EXPR.Map(value, args.head, Some(tpe)))
 
     // Rule: Attribute(coll, "size") -> SizeOf(coll)
     case EXPR.Attribute(value, attr, _, _)
