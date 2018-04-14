@@ -7,6 +7,7 @@ import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
 import encrywm.lib.Types
 import encrywm.lib.Types.{ESFunc => _, _}
+import encrywm.lib.predef.functions
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -99,7 +100,11 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
                 case _ => // Do nothing.
               }
 
-            case ESBuiltInFunc(_, dArgs, body) =>
+            case ESBuiltInFunc(name, dArgs, body) =>
+              if (functions.hashFunctions.map(_.name).contains(name))
+                stepsCount += 9
+              if (functions.heavyFunctions.map(_.name).contains(name))
+                stepsCount += 29
               val fnArgs = args.zip(dArgs).map { case (arg, (n, _)) =>
                 val argT = arg.tpeOpt.get
                 val argV = eval[argT.Underlying](arg)
