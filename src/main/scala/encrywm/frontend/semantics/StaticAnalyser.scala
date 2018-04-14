@@ -1,12 +1,11 @@
 package encrywm.frontend.semantics
 
-import encrywm.ast.Ast.EXPR.{Lambda, Name}
-import encrywm.lib.{ESMath, Types}
-import encrywm.lib.Types._
 import encrywm.ast.Ast._
 import encrywm.ast.AstNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
+import encrywm.lib.Types._
+import encrywm.lib.{ESMath, Types}
 import encrywm.utils.Stack
 import scorex.crypto.encode.Base58
 
@@ -205,9 +204,7 @@ class StaticAnalyser extends AstNodeScanner {
             sub.value.tpeOpt match {
               case Some(ESList(_)) => matchType(idxT, ESInt)
               case Some(ESDict(keyT, _)) => matchType(idxT, keyT)
-              case o =>
-                println(o)
-                throw IllegalExprError
+              case _ => throw IllegalExprError
             }
           // TODO: Complete for other SLICE_OPs.
         }
