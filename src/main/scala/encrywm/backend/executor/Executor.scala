@@ -32,7 +32,6 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
       if (stepsCount > maxSteps) {
         throw IllegalOperationError
       } else stepsCount += 1
-      println(stepsCount)
       (expr match {
         case EXPR.Name(id, _, _) =>
           getFromEnv(id.name).map {
