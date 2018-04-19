@@ -286,7 +286,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
     def applyLambda[T](argMap: Map[String, ESValue], body: EXPR): T = {
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
       execute(List(STMT.Return(Some(body))), nestedEnv) match {
-        case Right(Return(Val(v: T@unchecked))) => v
+        case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
         case _ => throw new ExecutionError("Lambda execution error")
       }
     }
@@ -294,7 +294,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
     def applyFunc[T](argMap: Map[String, ESValue], body: Seq[STMT]): T = {
       val nestedEnv = currentEnv.child(s"fn_$randCode", argMap)
       execute(body, nestedEnv) match {
-        case Right(Return(Val(v: T@unchecked))) => v
+        case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
         case _ => throw new ExecutionError("Function execution error")
       }
     }
