@@ -21,11 +21,11 @@ object SourceProcessor {
     transformed.asInstanceOf[Contract]
   }
 
-  def source2Contract(s: String): Try[ESContract] = process(s).map { c =>
+  def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
     val complexityScore = ComplexityAnalyzer.scan(c)
     val serializedScript = ScriptSerializer.serialize(c)
     val fingerprint = getScriptFingerprint(serializedScript)
-    ESContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
+    EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
   }
 
   def source2SerializedContract(s: String): Try[SerializedContract] = process(s).map { p =>
