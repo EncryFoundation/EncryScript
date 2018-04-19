@@ -8,6 +8,7 @@ import encrywm.backend.{Arith, Compare}
 import encrywm.lib.Types
 import encrywm.lib.Types.{ESFunc => _, _}
 import encrywm.lib.predef.functions
+import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
@@ -23,7 +24,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
   private def execute(statements: Seq[STMT],
-                      localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Try {
+                      localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Coeval {
 
     var currentEnv = localEnv
 
@@ -385,7 +386,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
       currentEnv.get(n).orElse(_globalEnv.get(n))
 
     execMany(statements)
-  } match {
+  }.runTry match {
     case Failure(_: UnlockException.type) => Right(Return(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
