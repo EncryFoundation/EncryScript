@@ -39,6 +39,7 @@ object AstCodec {
   implicit def dFn = dT.bind[Types.ESFunc](21)
   implicit def dNi = dT.bind[Types.NIType.type](22)
   implicit def dAny = dT.bind[Types.ESAny.type](23)
+  implicit def dScr = dT.bind[Types.ESScript.type ](24)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)

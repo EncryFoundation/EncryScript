@@ -94,7 +94,17 @@ object Types {
     override val fields: Map[String, ESType] = Map(
       "proof" -> ESProof,
       "transaction" -> ESTransaction,
-      "state" -> ESState
+      "state" -> ESState,
+      "self" -> ESScript
+    )
+  }
+
+  case object ESScript extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "Script"
+
+    override val fields: Map[String, ESType] = Map(
+      "fingerprint" -> ESByteVector
     )
   }
 
