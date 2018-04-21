@@ -8,11 +8,12 @@ import encrywm.backend.{Arith, Compare}
 import encrywm.lib.Types
 import encrywm.lib.Types.{ESFunc => _, _}
 import encrywm.lib.predef.functions
+import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success, Try}
 
-class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
+class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
 
   import Executor._
 
@@ -23,14 +24,14 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
   def executeContract(c: TREE_ROOT.Contract): ExecOutcome = execute(c.body)
 
   private def execute(statements: Seq[STMT],
-                      localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Try {
+                      localEnv: ScopedRuntimeEnv = globalEnv): ExecOutcome = Coeval {
 
     var currentEnv = localEnv
 
     def randCode: Int = Random.nextInt()
 
     def eval[T](expr: EXPR): T = {
-      if (stepsCount > maxSteps) {
+      if (stepsCount > fuelLimit) {
         throw IllegalOperationError
       } else stepsCount += 1
       (expr match {
@@ -385,7 +386,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, maxSteps: Int = 1000) {
       currentEnv.get(n).orElse(_globalEnv.get(n))
 
     execMany(statements)
-  } match {
+  }.runTry match {
     case Failure(_: UnlockException.type) => Right(Return(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
@@ -410,4 +411,7 @@ object Executor {
   case object Halt
 
   case object ExecutionFailed
+
+  def apply(ctx: ESValue, fuelLimit: Int): Executor =
+    new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
 }
