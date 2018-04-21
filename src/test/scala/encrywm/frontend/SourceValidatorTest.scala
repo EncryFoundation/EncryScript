@@ -12,6 +12,13 @@ class SourceValidatorTest extends PropSpec with Matchers {
     validated.isRight shouldBe true
   }
 
+  property("Sophisticated contract validation from file") {
+    val filePath = "test/complex_script.esc"
+    val validated = SourceValidator.validateFromFile(filePath)
+
+    validated.isRight shouldBe true
+  }
+
   property("Invalid contract validation from file") {
     val filePath = "test/contract_invalid_1.esc"
     val validated = SourceValidator.validateFromFile(filePath)

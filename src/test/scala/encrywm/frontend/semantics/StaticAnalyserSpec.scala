@@ -648,6 +648,29 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe true
   }
 
+  property("Valid match statement with many statements in the branch") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |def func(a: Int) -> Int:
+        |   match context.proof:
+        |       case sig -> Signature25519:
+        |           let b = 100
+        |           return b * a
+        |       case _:
+        |           return 0 * 1000
+      """.stripMargin)
+
+    val analyzer = new StaticAnalyser
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+
+    analyzeTry.get
+
+    analyzeTry.isSuccess shouldBe true
+  }
+
   property("Invalid match statement (No default branch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """

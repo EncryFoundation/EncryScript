@@ -130,6 +130,18 @@ object Types {
     )
   }
 
+  // ESProof impl
+  case object MultiSig extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "MultiSig"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProof)
+
+    override val fields: Map[String, ESType] = Map(
+      "proofs" -> ESList(Signature25519)
+    )
+  }
+
   // Abstract type
   case object ESProposition extends ESType with ESProduct {
     override type Underlying = ESObject
@@ -172,7 +184,8 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESBox)
 
     override val fields: Map[String, ESType] = Map(
-      "amount" -> ESLong
+      "amount" -> ESLong,
+      "tokenIdOpt" -> ESOption(ESByteVector)
     )
   }
 
@@ -196,6 +209,7 @@ object Types {
       "timestamp" -> ESLong,
       "signature" -> ESByteVector,
       "unlockers" -> ESList(ESUnlocker),
+      "outputs" -> ESList(ESBox),
       "messageToSign" -> ESByteVector
     )
   }
@@ -273,7 +287,7 @@ object Types {
 
   case class ESFunc(args: List[(String, ESType)], retT: ESType) extends ESType {
     override type Underlying = retT.Underlying
-    override val ident: String = "func"
+    override val ident: String = "Func"
 
     override def equals(obj: Any): Boolean = obj match {
       case f: ESFunc =>
@@ -305,7 +319,9 @@ object Types {
     ESProposition,
     ESContext,
     ESBox,
+    ESState,
     Signature25519,
+    MultiSig,
     AssetBox,
     AccountProposition,
     ESOption(NIType)

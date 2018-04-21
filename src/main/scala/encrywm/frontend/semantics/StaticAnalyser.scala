@@ -68,7 +68,6 @@ class StaticAnalyser extends AstNodeScanner {
       fd.body.foreach(scan)
 
       val retType = findReturns(fd.body).map(_.value.map { exp =>
-        scanExpr(exp)
         exp.tpeOpt.get
       }).foldLeft(Seq[ESType]()) { case (acc, tOpt) =>
         val tpe = tOpt.getOrElse(ESUnit)
@@ -79,7 +78,8 @@ class StaticAnalyser extends AstNodeScanner {
 
       scopes.popHead()
 
-    case ret: STMT.Return => ret.value.foreach(scan)
+    case ret: STMT.Return =>
+      ret.value.foreach(scanExpr)
 
     case expr: STMT.Expr =>
       scanExpr(expr.value)

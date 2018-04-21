@@ -9,6 +9,8 @@ class ScopedSymbolTable(val scopeName: String,
       case None if !currentScopeOnly => parentalScopeOpt.flatMap(_.lookup(name))
       case _ => None
     }
+
+  override def toString: String = s"L$scopeLevel ${this.symbols}"
 }
 
 object ScopedSymbolTable {
