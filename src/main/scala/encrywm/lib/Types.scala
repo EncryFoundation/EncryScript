@@ -235,7 +235,7 @@ object Types {
   }
 
   case class ESList(valT: ESType) extends ESType with ESCollection {
-    override type Underlying = List[valT.Underlying]
+    override type Underlying = List[valT.Underlying@unchecked]
     override val ident: String = "List"
 
     override def fields: Map[String, ESType] =
@@ -259,7 +259,7 @@ object Types {
   }
 
   case class ESDict(keyT: ESType, valT: ESType) extends ESType with ESCollection {
-    override type Underlying = Map[keyT.Underlying, valT.Underlying]
+    override type Underlying = Map[keyT.Underlying@unchecked, valT.Underlying@unchecked]
     override val ident: String = "Dict"
 
     override def fields: Map[String, ESType] = super.fields ++ Map(
