@@ -274,7 +274,7 @@ object Types {
   }
 
   case class ESOption(inT: ESType) extends ESType with ESProduct with Parametrized {
-    override type Underlying = Option[inT.Underlying]
+    override type Underlying = Option[inT.Underlying@unchecked]
     override val ident: String = "Option"
     override val fields: Map[String, ESType] = ESOption.fields ++ Map("get" -> inT)
   }
