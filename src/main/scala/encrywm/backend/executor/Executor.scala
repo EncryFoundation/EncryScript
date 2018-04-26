@@ -419,7 +419,5 @@ object Executor {
 
   def apply(ctx: ESValue, fuelLimit: Int): Executor =
     if(checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
-    else throw new Exception("Not acceptable context")
-
-
+    else throw new ExecutionError("Incorrect context type")
 }
