@@ -412,6 +412,14 @@ object Executor {
 
   case object ExecutionFailed
 
+  def checkContext(ctx: ESValue): Boolean =
+    ESContext.fields.forall{
+      case (name, tpe) => ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe)
+    }
+
   def apply(ctx: ESValue, fuelLimit: Int): Executor =
-    new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+    if(checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+    else throw new Exception("Not acceptable context")
+
+
 }

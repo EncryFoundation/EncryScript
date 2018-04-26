@@ -3,6 +3,7 @@ package encrywm.backend.executor
 import encrywm.backend.env.ScopedRuntimeEnv
 import encrywm.backend.executor.Executor.{Return, Unlocked}
 import encrywm.backend.executor.env.{ESContextBuilder, ESPredefTestEnv, ESStateData, ESTransactionData}
+import encrywm.lib.Types.ESContext
 import scorex.utils.Random
 
 trait Execution {
@@ -12,13 +13,11 @@ trait Execution {
     case _ => false
   }
 
-  val testEnv: ESPredefTestEnv = {
+  val testEnv: ESContextBuilder = {
     val transaction = ESTransactionData(Random.randomBytes(), Random.randomBytes(), Random.randomBytes(), 12345567L)
     val state = ESStateData(99999, 12345678L, Random.randomBytes())
-    val context = new ESContextBuilder(state, transaction)
-
-    new ESPredefTestEnv(context)
+    new ESContextBuilder(state, transaction)
   }
 
-  val exc: Executor = new Executor(ScopedRuntimeEnv.initialized("GLOBAL", 1, testEnv.predefMembers))
+  val exc: Executor = Executor(testEnv.asVal, Int.MaxValue)
 }
