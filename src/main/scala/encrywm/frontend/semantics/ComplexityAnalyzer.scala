@@ -28,6 +28,9 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case STMT.If(test, body, orelse) => 1 + scanExpr(test) + Math.max(body.map(scanStmt).sum, orelse.map(scanStmt).sum)
     case STMT.Assert(test, msg) => scanExpr(test) + msg.map(scanExpr).getOrElse(0)
     case STMT.Expr(value) => scanExpr(value)
+    case STMT.UnlockIf(expr) => scanExpr(expr)
+    case STMT.Halt => 1
+    case STMT.Pass => 1
     case _ => 0
   }
 
@@ -55,6 +58,8 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.Declaration(target, _) => scanExpr(target)
+    case EXPR.BranchParamDeclaration(_, tipe) => 2 + tipe.typeParams.length
+    case EXPR.GenericCond => 1
     case _ => 0
   }
 }
