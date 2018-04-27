@@ -3,7 +3,7 @@ import sbt._
 
 name := "EncryScript"
 
-version := "0.2.22"
+version := "0.2.23"
 
 scalaVersion := "2.12.4"
 
@@ -14,7 +14,7 @@ resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositori
 libraryDependencies ++= Seq(
   "com.lihaoyi" %% "fastparse" % "1.0.0",
   "com.google.guava" % "guava" % "19.+",
-  "org.scorexfoundation" %% "scrypto" % "2.0.3",
+  "org.scorexfoundation" %% "scrypto" % "2.1.0",
   "org.scodec" %% "scodec-core" % "1.10.3",
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "io.monix" %% "monix-eval" % "3.0.0-RC1",
