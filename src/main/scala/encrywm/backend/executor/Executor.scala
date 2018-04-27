@@ -11,7 +11,7 @@ import encrywm.lib.predef.functions
 import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Failure, Random, Success}
 
 class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
 
@@ -413,11 +413,11 @@ object Executor {
   case object ExecutionFailed
 
   def checkContext(ctx: ESValue): Boolean =
-    ESContext.fields.forall{
-      case (name, tpe) => ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe)
+    ESContext.fields.forall { case (name, tpe) =>
+      ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe)
     }
 
   def apply(ctx: ESValue, fuelLimit: Int): Executor =
-    if(checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
-    else throw new ExecutionError("Incorrect context type")
+    if (checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+    else throw new ExecutionError("Environment is inconsistent")
 }
