@@ -18,7 +18,7 @@ object AstString {
 
   private def stmtToString(stmt: STMT): String = stmt match {
     case STMT.FunctionDef(name, args, body, returnType) =>
-      s"def ${name.name} (${args.args.map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_.concat(_))}): -> ${returnType.name}:"
+      s"def ${name.name}(${args.args.map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_.concat(_))}): -> ${returnType.name}:"
         .concat(body.map(toString).fold("")((str, expr) => str.concat("\n" +  expr)))
     case STMT.Return(value) => "return " + value.map(toString(_)).getOrElse("")
     case STMT.Let(target, value, global) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))
@@ -26,7 +26,7 @@ object AstString {
     case STMT.For(_, _, body, orelse) => ???
     case STMT.If(test, body, orelse) => ???
     case STMT.Match(target, branches) => s"match ${toString(target)}"
-    case STMT.Case(cond, body, isDefault) => s"case ${toString(cond)}: \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
+    case STMT.Case(cond, body, isDefault) => s"case ${toString(cond)} \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
     case STMT.Assert(test, msg) => ???
     case STMT.Expr(value) => toString(value)
     case STMT.UnlockIf(expr) => "unlock if ".concat(toString(expr))
@@ -44,7 +44,7 @@ object AstString {
     case EXPR.Compare(left, ops, comparators) => toString(left).concat(
       ops.map(compOpToString).zip(comparators.map(toString)).foldLeft("")((str, elem) => str.concat(s" ${elem._1} ${elem._2}"))
     )
-    case EXPR.Call(func, args, _, _) => toString(func) + "(" + args.foldLeft("")((str, expr) => str.concat(toString(expr) + ","))
+    case EXPR.Call(func, args, _, _) => toString(func) + "(" + args.tail.foldLeft(toString(args.head))((str, expr) => str.concat(", " + toString(expr))) + ")"
     case EXPR.IntConst(const) => const.toString
     case EXPR.LongConst(const) => const.toString
     case EXPR.FloatConst(const) => const.toString
@@ -61,7 +61,7 @@ object AstString {
     case EXPR.ESList(elts, _, _) => "[ " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " ]"
     case EXPR.ESTuple(elts, _, _) => "( " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " )"
     case EXPR.Declaration(target, tpe) => toString(target) + tpe.map(": " + _.ident.name).getOrElse("")
-    case EXPR.BranchParamDeclaration(_, tipe) => s"case ${tipe.ident.name}: "
+    case EXPR.BranchParamDeclaration(_, tipe) => s"${tipe.ident.name}: "
     case EXPR.GenericCond => "_"
     case _ => ???
   }

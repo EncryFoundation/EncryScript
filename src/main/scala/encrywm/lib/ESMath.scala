@@ -1,8 +1,8 @@
 package encrywm.lib
 
-import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{EXPR, OPERATOR}
+import encrywm.ast.{Ast, AstString}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
@@ -64,10 +64,12 @@ object ESMath {
     operand2 match {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
-          throw ZeroDivisionError
+          //TODO: replace 0
+          throw ZeroDivisionError(AstString.toString(operand2))
       case long: EXPR.LongConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
-          throw ZeroDivisionError
+          //TODO: replace 0
+          throw ZeroDivisionError(AstString.toString(operand2))
       case _ => // Do nothing.
     }
   }

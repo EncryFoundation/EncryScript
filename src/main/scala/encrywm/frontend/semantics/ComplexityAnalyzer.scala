@@ -26,6 +26,8 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case STMT.AugAssign(_, _, value) => scanExpr(value)
     case STMT.For(_, _, body, orelse) => 1 + body.map(scanStmt).sum + orelse.map(scanStmt).sum
     case STMT.If(test, body, orelse) => 1 + scanExpr(test) + Math.max(body.map(scanStmt).sum, orelse.map(scanStmt).sum)
+    case STMT.Match(_, branches) => 1 + branches.map(scanStmt).sum
+    case STMT.Case(cond, body, _) => scanExpr(cond) + body.map(scanStmt).sum
     case STMT.Assert(test, msg) => scanExpr(test) + msg.map(scanExpr).getOrElse(0)
     case STMT.Expr(value) => scanExpr(value)
     case STMT.UnlockIf(expr) => scanExpr(expr)

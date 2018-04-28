@@ -9,7 +9,8 @@ trait SymbolTable {
   protected val symbols: mutable.TreeMap[String, Symbol] = mutable.TreeMap.empty[String, Symbol]
 
   def insert(sym: Symbol): Unit = {
-    symbols.get(sym.name).map(_ => throw AlreadyDefinedError(sym.name))
+    //TODO: replace 0
+    symbols.get(sym.name).map(_ => throw AlreadyDefinedError(sym.name, "None"))
     symbols.update(sym.name, sym)
   }
 
