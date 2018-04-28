@@ -50,10 +50,10 @@ class StaticAnalyser extends AstNodeScanner {
             mainT -> typeParams
           }
           typeDeclOpt.foreach {
-            case (ESOption(_), typeParams) => matchType(ESOption(typeParams.head), valueType)
-            case (ESList(_), typeParams) => matchType(ESList(typeParams.head), valueType)
-            case (ESDict(_, _), typeParams) => matchType(ESDict(typeParams.head, typeParams.last), valueType)
-            case (otherT, _) => matchType(otherT, valueType)
+            case (ESOption(_), typeParams) => matchType(ESOption(typeParams.head), valueType, node)
+            case (ESList(_), typeParams) => matchType(ESList(typeParams.head), valueType, node)
+            case (ESDict(_, _), typeParams) => matchType(ESDict(typeParams.head, typeParams.last), valueType, node)
+            case (otherT, _) => matchType(otherT, valueType, node)
           }
           if (asg.global) addNameToGlobalScope(name, valueType)
           else addNameToScope(name, valueType)
@@ -67,20 +67,20 @@ class StaticAnalyser extends AstNodeScanner {
         val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name, AstString.toString(fd)))
         arg._1.name -> argT
       }
-      currentScopeOpt.foreach(_.insert(Symbol(fd.name.name, ESFunc(params, declaredRetType))))
+      currentScopeOpt.foreach(_.insert(Symbol(fd.name.name, ESFunc(params, declaredRetType)), node))
       val fnScope = ScopedSymbolTable(fd.name.name, currentScopeOpt.get)
       scopes.push(fnScope)
-      params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2))))
+      params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2), node)))
       fd.body.foreach(scan)
 
       val retType = findReturns(fd.body).map(_.value.map { exp =>
         exp.tpeOpt.get
       }).foldLeft(Seq[ESType]()) { case (acc, tOpt) =>
         val tpe = tOpt.getOrElse(ESUnit)
-        if (acc.nonEmpty) matchType(acc.head, tpe)
+        if (acc.nonEmpty) matchType(acc.head, tpe, node)
         acc :+ tpe
       }.headOption.getOrElse(ESUnit)
-      matchType(declaredRetType, retType)
+      matchType(declaredRetType, retType, node)
 
       scopes.popHead()
 
@@ -116,7 +116,7 @@ class StaticAnalyser extends AstNodeScanner {
       cond match {
         case EXPR.BranchParamDeclaration(local, tpe) =>
           val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError(AstString.toString(cond)))
-          currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
+          currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case _ => // Do nothing.
       }
       body.foreach(scan)
@@ -133,7 +133,7 @@ class StaticAnalyser extends AstNodeScanner {
       exprs.foreach(expr => scan(expr))
     node match {
       case n: EXPR.Name =>
-        assertDefined(n.id.name)
+        assertDefined(n.id.name, node)
 
       case bo: EXPR.BoolOp =>
         bo.values.foreach(expr => scan(expr))
@@ -148,7 +148,7 @@ class StaticAnalyser extends AstNodeScanner {
         }
         val bodyScope = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
         scopes.push(bodyScope)
-        paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s)))
+        paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s, node)))
         scan(body)
         scopes.popHead()
 
@@ -157,7 +157,7 @@ class StaticAnalyser extends AstNodeScanner {
           if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(id.name, AstString.toString(node))
           val argTypes = params.map(_._2)
           args.map(arg => inferType(arg)).zip(argTypes).foreach { case (t1, t2) =>
-            matchType(t1, t2)
+            matchType(t1, t2, node)
           }
           id.name
         }.getOrElse(throw NameError(id.name, AstString.toString(node)))
@@ -171,7 +171,7 @@ class StaticAnalyser extends AstNodeScanner {
             coll.getAttrType(func.attr.name) match {
               case Some(f: ESFunc) =>
                 args.map(arg => inferType(arg)).zip(f.args.map(_._2)).foreach { case (t1, t2) =>
-                  matchType(t1, t2)
+                  matchType(t1, t2, node)
                 }
             }
           case _ =>
@@ -179,7 +179,7 @@ class StaticAnalyser extends AstNodeScanner {
               if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsError(func.attr.name, AstString.toString(node))
               val argTypes = params.map(_._2)
               args.map(arg => inferType(arg)).zip(argTypes).foreach { case (t1, t2) =>
-                matchType(t1, t2)
+                matchType(t1, t2, node)
               }
               func.attr.name
             }.getOrElse(throw NameError(func.attr.name, AstString.toString(node)))
@@ -208,8 +208,8 @@ class StaticAnalyser extends AstNodeScanner {
             scan(idx)
             val idxT = idx.tpeOpt.get
             sub.value.tpeOpt match {
-              case Some(ESList(_)) => matchType(idxT, ESInt)
-              case Some(ESDict(keyT, _)) => matchType(idxT, keyT)
+              case Some(ESList(_)) => matchType(idxT, ESInt, node)
+              case Some(ESDict(keyT, _)) => matchType(idxT, keyT, node)
               case _ => throw IllegalExprError(AstString.toString(sub))
             }
           // TODO: Complete for other SLICE_OPs.
@@ -227,11 +227,11 @@ class StaticAnalyser extends AstNodeScanner {
   }
 
   private def addNameToScope(name: EXPR.Name, tpe: ESType): Unit = {
-    currentScopeOpt.foreach(_.insert(Symbol(name.id.name, tpe)))
+    currentScopeOpt.foreach(_.insert(Symbol(name.id.name, tpe), name))
   }
 
   private def addNameToGlobalScope(name: EXPR.Name, tpe: ESType): Unit = {
-    scopes.lastOpt.foreach(_.insert(Symbol(name.id.name, tpe)))
+    scopes.lastOpt.foreach(_.insert(Symbol(name.id.name, tpe), name))
   }
 
   private def findReturns(stmts: Seq[STMT]): Seq[STMT.Return] = {
@@ -298,7 +298,7 @@ class StaticAnalyser extends AstNodeScanner {
           }
 
         case bop: EXPR.BinOp =>
-          ESMath.ensureZeroDivision(bop.op, bop.right)
+          ESMath.ensureZeroDivision(bop.op, bop.right, exp)
           ESMath.BinaryOperationResults.find {
             case (op, (o1, o2), _) =>
               bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
@@ -315,15 +315,15 @@ class StaticAnalyser extends AstNodeScanner {
         case EXPR.ESList(elts, _, _) =>
           val listT = elts.headOption.map(elt => inferType(elt))
             .getOrElse(throw IllegalExprError(AstString.toString(exp)))
-          elts.tail.foreach(e => matchType(listT, inferType(e)))
+          elts.tail.foreach(e => matchType(listT, inferType(e), exp))
           ensureNestedColl(elts)
           ESList(listT)
 
         case EXPR.ESDictNode(keys, vals, _) =>
           val keyT = keys.headOption.map(elt => inferType(elt)).getOrElse(ESUnit)
           val valT = vals.headOption.map(elt => inferType(elt)).getOrElse(ESUnit)
-          keys.tail.foreach(k => matchType(keyT, inferType(k)))
-          vals.tail.foreach(v => matchType(valT, inferType(v)))
+          keys.tail.foreach(k => matchType(keyT, inferType(k), exp))
+          vals.tail.foreach(v => matchType(valT, inferType(v), exp))
           ensureNestedColl(vals)
           ESDict(keyT, valT)
 
@@ -351,9 +351,9 @@ class StaticAnalyser extends AstNodeScanner {
     if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict]) throw NestedCollectionError(exps.foldLeft("")((str, expr) => str.concat("\n" + AstString.toString(expr))))
   }
 
-  private def matchType(t1: ESType, t2: ESType): Unit =
-    if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchError(t1.ident, t2.ident, "None")
+  private def matchType(t1: ESType, t2: ESType, node: AST_NODE): Unit =
+    if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchError(t1.ident, t2.ident, AstString.toString(node))
 
 
-  private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n, "None")
+  private def assertDefined(n: String, node: AST_NODE): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n, AstString.toString(node))
 }

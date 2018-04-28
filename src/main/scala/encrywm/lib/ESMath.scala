@@ -1,7 +1,7 @@
 package encrywm.lib
 
 import encrywm.ast.Ast.OPERATOR._
-import encrywm.ast.Ast.{EXPR, OPERATOR}
+import encrywm.ast.Ast.{AST_NODE, EXPR, OPERATOR}
 import encrywm.ast.{Ast, AstString}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
@@ -60,16 +60,16 @@ object ESMath {
     (Div, (DOUBLE, DOUBLE), DOUBLE)
   )
 
-  def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR): Unit = {
+  def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR, node: AST_NODE): Unit = {
     operand2 match {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
           //TODO: replace 0
-          throw ZeroDivisionError(AstString.toString(operand2))
+          throw ZeroDivisionError(AstString.toString(node))
       case long: EXPR.LongConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
           //TODO: replace 0
-          throw ZeroDivisionError(AstString.toString(operand2))
+          throw ZeroDivisionError(AstString.toString(node))
       case _ => // Do nothing.
     }
   }
