@@ -422,5 +422,5 @@ object Executor {
 
   def apply(ctx: ESValue, fuelLimit: Int): Executor =
     if (checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
-    else throw new ExecutionError("Environment is inconsistent")
+    else throw new EnvironmentError("Environment is inconsistent")
 }
