@@ -50,7 +50,9 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
           val rightV = eval[rightT.Underlying](r)
           op match {
             case _: OPERATOR.Add.type =>
-              Arith.sum[opT.Underlying](leftV, rightV)
+              Arith.add[opT.Underlying](leftV, rightV)
+            case _: OPERATOR.Sub.type =>
+              Arith.sub[opT.Underlying](leftV, rightV)
             case _: OPERATOR.Mult.type =>
               Arith.mul[opT.Underlying](leftV, rightV)
             case _: OPERATOR.Div.type =>
@@ -85,7 +87,8 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
               Compare.lte(leftV, eval[compT.Underlying](comp))
           }
 
-        case EXPR.Call(EXPR.Name(id, _, _), args, kwargs, _) =>
+        // TODO: `kwargs` handling?
+        case EXPR.Call(EXPR.Name(id, _, _), args, _, _) =>
           getFromEnv(id.name).map {
             case ESFunc(_, fnArgs, _, body) =>
               val argMap = args.zip(fnArgs).map { case (exp, (argN, _)) =>
@@ -93,7 +96,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
               }.map(v => v.name -> v).toMap
-              val nestedEnv = currentEnv.child(id.name, argMap) // TODO: Handle kwargs.
+              val nestedEnv = currentEnv.child(id.name, argMap)
               execute(body, nestedEnv) match {
                 case Right(Return(Val(v))) => v
                 case Right(Return(Unlocked)) => throw UnlockException

@@ -270,7 +270,7 @@ class StaticAnalyser extends AstNodeScanner {
                   coll.getAttrType(n.name) match {
                     case Some(_: ESFunc) =>
                       inferType(fc.args.head) match {
-                        case ESFunc(args, retT) => ESList(retT)
+                        case ESFunc(_, retT) => ESList(retT)
                       }
                     case _ => throw IllegalExprError
                   }
