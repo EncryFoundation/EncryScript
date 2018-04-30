@@ -2,7 +2,7 @@ package encrywm.lib
 
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{AST_NODE, EXPR, OPERATOR}
-import encrywm.ast.{Ast, AstString}
+import encrywm.ast.{Ast, AstStringifier}
 import encrywm.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
@@ -65,11 +65,11 @@ object ESMath {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
           //TODO: replace 0
-          throw ZeroDivisionError(AstString.toString(node))
+          throw ZeroDivisionError(AstStringifier.toString(node))
       case long: EXPR.LongConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
           //TODO: replace 0
-          throw ZeroDivisionError(AstString.toString(node))
+          throw ZeroDivisionError(AstStringifier.toString(node))
       case _ => // Do nothing.
     }
   }

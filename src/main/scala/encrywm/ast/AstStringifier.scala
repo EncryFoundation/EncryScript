@@ -2,7 +2,7 @@ package encrywm.ast
 
 import encrywm.ast.Ast._
 
-object AstString {
+object AstStringifier {
 
   def toString(node: AST_NODE): String = node match {
     case root: TREE_ROOT => rootToString(root)
@@ -86,11 +86,11 @@ object AstString {
   
   private def binOpToString(op: OPERATOR): String = op match {
     case Ast.OPERATOR.Add => "+"
-    case Ast.OPERATOR.Sub  => "-"
-    case Ast.OPERATOR.Mult  => "*"
-    case Ast.OPERATOR.Div  => "/"
-    case Ast.OPERATOR.Mod  => "%"
-    case Ast.OPERATOR.Pow  => "**"
+    case Ast.OPERATOR.Sub => "-"
+    case Ast.OPERATOR.Mult => "*"
+    case Ast.OPERATOR.Div => "/"
+    case Ast.OPERATOR.Mod => "%"
+    case Ast.OPERATOR.Pow => "**"
     case Ast.OPERATOR.FloorDiv => "//"
   }
 
@@ -100,5 +100,4 @@ object AstString {
     case Ast.UNARY_OP.UAdd => "+"
     case Ast.UNARY_OP.USub => "-"
   }
-  
 }
