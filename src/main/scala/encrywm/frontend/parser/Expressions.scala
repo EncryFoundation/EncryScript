@@ -171,8 +171,8 @@ object Expressions {
     P( dict | set )
   }
 
-  val branchParamDeclaration: P[Ast.EXPR.BranchParamDeclaration] = P( NAME ~ Statements.typeDeclarationArrow).map { case (name, tpe) =>
-    Ast.EXPR.BranchParamDeclaration(name, tpe)
+  val branchParamDeclaration: P[Ast.EXPR.TypeMatching] = P( NAME ~ Statements.typeDeclarationArrow).map { case (name, tpe) =>
+    Ast.EXPR.TypeMatching(name, tpe)
   }
 
   val genericCond: P[Ast.EXPR.GenericCond.type] = P( "_" ).map(_ => Ast.EXPR.GenericCond)

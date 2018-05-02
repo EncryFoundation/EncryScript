@@ -335,7 +335,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
           case STMT.Case(_, body, isDefault) if isDefault =>
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
             return execute(body, nestedCtx)
-          case STMT.Case(EXPR.BranchParamDeclaration(local, tpeN), body, _) =>
+          case STMT.Case(EXPR.TypeMatching(local, tpeN), body, _) =>
             val localT = Types.typeByIdent(tpeN.ident.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) =>

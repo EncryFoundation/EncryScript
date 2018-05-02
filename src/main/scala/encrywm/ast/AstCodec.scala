@@ -39,7 +39,7 @@ object AstCodec {
   implicit def dFn = dT.bind[Types.ESFunc](21)
   implicit def dNi = dT.bind[Types.NIType.type](22)
   implicit def dAny = dT.bind[Types.ESAny.type](23)
-  implicit def dScr = dT.bind[Types.ESScript.type ](24)
+  implicit def dScr = dT.bind[Types.ESScript.type](24)
   implicit def dMuls = dT.bind[Types.MultiSig.type](25)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
@@ -87,7 +87,7 @@ object AstCodec {
   implicit def dSum = dEx.bind[EXPR.Sum](26)
   implicit def dMap = dEx.bind[EXPR.Map](27)
   implicit def dDecl = dEx.bind[EXPR.Declaration](28)
-  implicit def dBpd = dEx.bind[EXPR.BranchParamDeclaration](29)
+  implicit def dBpd = dEx.bind[EXPR.TypeMatching](29)
   implicit def dGc = dEx.bind[EXPR.GenericCond.type](30)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)

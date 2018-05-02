@@ -108,7 +108,7 @@ class StaticAnalyser extends AstNodeScanner {
       val bodyScope = ScopedSymbolTable(s"case_branch_${Random.nextInt()}", currentScopeOpt.get)
       scopes.push(bodyScope)
       cond match {
-        case EXPR.BranchParamDeclaration(local, tpe) =>
+        case EXPR.TypeMatching(local, tpe) =>
           val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
         case _ => // Do nothing.
@@ -208,7 +208,7 @@ class StaticAnalyser extends AstNodeScanner {
           // TODO: Complete for other SLICE_OPs.
         }
 
-      case EXPR.BranchParamDeclaration(_, tpe) =>
+      case EXPR.TypeMatching(_, tpe) =>
         typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolError(tpe.ident.name))
 
       case EXPR.Base58Str(s) =>

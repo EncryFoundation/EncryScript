@@ -74,7 +74,7 @@ class Statements(indent: Int){
           Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
         } |
         caseStm.map {
-          case (cond: Ast.EXPR.BranchParamDeclaration, body) => Ast.STMT.Case(cond, body.toList)
+          case (cond: Ast.EXPR.TypeMatching, body) => Ast.STMT.Case(cond, body.toList)
           case (cond: Ast.EXPR.GenericCond.type, body) => Ast.STMT.Case(cond, body.toList, isDefault = true)
           case (cond, body) => Ast.STMT.Case(cond, body.toList)
         }

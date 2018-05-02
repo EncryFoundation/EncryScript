@@ -58,7 +58,7 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.Declaration(target, _) => scanExpr(target)
-    case EXPR.BranchParamDeclaration(_, tipe) => 2 + tipe.typeParams.length
+    case EXPR.TypeMatching(_, tipe) => 2 + tipe.typeParams.length
     case EXPR.GenericCond => 1
     case _ => 0
   }
