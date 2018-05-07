@@ -15,17 +15,16 @@ object SourceProcessor {
 
   def process(s: String): Try[Contract] = Try {
     val comps = s.split(Lexer.SchemaSeparator)
-    if (comps.size > 1) {
+    (if (comps.size > 1) {
       val parsed = Parser.parse(comps.last).get.value
-      val transformed = Transformer.scan(parsed)
-      transformed.asInstanceOf[Contract]
+      // TODO: Process schema.
+      Transformer.scan(parsed)
     } else {
       val parsed = Parser.parse(s).get.value
       val analyzer = new StaticAnalyser(TypeSystem.empty)
       analyzer.scan(parsed)
-      val transformed = Transformer.scan(parsed)
-      transformed.asInstanceOf[Contract]
-    }
+      Transformer.scan(parsed)
+    }).asInstanceOf[Contract]
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
