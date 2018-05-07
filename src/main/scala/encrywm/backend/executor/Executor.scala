@@ -5,7 +5,7 @@ import encrywm.ast.Ast._
 import encrywm.backend.env._
 import encrywm.backend.executor.error._
 import encrywm.backend.{Arith, Compare}
-import encrywm.lib.Types
+import encrywm.lib.{TypeSystem, Types}
 import encrywm.lib.Types.{ESFunc => _, _}
 import encrywm.lib.predef.functions
 import monix.eval.Coeval
@@ -13,7 +13,7 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success}
 
-class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
+class Executor(ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
 
   import Executor._
 
@@ -320,9 +320,9 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
 
       case STMT.FunctionDef(id, args, body, returnType) =>
         val fnArgs = args.args.map { case (n, t) =>
-          n.name -> Types.typeByIdent(t.ident.name).get
+          n.name -> ts.typeByIdent(t.ident.name).get
         }.toIndexedSeq
-        val retT = Types.typeByIdent(returnType.name).get
+        val retT = ts.typeByIdent(returnType.name).get
         currentEnv = currentEnv.updated(
           ESFunc(id.name, fnArgs, retT, body)
         )
@@ -336,7 +336,7 @@ class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
             return execute(body, nestedCtx)
           case STMT.Case(EXPR.TypeMatching(local, tpeN), body, _) =>
-            val localT = Types.typeByIdent(tpeN.ident.name).get
+            val localT = ts.typeByIdent(tpeN.ident.name).get
             targetV match {
               case obj: ESObject if obj.isInstanceOf(localT) =>
                 val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
@@ -420,7 +420,7 @@ object Executor {
       ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe)
     }
 
-  def apply(ctx: ESValue, fuelLimit: Int): Executor =
-    if (checkContext(ctx)) new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+  def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor =
+    if (checkContext(ctx)) new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
     else throw new EnvironmentError("Environment is inconsistent")
 }

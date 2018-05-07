@@ -8,7 +8,7 @@ import encrywm.lib.predef.functions.time._
 object ESPredefScope {
 
   val predefNames: Seq[Symbol] = Seq(
-    Symbol("context", ESContext),
+    Symbol(ESContext.ident.toLowerCase, ESContext),
     Symbol(CheckSig.name, ESFunc(CheckSig.args.toList, ESBoolean)),
     Symbol(Blake2b256Hash.name, ESFunc(Blake2b256Hash.args.toList, ESByteVector)),
     Symbol(Blake2b512Hash.name, ESFunc(Blake2b512Hash.args.toList, ESByteVector)),

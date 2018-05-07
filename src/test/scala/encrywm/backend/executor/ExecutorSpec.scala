@@ -16,7 +16,6 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
       """.stripMargin)
 
     val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
-
     excR.isRight shouldBe true
 
     excR.right.get.isInstanceOf[Executor.Nothing.type] shouldBe true

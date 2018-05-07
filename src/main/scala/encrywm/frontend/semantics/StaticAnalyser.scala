@@ -5,13 +5,13 @@ import encrywm.ast.AstNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
 import encrywm.lib.Types._
-import encrywm.lib.{ESMath, Types}
+import encrywm.lib.{ESMath, TypeSystem}
 import encrywm.utils.Stack
 import scorex.crypto.encode.Base58
 
 import scala.util.Random
 
-class StaticAnalyser extends AstNodeScanner {
+class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
@@ -39,8 +39,8 @@ class StaticAnalyser extends AstNodeScanner {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           val valueType = inferType(asg.value)
           typeOpt.map { t =>
-            val mainT = typeByIdent(t.ident.name).getOrElse(throw NameError(t.ident.name))
-            val typeParams = t.typeParams.map(id => typeByIdent(id.name).getOrElse(throw NameError(id.name)))
+            val mainT = ts.typeByIdent(t.ident.name).getOrElse(throw NameError(t.ident.name))
+            val typeParams = t.typeParams.map(id => ts.typeByIdent(id.name).getOrElse(throw NameError(id.name)))
             mainT -> typeParams
           }.foreach {
             case (ESOption(_), tps) if tps.size == 1 => matchType(ESOption(tps.head), valueType)
@@ -55,10 +55,10 @@ class StaticAnalyser extends AstNodeScanner {
       }
 
     case fd: STMT.FunctionDef =>
-      val declaredRetType = typeByIdent(fd.returnType.name)
+      val declaredRetType = ts.typeByIdent(fd.returnType.name)
         .getOrElse(throw NameError(fd.returnType.name))
       val params = fd.args.args.map { arg =>
-        val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
+        val argT = ts.typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
         arg._1.name -> argT
       }
       currentScopeOpt.foreach(_.insert(Symbol(fd.name.name, ESFunc(params, declaredRetType))))
@@ -109,7 +109,7 @@ class StaticAnalyser extends AstNodeScanner {
       scopes.push(bodyScope)
       cond match {
         case EXPR.TypeMatching(local, tpe) =>
-          val localT = typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
+          val localT = ts.typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
         case _ => // Do nothing.
       }
@@ -136,7 +136,7 @@ class StaticAnalyser extends AstNodeScanner {
 
       case EXPR.Lambda(args, body, _) =>
         val paramSymbols = args.args.map { arg =>
-          val argT = typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
+          val argT = ts.typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolError(arg._2.ident.name))
           Symbol(arg._1.name, argT)
         }
         val bodyScope = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
@@ -209,7 +209,7 @@ class StaticAnalyser extends AstNodeScanner {
         }
 
       case EXPR.TypeMatching(_, tpe) =>
-        typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolError(tpe.ident.name))
+        ts.typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolError(tpe.ident.name))
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeError
@@ -328,7 +328,7 @@ class StaticAnalyser extends AstNodeScanner {
 
         case EXPR.Lambda(args, body, _) =>
           ESFunc(args.args.map { case (argId, typeId) =>
-            argId.name -> Types.typeByIdent(typeId.ident).get }, inferType(body))
+            argId.name -> ts.typeByIdent(typeId.ident).get }, inferType(body))
 
         case _ => throw IllegalExprError
       }
