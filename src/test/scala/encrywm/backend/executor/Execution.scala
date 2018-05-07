@@ -1,9 +1,8 @@
 package encrywm.backend.executor
 
-import encrywm.backend.env.ScopedRuntimeEnv
 import encrywm.backend.executor.Executor.{Return, Unlocked}
-import encrywm.backend.executor.env.{ESContextBuilder, ESPredefTestEnv, ESStateData, ESTransactionData}
-import encrywm.lib.Types.ESContext
+import encrywm.backend.executor.env.{ESContextBuilder, ESStateData, ESTransactionData}
+import encrywm.lib.TypeSystem
 import scorex.utils.Random
 
 trait Execution {
@@ -19,5 +18,5 @@ trait Execution {
     new ESContextBuilder(state, transaction)
   }
 
-  val exc: Executor = Executor(testEnv.asVal, Int.MaxValue)
+  val exc: Executor = Executor(TypeSystem.empty, testEnv.asVal, Int.MaxValue)
 }
