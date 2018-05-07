@@ -2,8 +2,9 @@ package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
-import encrywm.frontend.parser.Parser
+import encrywm.frontend.parser.{Lexer, Parser}
 import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
+import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 
 import scala.util.Try
@@ -13,11 +14,18 @@ object SourceProcessor {
   type SerializedContract = Array[Byte]
 
   def process(s: String): Try[Contract] = Try {
-    val parsed = Parser.parse(s).get.value
-    val analyzer = new StaticAnalyser
-    analyzer.scan(parsed)
-    val transformed = Transformer.scan(parsed)
-    transformed.asInstanceOf[Contract]
+    val comps = s.split(Lexer.SchemaSeparator)
+    if (comps.size > 1) {
+      val parsed = Parser.parse(comps.last).get.value
+      val transformed = Transformer.scan(parsed)
+      transformed.asInstanceOf[Contract]
+    } else {
+      val parsed = Parser.parse(s).get.value
+      val analyzer = new StaticAnalyser(TypeSystem.empty)
+      analyzer.scan(parsed)
+      val transformed = Transformer.scan(parsed)
+      transformed.asInstanceOf[Contract]
+    }
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>

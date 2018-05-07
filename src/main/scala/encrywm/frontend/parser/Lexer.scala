@@ -75,4 +75,6 @@ object Lexer {
   val exponent: P0 = P( ("e" | "E") ~ ("+" | "-").? ~ digit.rep(1) )
 
   val imagnumber: all.Parser[BigDecimal] = P( (floatnumber | intpart) ~ ("j" | "J") )
+
+  val SchemaSeparator: String = "#---script---"
 }
