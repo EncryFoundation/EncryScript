@@ -13,7 +13,7 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success}
 
-class Executor(globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
+class Executor private[encrywm](globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
 
   import Executor._
 

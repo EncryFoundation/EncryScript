@@ -3,7 +3,7 @@ import sbt._
 
 name := "EncryScript"
 
-version := "0.2.23"
+version := "0.2.25"
 
 scalaVersion := "2.12.4"
 
@@ -22,9 +22,9 @@ libraryDependencies ++= Seq(
   "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0"
 )
 
-licenses in ThisBuild := Seq("GNU GPL 3.0" -> url("https://github.com/oskin1/EncryScript/blob/master/LICENSE"))
+licenses in ThisBuild := Seq("GNU GPL 3.0" -> url("https://github.com/EncryFoundation/EncryScript/blob/master/LICENSE"))
 
-homepage in ThisBuild := Some(url("https://github.com/oskin1/EncryScript"))
+homepage in ThisBuild := Some(url("https://github.com/EncryFoundation/EncryScript"))
 
 publishMavenStyle in ThisBuild := true
 
@@ -35,8 +35,8 @@ publishTo in ThisBuild :=
 
 pomExtra in ThisBuild :=
   <scm>
-    <url>git@github.com:oskin1/EncryScript.git</url>
-    <connection>scm:git:git@github.com:oskin1/EncryScript.git</connection>
+    <url>git@github.com:EncryFoundation/EncryScript.git</url>
+    <connection>scm:git:git@github.com:EncryFoundation/EncryScript.git</connection>
   </scm>
     <developers>
       <developer>

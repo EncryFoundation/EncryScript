@@ -160,7 +160,7 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
 
     override val fields: Map[String, ESType] = Map(
-      "accountAddress" -> ESByteVector
+      "accountAddress" -> ESString
     )
   }
 
