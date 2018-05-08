@@ -538,7 +538,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     analyzeTry.isSuccess shouldBe true
   }
 
-  property("Type checking of invalid dict (Elms types mismatch)") {
+  property("Type checking of invalid dict (Elts types mismatch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a = {1 : "string", 2 : 8}
@@ -666,8 +666,6 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
     val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
-
-    analyzeTry.get
 
     analyzeTry.isSuccess shouldBe true
   }
