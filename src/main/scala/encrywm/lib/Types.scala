@@ -54,14 +54,6 @@ object Types {
     override type Underlying = Long
     override val ident: String = "Long"
   }
-  case object FLOAT extends ESType with ESPrimitive {
-    override type Underlying = Float
-    override val ident: String = "Float"
-  }
-  case object DOUBLE extends ESType with ESPrimitive {
-    override type Underlying = Double
-    override val ident: String = "Double"
-  }
   case object ESString extends ESType with ESPrimitive {
     override type Underlying = String
     override val ident: String = "String"
@@ -368,6 +360,4 @@ case class TypeSystem(dynamicTypes: Seq[Types.ESTypedObject]) {
 object TypeSystem {
 
   def empty: TypeSystem = TypeSystem(Seq.empty)
-
-  // TODO: `TL.EProduct -> ES.ESType` conversion.
 }

@@ -44,8 +44,6 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.Call(func, args, _, _) => scanExpr(func) + args.map(scanExpr).sum
     case EXPR.IntConst(_) => 1
     case EXPR.LongConst(_) => 1
-    case EXPR.FloatConst(_) => 1
-    case EXPR.DoubleConst(_) => 1
     case EXPR.True => 1
     case EXPR.False => 1
     case EXPR.Str(_) => 1

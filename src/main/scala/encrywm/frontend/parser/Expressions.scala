@@ -15,7 +15,7 @@ import fastparse.{core, noApi}
 object Expressions {
 
   val NAME: P[Ast.Identifier] = Lexer.identifier
-  val NUMBER: P[Ast.EXPR.Num] = P( floatConstExpr | doubleConstExpr | longConstExpr| intConstExpr )
+  val NUMBER: P[Ast.EXPR.Num] = P( longConstExpr| intConstExpr )
   val BOOL: P[Ast.EXPR.Bool] = P( trueExpr | falseExpr )
   val STRING: P[String] = Lexer.stringliteral
   val BASE58STRING: P[String] = P( "base58" ~/ Lexer.stringliteral )
@@ -25,15 +25,13 @@ object Expressions {
 
   val intConstExpr: P[Ast.EXPR.IntConst] = P( Lexer.integer ).map(Ast.EXPR.IntConst)
   val longConstExpr: P[Ast.EXPR.LongConst] = P( Lexer.longinteger ).map(Ast.EXPR.LongConst)
-  val floatConstExpr: P[Ast.EXPR.FloatConst] = P( Lexer.floatinteger ).map(Ast.EXPR.FloatConst)
-  val doubleConstExpr: P[Ast.EXPR.DoubleConst] = P( Lexer.doubleinteger ).map(Ast.EXPR.DoubleConst)
 
   val test: P[Ast.EXPR] = {
     val ternary = P(orTest ~ (kwd("if") ~ orTest ~ kwd("else") ~ test).?).map {
       case (x, None) => x
       case (x, Some((t, neg))) => Ast.EXPR.IfExp(t, x, neg)
     }
-    P(ternary | lambdef)
+    P( ternary | lambdef )
   }
   val orTest: core.Parser[Ast.EXPR, Char, String] = P( andTest.rep(1, kwd("or") | "||") ).map {
     case Seq(x) => x

@@ -59,8 +59,6 @@ object Ast {
     sealed trait Num extends EXPR
     case class IntConst(n: Int) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(ESInt) }
     case class LongConst(n: Long) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(ESLong) }
-    case class FloatConst(n: Float) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(FLOAT) }
-    case class DoubleConst(n: Double) extends EXPR with Num { var tpeOpt: Option[ESType] = Some(DOUBLE) }
 
     sealed trait Bool extends EXPR
     case object True extends EXPR with Bool { override var tpeOpt: Option[ESType] = Some(ESBoolean) }

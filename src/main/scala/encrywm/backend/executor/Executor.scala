@@ -279,10 +279,6 @@ class Executor(ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 100
 
         case EXPR.LongConst(v) => v
 
-        case EXPR.DoubleConst(v) => v
-
-        case EXPR.FloatConst(v) => v
-
         case exp => throw UnexpectedExpressionError(exp.toString)
       }).asInstanceOf[T]
     }
