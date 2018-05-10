@@ -411,12 +411,11 @@ object Executor {
 
   case object ExecutionFailed
 
-  def checkContext(ctx: ESValue): Boolean =
-    ESContext.fields.forall { case (name, tpe) =>
-      ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe)
+  def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor = {
+    ESContext.fields.foreach { case (name, tpe) =>
+      if (!ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe))
+        throw new EnvironmentError(s"Environment is inconsistent, $name[$tpe] is undefined.")
     }
-
-  def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor =
-    if (checkContext(ctx)) new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
-    else throw new EnvironmentError("Environment is inconsistent")
+    new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+  }
 }
