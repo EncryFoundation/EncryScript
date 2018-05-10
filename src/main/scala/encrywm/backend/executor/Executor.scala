@@ -413,7 +413,7 @@ object Executor {
 
   def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor = {
     ESContext.fields.foreach { case (name, tpe) =>
-      if (!ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && ctxElem._2.tpe == tpe))
+      if (!ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && (ctxElem._2.tpe == tpe || ctxElem._2.tpe.isSubtypeOf(tpe))))
         throw new EnvironmentError(s"Environment is inconsistent, $name[$tpe] is undefined.")
     }
     new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
