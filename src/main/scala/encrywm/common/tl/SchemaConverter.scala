@@ -21,7 +21,6 @@ object SchemaConverter {
     case _: EBoolean.type => ESBoolean
     case _: EByteVector.type => ESByteVector
     case EList(inT) => ESList(convertType(inT))
-    case EOption(inT) => ESOption(convertType(inT))
     case p @ EProduct(fields) => ESTypedObject(Base58.encode(p.fingerprint), fields.map(f => f._1 -> convertType(f._2)))
     case _ => throw new Exception("Unresolved type")
   }

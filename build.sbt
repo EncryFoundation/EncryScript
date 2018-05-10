@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "io.monix" %% "monix-eval" % "3.0.0-RC1",
   "org.typelevel" %% "cats-core" % "1.1.0",
-  "com.github.oskin1" %% "encry-tl" % "0.1.4",
+  "com.github.oskin1" %% "encry-tl" % "0.1.6",
   "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0",
 )
 
