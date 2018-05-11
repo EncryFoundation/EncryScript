@@ -254,6 +254,8 @@ class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
           inferType(attr.value) match {
             case p: ESProduct =>
               p.getAttrType(attr.attr.name).getOrElse(throw NameError(attr.attr.name))
+            case ESFunc(_, retT) => retT
+            case _ => throw IllegalExprError
           }
 
         case fc: EXPR.Call =>

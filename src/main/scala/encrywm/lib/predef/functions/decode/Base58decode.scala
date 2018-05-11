@@ -8,7 +8,7 @@ import scorex.crypto.encode.Base58
 
 object Base58decode extends BuiltInFunctionHolder {
 
-  val name: String = "baseDecode"
+  val name: String = "decode"
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
@@ -19,7 +19,7 @@ object Base58decode extends BuiltInFunctionHolder {
     val validArgTypes = args.forall { case (_, v) => v.tpe.isInstanceOf[ESString.type] }
     if (validNumberOfArgs && validArgTypes) {
       val fnArg = args.map(_._2.value.asInstanceOf[String]).head
-      Right(Base58.decode(fnArg).get)
+      Right(Base58.decode(fnArg).toOption)
     } else {
       Left(BuiltInFunctionExecError)
     }

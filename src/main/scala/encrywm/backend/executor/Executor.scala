@@ -202,6 +202,8 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
           opt.tpeOpt.get match {
             case ESOption(inT) =>
               eval[Option[inT.Underlying]](opt).get
+            case Types.ESFunc(_, ESOption(inT)) =>
+              eval[Option[inT.Underlying]](opt).get
           }
 
         case EXPR.Map(coll, func, Some(ESList(inT))) =>
@@ -389,7 +391,7 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
     case Failure(_: UnlockException.type) => Right(Return(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
-    case Failure(_) => Left(ExecutionFailed)
+    case Failure(_) => Left(ExecutionFailed)  // TODO: Exception logging in debug mode.
   }
 }
 

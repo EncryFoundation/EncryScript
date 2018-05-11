@@ -2,7 +2,7 @@ package encrywm.frontend.semantics
 
 import encrywm.ast.Ast.EXPR
 import encrywm.ast.{Ast, AstNodeScanner}
-import encrywm.lib.Types.{ESList, ESOption}
+import encrywm.lib.Types.{ESFunc, ESList, ESOption}
 import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 
 object Transformer extends AstNodeScanner {
@@ -48,6 +48,7 @@ object Transformer extends AstNodeScanner {
     case EXPR.Attribute(value, attr, _, _) if attr.name == "get" =>
       value.tpeOpt.get match {
         case ESOption(inT) => Some(EXPR.Get(value, Some(inT)))
+        case ESFunc(_, ESOption(inT)) => Some(EXPR.Get(value, Some(inT)))
         case _ => None
       }
 

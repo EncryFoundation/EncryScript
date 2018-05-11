@@ -340,7 +340,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
     didUnlock(excR) shouldBe true
   }
 
-  property("BuiltIn function") {
+  property("BuiltIn function (CheckSig)") {
 
     val tree = process(
       """
@@ -349,6 +349,21 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
         |let pk = base58"117gRnfiknXThwHF6fb4A8WQdgNxA6ZDxYApqu7MztH"
         |
         |unlock if not checkSig(sig, msg, pk)
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.get)
+
+    didUnlock(excR) shouldBe true
+  }
+
+  property("BuiltIn function (Base58Decode)") {
+
+    val tree = process(
+      """
+        |let litDec = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
+        |let fnDec = decode("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
+        |
+        |unlock if litDec == fnDec.get
       """.stripMargin)
 
     val excR = exc.executeContract(tree.get)
