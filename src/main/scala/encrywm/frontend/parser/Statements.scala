@@ -4,7 +4,6 @@ import encrywm.ast.Ast
 import encrywm.frontend.parser.Expressions._
 import encrywm.frontend.parser.Lexer.kwd
 import encrywm.frontend.parser.WsApi._
-import fastparse.noApi
 import fastparse.noApi._
 
 object Statements extends Statements(0)
@@ -15,7 +14,7 @@ object Statements extends Statements(0)
   */
 class Statements(indent: Int){
 
-  val SPACE: noApi.Parser[Unit] = P( CharIn(" \n") )
+  val SPACE: P[Unit] = P( CharIn(" \n") )
   val NEWLINE: P0 = P( "\n" | End )
   val ENDMARKER: P0 = P( End )
 
@@ -23,9 +22,9 @@ class Statements(indent: Int){
     NEWLINE.map(_ => Nil) | simpleStmt | compoundStmt.map(Seq(_)) ~ NEWLINE
   )
 
-  val indents = P( "\n" ~~ " ".repX(indent) )
+  val indents: P[Unit] = P( "\n" ~~ " ".repX(indent) )
 
-  val spaces = P( (Lexer.nnlWsComment.? ~~ "\n").repX(1) )
+  val spaces: P[Unit] = P( (Lexer.nnlWsComment.? ~~ "\n").repX(1) )
   val fileInput: P[Seq[Ast.STMT]] = P( spaces.? ~ stmt.repX(0, spaces) ~ spaces.? ).map(_.flatten)
   val evalInput: P[Ast.EXPR] = P( testlist ~ NEWLINE.rep ~ ENDMARKER ).map(tuplize)
 
@@ -87,12 +86,12 @@ class Statements(indent: Int){
 
   val returnStmt: P[Ast.STMT.Return] = P( kwd("return") ~~ " ".rep ~~ testlist.map(tuplize).? ).map(Ast.STMT.Return)
 
-  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | passStmt )
+  val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | passStmt)
 
   val dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
     .map(Ast.Alias.tupled)
-  val dotted_as_names = P( dotted_as_name.rep(1, ",") )
-  val dotted_name = P( NAME.rep(1, ".") )
+  val dotted_as_names: P[Seq[Ast.Alias]] = P( dotted_as_name.rep(1, ",") )
+  val dotted_name: P[Seq[Ast.Identifier]] = P( NAME.rep(1, ".") )
 
   val assertStmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 

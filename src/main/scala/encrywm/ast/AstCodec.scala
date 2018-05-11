@@ -1,17 +1,15 @@
 package encrywm.ast
 
+import encrywm.ast.Ast._
 import encrywm.lib.Types
 import encrywm.lib.Types.ESType
-import encrywm.ast.Ast._
 import scodec.Codec
-import scodec.codecs.{Discriminated, uint2, uint4, uint8}
+import scodec.codecs.{Discriminated, Discriminator, uint2, uint4, uint8}
 
 object AstCodec {
 
-  import scodec.codecs.implicits._
-
   implicit def dRoot = Discriminated[TREE_ROOT, Int](uint2)
-  implicit def dCon = dRoot.bind[TREE_ROOT.Contract](0)
+  implicit def dCon: Discriminator[TREE_ROOT, TREE_ROOT.Contract, Int] = dRoot.bind[TREE_ROOT.Contract](0)
   implicit def dRExp = dRoot.bind[TREE_ROOT.Expression](1)
 
   implicit def dT = Discriminated[ESType, Int](uint8)
@@ -41,7 +39,7 @@ object AstCodec {
   implicit def dMuls = dT.bind[Types.MultiSig.type](25)
   implicit def dTObj = dT.bind[Types.ESTypedObject](26)
 
-  implicit def dSt = Discriminated[STMT, Int](uint4)
+  implicit def dSt: Discriminated[STMT, Int] = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)
   implicit def dRet = dSt.bind[STMT.Return](1)
   implicit def dAsg = dSt.bind[STMT.Let](2)

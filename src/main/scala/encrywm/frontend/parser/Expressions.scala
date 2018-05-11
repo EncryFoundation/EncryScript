@@ -1,7 +1,7 @@
 package encrywm.frontend.parser
 
 import encrywm.ast.Ast
-import encrywm.ast.Ast.EXPR
+import encrywm.ast.Ast.{COMP_OP, EXPR, OPERATOR, UNARY_OP}
 import encrywm.frontend.parser.Lexer.kwd
 import encrywm.frontend.parser.WsApi._
 import fastparse.noApi._
@@ -53,28 +53,28 @@ object Expressions {
   // Common operators, mapped from their
   // strings to their type-safe representations
   def op[T](s: P0, rhs: T): core.Parser[T, Char, String] = s.!.map(_ => rhs)
-  val Lt = op("<", Ast.COMP_OP.Lt)
-  val Gt = op(">", Ast.COMP_OP.Gt)
-  val Eq = op("==", Ast.COMP_OP.Eq)
-  val GtE = op(">=", Ast.COMP_OP.GtE)
-  val LtE = op("<=", Ast.COMP_OP.LtE)
-  val NotEq = op("<>" | "!=", Ast.COMP_OP.NotEq)
-  val In = op("in", Ast.COMP_OP.In)
-  val NotIn = op("not" ~ "in", Ast.COMP_OP.NotIn)
-  val Is = op("is", Ast.COMP_OP.Is)
-  val IsNot = op("is" ~ "not", Ast.COMP_OP.IsNot)
-  val comp_op = P( LtE|GtE|Eq|Gt|Lt|NotEq|In|NotIn|IsNot|Is )
-  val Add = op("+", Ast.OPERATOR.Add)
-  val Sub = op("-", Ast.OPERATOR.Sub)
-  val Pow = op("**", Ast.OPERATOR.Pow)
-  val Mult= op("*", Ast.OPERATOR.Mult)
-  val Div = op("/", Ast.OPERATOR.Div)
-  val Mod = op("%", Ast.OPERATOR.Mod)
-  val FloorDiv = op("//", Ast.OPERATOR.FloorDiv)
-  val UAdd = op("+", Ast.UNARY_OP.UAdd)
-  val USub = op("-", Ast.UNARY_OP.USub)
-  val Invert = op("~", Ast.UNARY_OP.Invert)
-  val unary_op = P ( UAdd | USub | Invert )
+  val Lt: core.Parser[COMP_OP.Lt.type, Char, String] = op("<", Ast.COMP_OP.Lt)
+  val Gt: core.Parser[COMP_OP.Gt.type, Char, String] = op(">", Ast.COMP_OP.Gt)
+  val Eq: core.Parser[COMP_OP.Eq.type, Char, String] = op("==", Ast.COMP_OP.Eq)
+  val GtE: core.Parser[COMP_OP.GtE.type, Char, String] = op(">=", Ast.COMP_OP.GtE)
+  val LtE: core.Parser[COMP_OP.LtE.type, Char, String] = op("<=", Ast.COMP_OP.LtE)
+  val NotEq: core.Parser[COMP_OP.NotEq.type, Char, String] = op("<>" | "!=", Ast.COMP_OP.NotEq)
+  val In: core.Parser[COMP_OP.In.type, Char, String] = op("in", Ast.COMP_OP.In)
+  val NotIn: core.Parser[COMP_OP.NotIn.type, Char, String] = op("not" ~ "in", Ast.COMP_OP.NotIn)
+  val Is: core.Parser[COMP_OP.Is.type, Char, String] = op("is", Ast.COMP_OP.Is)
+  val IsNot: core.Parser[COMP_OP.IsNot.type, Char, String] = op("is" ~ "not", Ast.COMP_OP.IsNot)
+  val comp_op: noApi.Parser[Ast.COMP_OP with Product with Serializable] = P( LtE|GtE|Eq|Gt|Lt|NotEq|In|NotIn|IsNot|Is )
+  val Add: core.Parser[OPERATOR.Add.type, Char, String] = op("+", Ast.OPERATOR.Add)
+  val Sub: core.Parser[OPERATOR.Sub.type, Char, String] = op("-", Ast.OPERATOR.Sub)
+  val Pow: core.Parser[OPERATOR.Pow.type, Char, String] = op("**", Ast.OPERATOR.Pow)
+  val Mult: core.Parser[OPERATOR.Mult.type, Char, String] = op("*", Ast.OPERATOR.Mult)
+  val Div: core.Parser[OPERATOR.Div.type, Char, String] = op("/", Ast.OPERATOR.Div)
+  val Mod: core.Parser[OPERATOR.Mod.type, Char, String] = op("%", Ast.OPERATOR.Mod)
+  val FloorDiv: core.Parser[OPERATOR.FloorDiv.type, Char, String] = op("//", Ast.OPERATOR.FloorDiv)
+  val UAdd: core.Parser[UNARY_OP.UAdd.type, Char, String] = op("+", Ast.UNARY_OP.UAdd)
+  val USub: core.Parser[UNARY_OP.USub.type, Char, String] = op("-", Ast.UNARY_OP.USub)
+  val Invert: core.Parser[UNARY_OP.Invert.type, Char, String] = op("~", Ast.UNARY_OP.Invert)
+  val unary_op: noApi.Parser[Ast.UNARY_OP with Product with Serializable] = P ( UAdd | USub | Invert )
 
 
   def Unary(p: P[Ast.EXPR]): core.Parser[EXPR.UnaryOp, Char, String] =
@@ -121,10 +121,10 @@ object Expressions {
         BOOL
     )
   }
-  val listContents = P( test.rep(1, ",") ~ ",".? )
-  val list = P( listContents ).map(exps => Ast.EXPR.ESList(exps.toList, Ast.EXPR_CTX.Load))
-  val tupleContents = P( test ~ "," ~ listContents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
-  val tuple = P( tupleContents ).map(tcs => Ast.EXPR.ESTuple(tcs.toList, Ast.EXPR_CTX.Load))
+  val listContents: noApi.Parser[Seq[EXPR]] = P( test.rep(1, ",") ~ ",".? )
+  val list: core.Parser[EXPR.ESList, Char, String] = P( listContents ).map(exps => Ast.EXPR.ESList(exps.toList, Ast.EXPR_CTX.Load))
+  val tupleContents: core.Parser[Seq[EXPR], Char, String] = P( test ~ "," ~ listContents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
+  val tuple: core.Parser[EXPR.ESTuple, Char, String] = P( tupleContents ).map(tcs => Ast.EXPR.ESTuple(tcs.toList, Ast.EXPR_CTX.Load))
 
   val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lamb") ~ "(" ~ varargslist ~ ")" ~ "=" ~ test ).map { case (args, exp) => Ast.EXPR.Lambda(args, exp) }
 
@@ -148,12 +148,12 @@ object Expressions {
     P( ellipses | multi | single )
   }
 
-  val subscriptlist = P( subscript.rep(1, ",") ~ ",".? ).map {
+  val subscriptlist: core.Parser[Ast.SLICE, Char, String] = P( subscript.rep(1, ",") ~ ",".? ).map {
     case Seq(x) => x
     case xs => Ast.SLICE.ExtSlice(xs.toList)
   }
 
-  val sliceop = P(":" ~ test.?)
+  val sliceop: noApi.Parser[Option[EXPR]] = P(":" ~ test.?)
   val exprlist: P[Seq[Ast.EXPR]] = P( expr.rep(1, sep = ",") ~ ",".? )
   val testlist: P[Seq[Ast.EXPR]] = P( test.rep(1, sep = ",") ~ ",".? )
   val dictorsetmaker: P[Ast.EXPR] = {
