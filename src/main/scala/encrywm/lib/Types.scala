@@ -164,6 +164,38 @@ object Types {
     )
   }
 
+  // ESProposition impl
+  case object ContractProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "ContractProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
+
+    override val fields: Map[String, ESType] = Map(
+      "fingerprint" -> ESByteVector
+    )
+  }
+
+  // ESProposition impl
+  case object HeightProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "HeightProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
+
+    override val fields: Map[String, ESType] = Map(
+      "height" -> ESInt
+    )
+  }
+
+  // ESProposition impl
+  case object OpenProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "OpenProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
+  }
+
   // Abstract type
   case object ESBox extends ESType with ESProduct {
     override type Underlying = ESObject
