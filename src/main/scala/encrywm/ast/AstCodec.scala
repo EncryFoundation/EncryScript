@@ -8,6 +8,8 @@ import scodec.codecs.{Discriminated, Discriminator, uint2, uint4, uint8}
 
 object AstCodec {
 
+  import scodec.codecs.implicits._
+
   implicit def dRoot = Discriminated[TREE_ROOT, Int](uint2)
   implicit def dCon: Discriminator[TREE_ROOT, TREE_ROOT.Contract, Int] = dRoot.bind[TREE_ROOT.Contract](0)
   implicit def dRExp = dRoot.bind[TREE_ROOT.Expression](1)
