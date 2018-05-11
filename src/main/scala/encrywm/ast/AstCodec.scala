@@ -40,6 +40,9 @@ object AstCodec {
   implicit def dScr = dT.bind[Types.ESScript.type](24)
   implicit def dMuls = dT.bind[Types.MultiSig.type](25)
   implicit def dTObj = dT.bind[Types.ESTypedObject](26)
+  implicit def dOpp = dT.bind[Types.OpenProposition.type](27)
+  implicit def dCp = dT.bind[Types.ContractProposition.type](28)
+  implicit def dHp = dT.bind[Types.HeightProposition.type](29)
 
   implicit def dSt = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)
