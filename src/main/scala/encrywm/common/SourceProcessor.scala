@@ -20,8 +20,11 @@ object SourceProcessor {
     val comps = s.split(Lexer.SchemaSeparator)
     (if (comps.size > 1) {
       val parsed = Parser.parse(comps.last).get.value
-      val schema = encrytl.common.SourceProcessor.process(comps.head).getOrElse(throw InvalidSchemaError).head
-      val analyzer = new StaticAnalyser(TypeSystem(SchemaConverter.schema2ESType(schema).map(Seq(_)).getOrElse(throw InvalidSchemaError)))
+      val schema = encrytl.common.SourceProcessor.process(comps.head).map(_.head)
+        .getOrElse(throw InvalidSchemaError)
+      val analyzer = new StaticAnalyser(
+        TypeSystem(SchemaConverter.schema2ESType(schema).map(Seq(_)).getOrElse(throw InvalidSchemaError))
+      )
       analyzer.scan(parsed)
       Transformer.scan(parsed)
     } else {

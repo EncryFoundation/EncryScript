@@ -1,3 +1,3 @@
 package encrywm.backend.env
 
-trait ESEnvComponent { val name: String }
+trait ESEnvComponent { val id: String }

@@ -4,7 +4,7 @@ import encrywm.backend.env.ESBuiltInFunc.EvalResult
 import encrywm.backend.executor.error.ExecutionError
 import encrywm.lib.Types.ESType
 
-case class ESBuiltInFunc(name: String,
+case class ESBuiltInFunc(id: String,
                          args: IndexedSeq[(String, ESType)],
                          body: (Seq[(String, ESValue)]) => EvalResult) extends ESEnvComponent
 

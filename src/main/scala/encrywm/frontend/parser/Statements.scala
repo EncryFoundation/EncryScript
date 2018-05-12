@@ -43,13 +43,15 @@ class Statements(indent: Int){
 
   val typeParams: P[Seq[Ast.Identifier]] = P( "[" ~ NAME.rep(sep = ",") ~ "]" )
 
-  val typeDeclarationSemi: P[Ast.TypeIdentifier] = P( ":" ~ NAME ~ typeParams.? ).map { case (tpeN, tpsOpt) =>
+  val typeId: P[Ast.TypeIdentifier] = P( NAME ~ typeParams.? ).map { case (tpeN, tpsOpt) =>
     Ast.TypeIdentifier(tpeN, tpsOpt.map(_.toList).getOrElse(List.empty))
   }
 
-  val typeDeclarationArrow: P[Ast.TypeIdentifier] = P( "->" ~ NAME ~ typeParams.? ).map { case (tpeN, tpsOpt) =>
-    Ast.TypeIdentifier(tpeN, tpsOpt.map(_.toList).getOrElse(List.empty))
-  }
+  val typeDeclarationSemi: P[Ast.TypeIdentifier] = P( ":" ~ typeId )
+
+  val typeDeclarationArrow: P[Ast.TypeIdentifier] = P( "->" ~ typeId )
+
+  val schemaDeclarationArrow: P[Ast.Identifier] = P( "->" ~ "@" ~ NAME )
 
   val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
 
@@ -62,7 +64,7 @@ class Statements(indent: Int){
     val testsStm = P( testlist )
     val letStm = P( kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
     val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
-    val caseStm = P( kwd("case") ~/ ( branchParamDeclaration | genericCond | expr ) ~ ":" ~~ block )
+    val caseStm = P( kwd("case") ~/ ( schemaMatching | typeMatching | genericCond | expr ) ~ ":" ~~ block )
 
     P(
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |

@@ -8,7 +8,7 @@ class ScopedRuntimeEnv(val name: String,
                        val parentOpt: Option[ScopedRuntimeEnv] = None) extends RuntimeEnv {
 
   def updated(s: ESEnvComponent): ScopedRuntimeEnv =
-    new ScopedRuntimeEnv(name, level, members.updated(s.name, s), parentOpt)
+    new ScopedRuntimeEnv(name, level, members.updated(s.id, s), parentOpt)
 
   def emptyChild(n: String): ScopedRuntimeEnv = ScopedRuntimeEnv.empty(n, level + 1, Some(this))
 

@@ -235,11 +235,28 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
       """
         |match proof:
         |   case sig -> Signature25519:
-        |       checkSig(sig)
+        |       unlock if checkSig(sig)
         |   case _:
-        |       0 * 1000
+        |       pass
       """.stripMargin
     val parsed = (Statements.fileInput ~ End).parse(source)
+
+    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+  }
+
+  property("Match statement (Schema matching in branch)") {
+    val source =
+      """
+        |match box:
+        |   case asset -> @MyCustomAssetBox:
+        |       unlock if asset.amount > 1000
+        |   case _:
+        |       pass
+      """.stripMargin
+
+    val parsed = (Statements.fileInput ~ End).parse(source)
+
+    println(parsed)
 
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
