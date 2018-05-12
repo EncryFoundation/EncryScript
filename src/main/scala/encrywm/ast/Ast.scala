@@ -88,6 +88,7 @@ object Ast {
 
     case class Declaration(target: EXPR, typeOpt: Option[TypeIdentifier]) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
     case class TypeMatching(name: Identifier, tipe: TypeIdentifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
+    case class SchemaMatching(name: Identifier, schemaId: Identifier) extends EXPR { var tpeOpt: Option[ESType] = Some(ESUnit) }
 
     // Used to define default condition in `case` branch.
     case object GenericCond extends EXPR { override var tpeOpt: Option[ESType] = Some(ESUnit) }

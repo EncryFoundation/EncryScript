@@ -43,6 +43,7 @@ object AstCodec {
   implicit def dOpp = dT.bind[Types.OpenProposition.type](27)
   implicit def dCp = dT.bind[Types.ContractProposition.type](28)
   implicit def dHp = dT.bind[Types.HeightProposition.type](29)
+  implicit def dTsT = dT.bind[Types.TLSchemaTag.type](30)
 
   implicit def dSt: Discriminated[STMT, Int] = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)
@@ -88,7 +89,8 @@ object AstCodec {
   implicit def dMap = dEx.bind[EXPR.Map](27)
   implicit def dDecl = dEx.bind[EXPR.Declaration](28)
   implicit def dBpd = dEx.bind[EXPR.TypeMatching](29)
-  implicit def dGc = dEx.bind[EXPR.GenericCond.type](30)
+  implicit def dScM = dEx.bind[EXPR.SchemaMatching](30)
+  implicit def dGc = dEx.bind[EXPR.GenericCond.type](31)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)
   implicit def dLoad = dECTX.bind[EXPR_CTX.Load.type](0)

@@ -87,6 +87,12 @@ object Types {
     override val fields: Map[String, ESType] = fs.toMap
   }
 
+  /** TL schema object type tag */
+  case object TLSchemaTag extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "TypeLangSchemaTag"
+  }
+
   case object ESContext extends ESType with ESProduct {
     override type Underlying = ESObject
     override val ident: String = "Context"
@@ -356,6 +362,10 @@ object Types {
     MultiSig,
     AssetBox,
     AccountProposition,
+    OpenProposition,
+    ContractProposition,
+    HeightProposition,
+    TLSchemaTag,
     ESOption(NIType)
   )
 

@@ -95,7 +95,7 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
                 val expT = exp.tpeOpt.get
                 val expV = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
-              }.map(v => v.name -> v).toMap
+              }.map(v => v.id -> v).toMap
               val nestedEnv = currentEnv.child(id.name, argMap)
               execute(body, nestedEnv) match {
                 case Right(Return(Val(v))) => v
@@ -333,6 +333,14 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
           case STMT.Case(_, body, isDefault) if isDefault =>
             val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
             return execute(body, nestedCtx)
+
+          case STMT.Case(EXPR.SchemaMatching(local, Identifier(schemaId)), body, _) =>
+            targetV match {
+              case obj: ESObject if obj.isInstanceOf(Types.TLSchemaTag) && obj.id == schemaId =>
+                val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
+                return execute(body, nestedCtx.updated(ESValue(local.name, Types.TLSchemaTag)(obj.asInstanceOf[Types.TLSchemaTag.Underlying])))
+            }
+
           case STMT.Case(EXPR.TypeMatching(local, tpeN), body, _) =>
             val localT = ts.typeByIdent(tpeN.ident.name).get
             targetV match {
@@ -341,6 +349,7 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
                 return execute(body, nestedCtx.updated(ESValue(local.name, localT)(obj.asInstanceOf[localT.Underlying])))
               case _ => // Do nothing.
             }
+
           case STMT.Case(cond, body, _) =>
             val condT = cond.tpeOpt.get
             val condV = eval[condT.Underlying](cond)
@@ -348,6 +357,7 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
               val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
               return execute(body, nestedCtx)
             }
+
           case _ => throw IllegalOperationError
         }
         Right(Nothing)
@@ -415,7 +425,7 @@ object Executor {
 
   def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor = {
     ESContext.fields.foreach { case (name, tpe) =>
-      if (!ctx.value.asInstanceOf[ESObject].attrs.exists(ctxElem => ctxElem._1 == name && (ctxElem._2.tpe == tpe || ctxElem._2.tpe.isSubtypeOf(tpe))))
+      if (!ctx.value.asInstanceOf[ESObject].fields.exists(ctxElem => ctxElem._1 == name && (ctxElem._2.tpe == tpe || ctxElem._2.tpe.isSubtypeOf(tpe))))
         throw new EnvironmentError(s"Environment is inconsistent, $name[$tpe] is undefined.")
     }
     new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
