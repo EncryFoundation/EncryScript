@@ -21,13 +21,13 @@ object AstStringifier {
       s"def ${name.name}(${args.args.map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_.concat(_))}): -> ${returnType.name}:"
         .concat(body.map(toString).fold("")((str, expr) => str.concat("\n" +  expr)))
     case STMT.Return(value) => "return " + value.map(toString(_)).getOrElse("")
-    case STMT.Let(target, value, global) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))
-    case STMT.AugAssign(_, _, value) => ???
-    case STMT.For(_, _, body, orelse) => ???
-    case STMT.If(test, body, orelse) => ???
-    case STMT.Match(target, branches) => s"match ${toString(target)}"
-    case STMT.Case(cond, body, isDefault) => s"case ${toString(cond)} \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
-    case STMT.Assert(test, msg) => ???
+    case STMT.Let(target, value, _) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))
+    case STMT.AugAssign(_, _, _) => ???
+    case STMT.For(_, _, _, _) => ???
+    case STMT.If(_, _, _) => ???
+    case STMT.Match(target, _) => s"match ${toString(target)}"
+    case STMT.Case(cond, body, _) => s"case ${toString(cond)} \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
+    case STMT.Assert(_, _) => ???
     case STMT.Expr(value) => toString(value)
     case STMT.UnlockIf(expr) => "unlock if ".concat(toString(expr))
     case STMT.Halt => "abort"
@@ -39,7 +39,7 @@ object AstStringifier {
     case EXPR.BoolOp(op, values) => values.tail.foldLeft(toString(values.head))((str, expr) => str.concat(s"${boolOpToString(op)} ${toString(expr)}"))
     case EXPR.BinOp(left, op, right, _) => s"${toString(left)} ${binOpToString(op)} ${toString(right)}"
     case EXPR.UnaryOp(op, operand, _) => unaryOpToString(op) + toString(operand)
-    case EXPR.Lambda(args, body, tpe) => "lamb (" + args.args.foldLeft("")((str, ident) => str + s"${ident._1}: ${ident._2.ident.name}") + ") = " + toString(body)
+    case EXPR.Lambda(args, body, _) => "lamb (" + args.args.foldLeft("")((str, ident) => str + s"${ident._1}: ${ident._2.ident.name}") + ") = " + toString(body)
     case EXPR.IfExp(test, body, orelse, _) => s"${toString(body)} if ${toString(test)} else ${toString(orelse)}"
     case EXPR.Compare(left, ops, comparators) => toString(left).concat(
       ops.map(compOpToString).zip(comparators.map(toString)).foldLeft("")((str, elem) => str.concat(s" ${elem._1} ${elem._2}"))
@@ -52,7 +52,7 @@ object AstStringifier {
     case EXPR.Str(str) => str
     case EXPR.Base58Str(str) => s"base58{$str}"
     case EXPR.Attribute(value, attr, _, _) => s"${toString(value)}.${attr.name}"
-    case EXPR.Subscript(value, _, _, _) => ???
+    case EXPR.Subscript(_, _, _, _) => ???
     case EXPR.Name(name, _, _) => name.name
     case EXPR.ESDictNode(keys, values, _) => keys.zip(values).foldLeft("")( (str, elem) => str.concat(toString(elem._1) + ":" + toString(elem._2)))
     case EXPR.ESSet(elts, _) => elts.foldLeft("")((str, expr) => str.concat(toString(expr) + ", "))
