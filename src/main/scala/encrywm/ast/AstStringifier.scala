@@ -47,8 +47,6 @@ object AstStringifier {
     case EXPR.Call(func, args, _, _) => toString(func) + "(" + args.tail.foldLeft(toString(args.head))((str, expr) => str.concat(", " + toString(expr))) + ")"
     case EXPR.IntConst(const) => const.toString
     case EXPR.LongConst(const) => const.toString
-    case EXPR.FloatConst(const) => const.toString
-    case EXPR.DoubleConst(const) => const.toString
     case EXPR.True => true.toString
     case EXPR.False => false.toString
     case EXPR.Str(str) => str
@@ -61,7 +59,6 @@ object AstStringifier {
     case EXPR.ESList(elts, _, _) => "[ " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " ]"
     case EXPR.ESTuple(elts, _, _) => "( " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " )"
     case EXPR.Declaration(target, tpe) => toString(target) + tpe.map(": " + _.ident.name).getOrElse("")
-    case EXPR.BranchParamDeclaration(_, tipe) => s"${tipe.ident.name}: "
     case EXPR.GenericCond => "_"
     case _ => ???
   }
