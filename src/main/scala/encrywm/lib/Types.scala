@@ -401,5 +401,5 @@ case class TypeSystem(dynamicTypes: Seq[Types.ESTypedObject]) {
 
 object TypeSystem {
 
-  def empty: TypeSystem = TypeSystem(Seq.empty)
+  def default: TypeSystem = TypeSystem(Seq.empty)
 }

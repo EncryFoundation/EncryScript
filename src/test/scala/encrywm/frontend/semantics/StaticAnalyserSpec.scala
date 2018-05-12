@@ -19,7 +19,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let c: String = "string"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -35,7 +35,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: undef = 9
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -52,7 +52,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -70,7 +70,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, 2)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -86,7 +86,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + c
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -101,7 +101,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum()
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -119,7 +119,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, 2, 3)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -134,7 +134,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9 if 6 > 10 else 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -149,7 +149,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9 if b < 0 else 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -164,7 +164,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |lamb (a: Int, b: Int) = a * b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -179,7 +179,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |lamb (a: Int, b: Int) = a * c
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -195,7 +195,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -211,7 +211,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -226,7 +226,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let timestamp = context.transaction.timestamp
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -241,7 +241,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let timestamp = transaction.attr0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -258,7 +258,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(lamb (n: Int) = n > 10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -278,7 +278,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(isGreaterThan10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -297,7 +297,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |mapped[2].get + 10
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -316,7 +316,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |mapped[2].get + 10
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -333,7 +333,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(lamb (n: String) = n > 10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -353,7 +353,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(isGreaterThan10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -370,7 +370,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = 9L + 1
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -385,7 +385,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9L + 1
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -401,7 +401,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -417,7 +417,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -436,7 +436,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |        return 0L
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -454,7 +454,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, "string")
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -469,7 +469,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 1 / 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -484,7 +484,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, 3, 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -499,7 +499,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, 3L, 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -514,7 +514,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, [1, 2, 3], 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -529,7 +529,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : "string", 2 : "string"}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -544,7 +544,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : "string", 2 : 8}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -559,7 +559,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : {1 : 2}, 2 : {3 : 4}}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -575,7 +575,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = lst[1].get
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -591,7 +591,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: String = lst[1]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -606,7 +606,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let byteVector: Bytes = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -621,7 +621,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let byteVector = base58"invalidString_oO0"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -640,7 +640,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |       0 * 1000
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -661,7 +661,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |           return 0 * 1000
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -678,7 +678,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |       sig.sigBytes
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -696,7 +696,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |a
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
@@ -714,7 +714,7 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |a
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.empty)
+    val analyzer = new StaticAnalyser(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 

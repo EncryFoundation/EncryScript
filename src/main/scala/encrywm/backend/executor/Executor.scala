@@ -13,7 +13,10 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success}
 
-class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fuelLimit: Int = 1000) {
+class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
+                                ts: TypeSystem = TypeSystem.default,
+                                fuelLimit: Int = 1000,
+                                debug: Boolean = false) {
 
   import Executor._
 
@@ -401,7 +404,9 @@ class Executor private[encrywm](ts: TypeSystem, globalEnv: ScopedRuntimeEnv, fue
     case Failure(_: UnlockException.type) => Right(Return(Unlocked))
     case Failure(_: ExecAbortException.type) => Right(Return(Halt))
     case Success(Right(result)) => Right(result)
-    case Failure(_) => Left(ExecutionFailed)  // TODO: Exception logging in debug mode.
+    case Failure(e) =>
+      if (debug) e.printStackTrace()
+      Left(ExecutionFailed)
   }
 }
 
@@ -423,11 +428,14 @@ object Executor {
 
   case object ExecutionFailed
 
-  def apply(ts: TypeSystem, ctx: ESValue, fuelLimit: Int): Executor = {
+  def apply(ctx: ESValue,
+            fuelLimit: Int,
+            ts: TypeSystem = TypeSystem.default,
+            debug: Boolean = false): Executor = {
     ESContext.fields.foreach { case (name, tpe) =>
       if (!ctx.value.asInstanceOf[ESObject].fields.exists(ctxElem => ctxElem._1 == name && (ctxElem._2.tpe == tpe || ctxElem._2.tpe.isSubtypeOf(tpe))))
         throw new EnvironmentError(s"Environment is inconsistent, $name[$tpe] is undefined.")
     }
-    new Executor(ts, ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), fuelLimit)
+    new Executor(ScopedRuntimeEnv.initialized("G", 1, Map(ESContext.ident.toLowerCase -> ctx)), ts, fuelLimit, debug)
   }
 }

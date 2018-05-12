@@ -29,7 +29,7 @@ object SourceProcessor {
       Transformer.scan(parsed)
     } else {
       val parsed = Parser.parse(s).get.value
-      val analyzer = new StaticAnalyser(TypeSystem.empty)
+      val analyzer = new StaticAnalyser(TypeSystem.default)
       analyzer.scan(parsed)
       Transformer.scan(parsed)
     }).asInstanceOf[Contract]
