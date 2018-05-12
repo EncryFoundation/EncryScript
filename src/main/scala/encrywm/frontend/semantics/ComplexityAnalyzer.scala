@@ -46,8 +46,6 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.Call(func, args, _, _) => scanExpr(func) + args.map(scanExpr).sum
     case EXPR.IntConst(_) => 1
     case EXPR.LongConst(_) => 1
-    case EXPR.FloatConst(_) => 1
-    case EXPR.DoubleConst(_) => 1
     case EXPR.True => 1
     case EXPR.False => 1
     case EXPR.Str(_) => 1
@@ -60,7 +58,7 @@ object ComplexityAnalyzer extends AstNodeScanner {
     case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr).sum
     case EXPR.Declaration(target, _) => scanExpr(target)
-    case EXPR.BranchParamDeclaration(_, tipe) => 2 + tipe.typeParams.length
+    case EXPR.TypeMatching(_, tipe) => 2 + tipe.typeParams.length
     case EXPR.GenericCond => 1
     case _ => 0
   }

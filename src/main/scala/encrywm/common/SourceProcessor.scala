@@ -2,9 +2,10 @@ package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
-import encrywm.frontend.parser.Statements
+import encrywm.common.tl.SchemaConverter
+import encrywm.frontend.parser.{Lexer, Parser}
 import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
-import fastparse.all._
+import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 
 import scala.util.Try
@@ -13,12 +14,22 @@ object SourceProcessor {
 
   type SerializedContract = Array[Byte]
 
+  case object InvalidSchemaError extends Error("Invalid schema")
+
   def process(s: String): Try[Contract] = Try {
-    val parsed = (Statements.contract ~ End).parse(s).get.value
-    val analyzer = new StaticAnalyser
-    analyzer.scan(parsed)
-    val transformed = Transformer.scan(parsed)
-    transformed.asInstanceOf[Contract]
+    val comps = s.split(Lexer.SchemaSeparator)
+    (if (comps.size > 1) {
+      val parsed = Parser.parse(comps.last).get.value
+      val schema = encrytl.common.SourceProcessor.process(comps.head).getOrElse(throw InvalidSchemaError).head
+      val analyzer = new StaticAnalyser(TypeSystem(SchemaConverter.schema2ESType(schema).map(Seq(_)).getOrElse(throw InvalidSchemaError)))
+      analyzer.scan(parsed)
+      Transformer.scan(parsed)
+    } else {
+      val parsed = Parser.parse(s).get.value
+      val analyzer = new StaticAnalyser(TypeSystem.empty)
+      analyzer.scan(parsed)
+      Transformer.scan(parsed)
+    }).asInstanceOf[Contract]
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>

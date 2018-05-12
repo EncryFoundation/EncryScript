@@ -4,6 +4,8 @@ import encrywm.backend.env.ESObject
 
 object Types {
 
+  type Field = (String, ESType)
+
   sealed trait ESType {
     type Underlying
     val ident: String
@@ -52,14 +54,6 @@ object Types {
     override type Underlying = Long
     override val ident: String = "Long"
   }
-  case object FLOAT extends ESType with ESPrimitive {
-    override type Underlying = Float
-    override val ident: String = "Float"
-  }
-  case object DOUBLE extends ESType with ESPrimitive {
-    override type Underlying = Double
-    override val ident: String = "Double"
-  }
   case object ESString extends ESType with ESPrimitive {
     override type Underlying = String
     override val ident: String = "String"
@@ -85,6 +79,12 @@ object Types {
         else p.fields.zip(this.fields).forall { case ((f1, _), (f2, _)) => f1 == f2 }
       case _ => false
     }
+  }
+
+  /** Used to describe dynamic data structures */
+  case class ESTypedObject(override val ident: String, fs: List[Field]) extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val fields: Map[String, ESType] = fs.toMap
   }
 
   case object ESContext extends ESType with ESProduct {
@@ -160,8 +160,40 @@ object Types {
     override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
 
     override val fields: Map[String, ESType] = Map(
-      "accountAddress" -> ESByteVector
+      "accountAddress" -> ESString
     )
+  }
+
+  // ESProposition impl
+  case object ContractProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "ContractProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
+
+    override val fields: Map[String, ESType] = Map(
+      "fingerprint" -> ESByteVector
+    )
+  }
+
+  // ESProposition impl
+  case object HeightProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "HeightProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
+
+    override val fields: Map[String, ESType] = Map(
+      "height" -> ESInt
+    )
+  }
+
+  // ESProposition impl
+  case object OpenProposition extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "OpenProposition"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESProposition)
   }
 
   // Abstract type
@@ -337,12 +369,6 @@ object Types {
     ESLong
   )
 
-  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes :+ ESFunc(List.empty, NIType)
-
-  lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.ident -> t).toMap
-
-  def typeByIdent(id: String): Option[ESType] = typesMap.get(id)
-
   def liftType(d: Any): ESType = d match {
     case _: Int => ESInt
     case _: Long => ESLong
@@ -350,4 +376,20 @@ object Types {
     case _: String => ESString
     case _: Array[Byte] => ESByteVector
   }
+}
+
+case class TypeSystem(dynamicTypes: Seq[Types.ESTypedObject]) {
+
+  import Types._
+
+  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes ++ dynamicTypes :+ ESFunc(List.empty, NIType)
+
+  lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.ident -> t).toMap
+
+  def typeByIdent(id: String): Option[ESType] = typesMap.get(id)
+}
+
+object TypeSystem {
+
+  def empty: TypeSystem = TypeSystem(Seq.empty)
 }

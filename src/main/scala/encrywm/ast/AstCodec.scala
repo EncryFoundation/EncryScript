@@ -1,17 +1,17 @@
 package encrywm.ast
 
+import encrywm.ast.Ast._
 import encrywm.lib.Types
 import encrywm.lib.Types.ESType
-import encrywm.ast.Ast._
 import scodec.Codec
-import scodec.codecs.{Discriminated, uint2, uint4, uint8}
+import scodec.codecs.{Discriminated, Discriminator, uint2, uint4, uint8}
 
 object AstCodec {
 
   import scodec.codecs.implicits._
 
   implicit def dRoot = Discriminated[TREE_ROOT, Int](uint2)
-  implicit def dCon = dRoot.bind[TREE_ROOT.Contract](0)
+  implicit def dCon: Discriminator[TREE_ROOT, TREE_ROOT.Contract, Int] = dRoot.bind[TREE_ROOT.Contract](0)
   implicit def dRExp = dRoot.bind[TREE_ROOT.Expression](1)
 
   implicit def dT = Discriminated[ESType, Int](uint8)
@@ -19,8 +19,6 @@ object AstCodec {
   implicit def dBool = dT.bind[Types.ESBoolean.type](1)
   implicit def dInt = dT.bind[Types.ESInt.type](2)
   implicit def dLong = dT.bind[Types.ESLong.type](3)
-  implicit def dFloat = dT.bind[Types.FLOAT.type](4)
-  implicit def dDouble = dT.bind[Types.DOUBLE.type](5)
   implicit def dStr = dT.bind[Types.ESString.type](6)
   implicit def dBytes = dT.bind[Types.ESByteVector.type](7)
   implicit def dList = dT.bind[Types.ESList](8)
@@ -39,10 +37,14 @@ object AstCodec {
   implicit def dFn = dT.bind[Types.ESFunc](21)
   implicit def dNi = dT.bind[Types.NIType.type](22)
   implicit def dAny = dT.bind[Types.ESAny.type](23)
-  implicit def dScr = dT.bind[Types.ESScript.type ](24)
+  implicit def dScr = dT.bind[Types.ESScript.type](24)
   implicit def dMuls = dT.bind[Types.MultiSig.type](25)
+  implicit def dTObj = dT.bind[Types.ESTypedObject](26)
+  implicit def dOpp = dT.bind[Types.OpenProposition.type](27)
+  implicit def dCp = dT.bind[Types.ContractProposition.type](28)
+  implicit def dHp = dT.bind[Types.HeightProposition.type](29)
 
-  implicit def dSt = Discriminated[STMT, Int](uint4)
+  implicit def dSt: Discriminated[STMT, Int] = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)
   implicit def dRet = dSt.bind[STMT.Return](1)
   implicit def dAsg = dSt.bind[STMT.Let](2)
@@ -67,8 +69,6 @@ object AstCodec {
   implicit def dCall = dEx.bind[EXPR.Call](6)
   implicit def dIntConst = dEx.bind[EXPR.IntConst](7)
   implicit def dLongConst = dEx.bind[EXPR.LongConst](8)
-  implicit def dFloatConst = dEx.bind[EXPR.FloatConst](9)
-  implicit def dDoubleConst = dEx.bind[EXPR.DoubleConst](10)
   implicit def dTrue = dEx.bind[EXPR.True.type](11)
   implicit def dFalse = dEx.bind[EXPR.False.type](12)
   implicit def dStrEx = dEx.bind[EXPR.Str](13)
@@ -87,7 +87,7 @@ object AstCodec {
   implicit def dSum = dEx.bind[EXPR.Sum](26)
   implicit def dMap = dEx.bind[EXPR.Map](27)
   implicit def dDecl = dEx.bind[EXPR.Declaration](28)
-  implicit def dBpd = dEx.bind[EXPR.BranchParamDeclaration](29)
+  implicit def dBpd = dEx.bind[EXPR.TypeMatching](29)
   implicit def dGc = dEx.bind[EXPR.GenericCond.type](30)
 
   implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)

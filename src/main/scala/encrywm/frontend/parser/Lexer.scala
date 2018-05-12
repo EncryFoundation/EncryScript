@@ -53,10 +53,10 @@ object Lexer {
     case (_, i) => i
   }
 
-  val integer = negatable[Int](P( CharIn('0' to '9').rep(min = 1).!.map(_.toInt) ))
-  val longinteger = negatable[Long](P( (integer ~ ("l" | "L").rep(max = 1, min = 1)).map(_.toLong) ))
-  val floatinteger = negatable[Float](P( (integer ~ "." ~ integer ~ ("f" | "F").rep(max = 1, min = 1)).!.map(_.toFloat)))
-  val doubleinteger = negatable[Double](P( (integer ~ "." ~ integer).!.map(_.toDouble)))
+  val integer: core.Parser[Int, Char, String] = negatable[Int](P( CharIn('0' to '9').rep(min = 1).!.map(_.toInt) ))
+  val longinteger: core.Parser[Long, Char, String] = negatable[Long](P( (integer ~ ("l" | "L").rep(max = 1, min = 1)).map(_.toLong) ))
+  val floatinteger: core.Parser[Float, Char, String] = negatable[Float](P( (integer ~ "." ~ integer ~ ("f" | "F").rep(max = 1, min = 1)).!.map(_.toFloat)))
+  val doubleinteger: core.Parser[Double, Char, String] = negatable[Double](P( (integer ~ "." ~ integer).!.map(_.toDouble)))
 
   val decimalinteger: P[BigInt] = P( nonzerodigit ~ digit.rep | "0" ).!.map(scala.BigInt(_))
   val octinteger: P[BigInt] = P( "0" ~ ("o" | "O") ~ octdigit.rep(1).! | "0" ~ octdigit.rep(1).! ).map(scala.BigInt(_, 8))
@@ -75,4 +75,6 @@ object Lexer {
   val exponent: P0 = P( ("e" | "E") ~ ("+" | "-").? ~ digit.rep(1) )
 
   val imagnumber: all.Parser[BigDecimal] = P( (floatnumber | intpart) ~ ("j" | "J") )
+
+  val SchemaSeparator: String = "#---script---"
 }

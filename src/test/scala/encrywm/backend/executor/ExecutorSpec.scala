@@ -1,22 +1,21 @@
 package encrywm.backend.executor
 
-import encrywm.ast.Ast.TREE_ROOT
 import org.scalatest.{Matchers, PropSpec}
-import utils.SourceProcessor
 
-class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Execution {
+class ExecutorSpec extends PropSpec with Matchers with Execution {
+
+  import encrywm.common.SourceProcessor._
 
   property("Simple contract") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 999
         |let b = 9
         |a + b + 8
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
-
+    val excR = exc.executeContract(tree.get)
     excR.isRight shouldBe true
 
     excR.right.get.isInstanceOf[Executor.Nothing.type] shouldBe true
@@ -24,7 +23,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
   property("Contract with UnlockIf-stmt") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 30
         |let b = 30
@@ -32,14 +31,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a >= b
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Boolean operation in UnlockIf-stmt test (||)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 10
         |let b = 30
@@ -47,7 +46,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a >= b || true
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     excR.isRight shouldBe true
 
@@ -56,7 +55,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
   property("Boolean operation in UnlockIf-stmt test (&&)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 10
         |let b = 30
@@ -64,7 +63,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a < b && true
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     excR.isRight shouldBe true
 
@@ -73,7 +72,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
 
   property("Contract with fn call in If-stmt test") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 10
         |let b = 30
@@ -84,14 +83,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a <= sum(a, b)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Return stmt in function body") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 10
         |let b = 30
@@ -103,14 +102,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if fn(a, b)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("If-expression in assignment") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = 0
         |let b = 30
@@ -120,14 +119,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a <= c
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("List subscription") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let lst = [0, 1, 2, 3, 4]
         |let a = lst[3]
@@ -135,14 +134,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a.get >= 0
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Dict subscription") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let map = {"2" : 2, "1" : 1}
         |let a = map["2"]
@@ -150,82 +149,82 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if a.get >= 1
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Object attribute reference") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a: Long = context.state.height
         |
         |unlock if a >= 100
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Unary operation in test expr") {
 
-    val tree = precess(
+    val tree = process(
       """
         |unlock if not false
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("SizeOf list") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if coll.size > 2
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Sum list") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if coll.sum > 5
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("list.Exists(lambda) (true case)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if coll.exists(lamb (i: Int) = i == 2)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("list.Exists(func) (true case)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -235,28 +234,28 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if coll.exists(equals2)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("list.Exists(predicate) (false case)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
         |unlock if not coll.exists(lamb (i: Int) = i == 9)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("list.Map(func)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -265,14 +264,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if mapped.sum > 10000
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Match statement") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = true
         |
@@ -283,14 +282,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |        unlock if false
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Match statement (Default branch execution)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = true
         |
@@ -301,14 +300,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |        abort
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Global value declaration") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = true
         |
@@ -321,14 +320,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if unlockFlag
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Executor scoping (Referencing from inner scope)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let a = true
         |
@@ -336,14 +335,14 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |    unlock if a
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
-  property("BuiltIn function") {
+  property("BuiltIn function (CheckSig)") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let msg = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
         |let sig = base58"FRQ91MwL3MV3LVEG8Ej3ZspTLgUJqSLtcHM66Zk11xY1"
@@ -352,14 +351,29 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if not checkSig(sig, msg, pk)
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
+
+    didUnlock(excR) shouldBe true
+  }
+
+  property("BuiltIn function (Base58Decode)") {
+
+    val tree = process(
+      """
+        |let litDec = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
+        |let fnDec = decode("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
+        |
+        |unlock if litDec == fnDec.get
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe true
   }
 
   property("Max coll size overflow") {
 
-    val tree = precess(
+    val tree = process(
       """
         |let coll = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
         |            5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4,
@@ -370,7 +384,7 @@ class ExecutorSpec extends PropSpec with Matchers with SourceProcessor with Exec
         |unlock if mapped.sum > 10000
       """.stripMargin)
 
-    val excR = exc.executeContract(tree.asInstanceOf[TREE_ROOT.Contract])
+    val excR = exc.executeContract(tree.get)
 
     didUnlock(excR) shouldBe false
   }

@@ -48,26 +48,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
-  property("Double int") {
-    val source =
-      """
-        |13.44
-      """.stripMargin
-    val parsed = (Statements.fileInput ~ End).parse(source)
-
-    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-  }
-
-  property("Float int") {
-    val source =
-      """
-        |12.45f
-      """.stripMargin
-    val parsed = (Statements.fileInput ~ End).parse(source)
-
-    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-  }
-
   property("Base58 string") {
     val source =
       """
