@@ -2,7 +2,7 @@ package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
-import encrywm.common.tl.SchemaConverter
+import encrywm.tl.SchemaConverter
 import encrywm.frontend.parser.{Lexer, Parser}
 import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
 import encrywm.lib.TypeSystem
@@ -14,19 +14,28 @@ object SourceProcessor {
 
   type SerializedContract = Array[Byte]
 
-  case object InvalidSchemaError extends Error("Invalid schema")
+  case object SchemaError extends Error("Invalid schema")
 
+  /**
+    * Performs source code processing according to the following algorithm:
+    * 1. Split the source into TL Schema part and script part
+    * 2. Process TL Schema source
+    * 3. Process script source
+    */
   def process(s: String): Try[Contract] = Try {
     val comps = s.split(Lexer.SchemaSeparator)
     (if (comps.size > 1) {
-      val parsed = Parser.parse(comps.last).get.value
-      val schema = encrytl.common.SourceProcessor.process(comps.head).map(_.head)
-        .getOrElse(throw InvalidSchemaError)
-      val analyzer = new StaticAnalyser(
-        TypeSystem(SchemaConverter.schema2ESType(schema).map(Seq(_)).getOrElse(throw InvalidSchemaError))
-      )
-      analyzer.scan(parsed)
-      Transformer.scan(parsed)
+      // TODO: Pipeline schema error properly.
+      val schemas = encrytl.common.SourceProcessor.process(comps.head)
+        .getOrElse(throw SchemaError)
+      val parsedScript = Parser.parse(comps.last).get.value
+      new StaticAnalyser(
+        TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
+          .getOrElse(throw SchemaError)))
+      ).analyse(parsedScript) match {
+        case Right(_) => Transformer.scan(parsedScript)
+        case Left(StaticAnalyser.StaticAnalysisFailure(r)) => throw new Error(r)
+      }
     } else {
       val parsed = Parser.parse(s).get.value
       val analyzer = new StaticAnalyser(TypeSystem.default)

@@ -88,7 +88,7 @@ object Types {
   }
 
   /** TL schema object type tag */
-  case object TLSchemaTag extends ESType with ESProduct {
+  case object SDObject extends ESType with ESProduct {
     override type Underlying = ESObject
     override val ident: String = "TypeLangSchemaTag"
   }
@@ -365,7 +365,7 @@ object Types {
     OpenProposition,
     ContractProposition,
     HeightProposition,
-    TLSchemaTag,
+    SDObject,
     ESOption(NIType)
   )
 

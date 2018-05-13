@@ -1,4 +1,4 @@
-package encrywm.common.tl
+package encrywm.tl
 
 import encrytl.core.Schema
 import scorex.crypto.encode.Base58

@@ -17,7 +17,6 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                                 ts: TypeSystem = TypeSystem.default,
                                 fuelLimit: Int = 1000,
                                 debug: Boolean = false) {
-
   import Executor._
 
   private var _globalEnv: ScopedRuntimeEnv = globalEnv
@@ -339,9 +338,9 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
 
           case STMT.Case(EXPR.SchemaMatching(local, Identifier(schemaId)), body, _) =>
             targetV match {
-              case obj: ESObject if obj.isInstanceOf(Types.TLSchemaTag) && obj.id == schemaId =>
+              case obj: ESObject if obj.isInstanceOf(Types.SDObject) && obj.id == schemaId =>
                 val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
-                return execute(body, nestedCtx.updated(ESValue(local.name, Types.TLSchemaTag)(obj.asInstanceOf[Types.TLSchemaTag.Underlying])))
+                return execute(body, nestedCtx.updated(ESValue(local.name, Types.SDObject)(obj.asInstanceOf[Types.SDObject.Underlying])))
             }
 
           case STMT.Case(EXPR.TypeMatching(local, tpeN), body, _) =>

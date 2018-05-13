@@ -7,16 +7,25 @@ import encrywm.frontend.semantics.scope._
 import encrywm.lib.Types._
 import encrywm.lib.{ESMath, TypeSystem}
 import encrywm.utils.Stack
+import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 
 class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
+
+  import StaticAnalyser._
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
+  def analyse(root: TREE_ROOT): StaticAnalysisResult = Coeval(scan(root)).runTry match {
+    case Failure(e) => Left(StaticAnalysisFailure(e.getMessage))
+    case Success(_) => Right(StaticAnalysisSuccess)
+  }
+
+  // TODO: Make private when `AstNodeScanner` is removed.
   override def scan(node: AST_NODE): Unit = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
@@ -350,4 +359,13 @@ class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
     if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchError(t1.ident, t2.ident)
 
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
+}
+
+object StaticAnalyser {
+
+  type StaticAnalysisResult = Either[StaticAnalysisFailure, StaticAnalysisSuccess.type]
+
+  case object StaticAnalysisSuccess
+
+  case class StaticAnalysisFailure(reason: String)
 }
