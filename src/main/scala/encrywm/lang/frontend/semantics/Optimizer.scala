@@ -7,7 +7,7 @@ import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
 
 
-object Optimizer {
+class Optimizer {
 
   private var replacements = Seq.empty[(String, String)]
 

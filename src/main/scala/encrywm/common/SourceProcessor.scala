@@ -37,14 +37,14 @@ object SourceProcessor {
           .getOrElse(throw SchemaError)))
       ).process(parsedScript) match {
         case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
-          Transformer.transform(SchemaBinder.bind(Optimizer.optimize(res), schemas))
+          Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
         case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
       }
     } else {
       val parsedScript = Parser.parse(s).get
       StaticProcessor.default.process(parsedScript) match {
         case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
-          Transformer.transform(Optimizer.optimize(res))
+          Transformer.transform(new Optimizer().optimize(res))
         case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
       }
     }).asInstanceOf[Contract]

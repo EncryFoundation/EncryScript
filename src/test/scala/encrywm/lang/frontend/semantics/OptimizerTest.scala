@@ -13,7 +13,7 @@ class OptimizerTest extends PropSpec with Matchers with Execution {
 
     val tree = SourceProcessor.process((0 to 100).map(sample).reduce(_ + _))
 
-    val optimized = Optimizer.optimize(tree.get)
+    val optimized = new Optimizer().optimize(tree.get)
 
     val execR = exc.executeContract(optimized.asInstanceOf[Contract])
 
@@ -50,7 +50,7 @@ class OptimizerTest extends PropSpec with Matchers with Execution {
 
     val tree = SourceProcessor.process(source)
 
-    val optimized = Optimizer.optimize(tree.get)
+    val optimized = new Optimizer().optimize(tree.get)
 
     val execR = exc.executeContract(optimized.asInstanceOf[Contract])
 
