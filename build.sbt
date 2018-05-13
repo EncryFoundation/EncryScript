@@ -3,7 +3,7 @@ import sbt._
 
 name := "EncryScript"
 
-version := "0.2.29"
+version := "0.3.0"
 
 scalaVersion := "2.12.4"
 
@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "io.monix" %% "monix-eval" % "3.0.0-RC1",
   "org.typelevel" %% "cats-core" % "1.1.0",
-  "com.github.oskin1" %% "encry-tl" % "0.1.6",
+  "com.github.oskin1" %% "encry-tl" % "0.1.7",
   "org.bitbucket.inkytonik.kiama" %% "kiama" % "2.1.0",
 )
 

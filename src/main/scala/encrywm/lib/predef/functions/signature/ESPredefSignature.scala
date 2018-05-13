@@ -1,6 +1,6 @@
 package encrywm.lib.predef.functions.signature
 
-import encrywm.backend.env.ESEnvComponent
+import encrywm.lang.backend.env.ESEnvComponent
 
 object ESPredefSignature {
   val predefFunctions: Map[String, ESEnvComponent] = Map(

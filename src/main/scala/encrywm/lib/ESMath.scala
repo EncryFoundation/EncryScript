@@ -1,15 +1,15 @@
 package encrywm.lib
 
+import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
-import encrywm.ast.Ast.{AST_NODE, EXPR, OPERATOR}
-import encrywm.ast.{Ast, AstStringifier}
-import encrywm.frontend.semantics.error.ZeroDivisionError
+import encrywm.ast.Ast.{EXPR, OPERATOR}
+import encrywm.lang.frontend.semantics.error.ZeroDivisionError
 
 object ESMath {
 
   import Types._
 
-  val BinaryOperationResults: Seq[(Ast.OPERATOR, (ESType, ESType), ESType)] = Seq(
+  val BinaryOperationRuleset: Seq[(Ast.OPERATOR, (ESType, ESType), ESType)] = Seq(
     (Add, (ESInt, ESInt), ESInt),
     (Add, (ESInt, ESLong), ESLong),
     (Add, (ESLong, ESInt), ESLong),
@@ -24,16 +24,14 @@ object ESMath {
     (Div, (ESLong, ESLong), ESLong),
   )
 
-  def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR, node: AST_NODE): Unit = {
+  def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR): Unit = {
     operand2 match {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
-          //TODO: replace 0
-          throw ZeroDivisionError(AstStringifier.toString(node))
+          throw ZeroDivisionError
       case long: EXPR.LongConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
-          //TODO: replace 0
-          throw ZeroDivisionError(AstStringifier.toString(node))
+          throw ZeroDivisionError
       case _ => // Do nothing.
     }
   }

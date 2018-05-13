@@ -1,7 +1,7 @@
 package encrywm.lib.predef.functions.hash
 
-import encrywm.backend.env.{ESBuiltInFunc, ESValue}
-import encrywm.backend.executor.error.BuiltInFunctionExecError
+import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
+import encrywm.lang.backend.executor.error.BuiltInFunctionExecError
 import encrywm.lib.Types.ESByteVector
 import encrywm.lib.predef.functions.BuiltInFunctionHolder
 import scorex.crypto.hash.Keccak256

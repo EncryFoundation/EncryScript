@@ -1,10 +1,9 @@
 package encrywm.common
 
-import encrywm.backend.env.{ESObject, ESValue}
-import encrywm.frontend.semantics.ComplexityAnalyzer
-import encrywm.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
+import encrywm.lang.backend.env.{ESEnvConvertable, ESObject, ESValue}
+import encrywm.lang.frontend.semantics.ComplexityAnalyzer
+import encrywm.lang.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
 import encrywm.lib.Types.{ESByteVector, ESProduct, ESScript}
-import encrywm.lib.predef.env.ESEnvConvertable
 
 case class ScriptMeta(complexityScore: ScriptComplexityScore, scriptFingerprint: ScriptFingerprint) extends ESEnvConvertable {
 
@@ -25,7 +24,7 @@ case class EncryContract(serializedScript: SerializedScript, meta: ScriptMeta) {
   def validMeta: Boolean = {
     (SourceProcessor.getScriptFingerprint(serializedScript) sameElements meta.scriptFingerprint) &&
     ScriptSerializer.deserialize(serializedScript).map { s =>
-      val complexity = ComplexityAnalyzer.scan(s)
+      val complexity = ComplexityAnalyzer.complexityOf(s)
       complexity == meta.complexityScore
     }.getOrElse(false)
   }

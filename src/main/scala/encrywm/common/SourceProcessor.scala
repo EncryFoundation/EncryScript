@@ -2,9 +2,9 @@ package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
-import encrywm.common.tl.SchemaConverter
-import encrywm.frontend.parser.{Lexer, Parser}
-import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
+import encrywm.typelang.SchemaConverter
+import encrywm.lang.frontend.parser.{Lexer, Parser}
+import encrywm.lang.frontend.semantics.{ComplexityAnalyzer, Optimizer, SchemaBinder, StaticProcessor, Transformer}
 import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 
@@ -14,29 +14,44 @@ object SourceProcessor {
 
   type SerializedContract = Array[Byte]
 
-  case object InvalidSchemaError extends Error("Invalid schema")
+  case object SchemaError extends Error("Invalid schema")
 
+  /**
+    * Performs source code processing according to the following algorithm:
+    * 1. Split the source into TL Schema part and script part
+    * 2. Interpret schema source
+    * 3. Parse script source
+    * 4. Initialize `StaticProcessor` with schemas (from step 2)
+    * 5. Process script
+    * 6. Finally, perform Optimization -> Schema Types Binding -> Transformation
+    */
+  // TODO: Implement error pipelining properly.
   def process(s: String): Try[Contract] = Try {
     val comps = s.split(Lexer.SchemaSeparator)
     (if (comps.size > 1) {
-      val parsed = Parser.parse(comps.last).get.value
-      val schema = encrytl.common.SourceProcessor.process(comps.head).map(_.head)
-        .getOrElse(throw InvalidSchemaError)
-      val analyzer = new StaticAnalyser(
-        TypeSystem(SchemaConverter.schema2ESType(schema).map(Seq(_)).getOrElse(throw InvalidSchemaError))
-      )
-      analyzer.scan(parsed)
-      Transformer.scan(parsed)
+      val schemas = encrytl.common.SourceProcessor.process(comps.head)
+        .getOrElse(throw SchemaError)
+      val parsedScript = Parser.parse(comps.last).get
+      new StaticProcessor(
+        TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
+          .getOrElse(throw SchemaError)))
+      ).process(parsedScript) match {
+        case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
+          Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
+        case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+      }
     } else {
-      val parsed = Parser.parse(s).get.value
-      val analyzer = new StaticAnalyser(TypeSystem.empty)
-      analyzer.scan(parsed)
-      Transformer.scan(parsed)
+      val parsedScript = Parser.parse(s).get
+      StaticProcessor.default.process(parsedScript) match {
+        case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
+          Transformer.transform(new Optimizer().optimize(res))
+        case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+      }
     }).asInstanceOf[Contract]
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
-    val complexityScore = ComplexityAnalyzer.scan(c)
+    val complexityScore = ComplexityAnalyzer.complexityOf(c)
     val serializedScript = ScriptSerializer.serialize(c)
     val fingerprint = getScriptFingerprint(serializedScript)
     EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
