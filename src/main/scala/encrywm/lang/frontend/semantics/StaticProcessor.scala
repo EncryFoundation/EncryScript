@@ -23,7 +23,9 @@ class StaticProcessor(ts: TypeSystem) {
   def process(contract: Contract): StaticAnalysisResult = {
     val local = contract.copy()
     Coeval(scan(local)).runTry match {
-      case Failure(e) => Left(StaticAnalysisFailure(e.getMessage))
+      case Failure(e) =>
+        e.printStackTrace()
+        Left(StaticAnalysisFailure(e.getMessage))
       case Success(_) => Right(StaticAnalysisSuccess(local))
     }
   }
@@ -121,6 +123,9 @@ class StaticProcessor(ts: TypeSystem) {
       cond match {
         case EXPR.TypeMatching(local, tpe) =>
           val localT = ts.typeByIdent(tpe.ident.name).getOrElse(throw TypeError)
+          currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
+        case EXPR.SchemaMatching(local, Identifier(schemaId)) =>
+          val localT = ts.typeByIdent(schemaId).getOrElse(throw TypeError)
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT)))
         case _ => // Do nothing.
       }

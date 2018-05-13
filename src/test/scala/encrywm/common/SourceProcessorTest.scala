@@ -32,14 +32,19 @@ class SourceProcessorTest extends PropSpec with Matchers {
   property("Composite source processing") {
     val s =
       """
-        |schema Person:Object(
+        |schema PersonBox:Object(
         |    name:String;
         |    age:Int;
         |)
         |
         |#---script---
         |
-        |let a = 10
+        |def checkAge(box: Box) -> Bool:
+        |   match box:
+        |       case personBox -> @PersonBox:
+        |           return personBox.body.age > 20
+        |       case _:
+        |           pass
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
