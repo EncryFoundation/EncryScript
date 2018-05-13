@@ -4,7 +4,7 @@ import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
 import encrywm.tl.SchemaConverter
 import encrywm.frontend.parser.{Lexer, Parser}
-import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticAnalyser, Transformer}
+import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticProcessor, Transformer}
 import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 
@@ -29,23 +29,24 @@ object SourceProcessor {
       val schemas = encrytl.common.SourceProcessor.process(comps.head)
         .getOrElse(throw SchemaError)
       val parsedScript = Parser.parse(comps.last).get.value
-      new StaticAnalyser(
+      new StaticProcessor(
         TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
           .getOrElse(throw SchemaError)))
-      ).analyse(parsedScript) match {
-        case Right(_) => Transformer.scan(parsedScript)
-        case Left(StaticAnalyser.StaticAnalysisFailure(r)) => throw new Error(r)
+      ).process(parsedScript) match {
+        case Right(StaticProcessor.StaticAnalysisSuccess(res)) => Transformer.transform(res)
+        case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
       }
     } else {
-      val parsed = Parser.parse(s).get.value
-      val analyzer = new StaticAnalyser(TypeSystem.default)
-      analyzer.scan(parsed)
-      Transformer.scan(parsed)
+      val parsedScript = Parser.parse(s).get.value
+      StaticProcessor.default.process(parsedScript) match {
+        case Right(StaticProcessor.StaticAnalysisSuccess(res)) => Transformer.transform(res)
+        case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+      }
     }).asInstanceOf[Contract]
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
-    val complexityScore = ComplexityAnalyzer.scan(c)
+    val complexityScore = ComplexityAnalyzer.complexityOf(c)
     val serializedScript = ScriptSerializer.serialize(c)
     val fingerprint = getScriptFingerprint(serializedScript)
     EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))

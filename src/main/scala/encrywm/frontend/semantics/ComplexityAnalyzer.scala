@@ -1,13 +1,12 @@
 package encrywm.frontend.semantics
 
 import encrywm.ast.Ast._
-import encrywm.ast.AstNodeScanner
 
-object ComplexityAnalyzer extends AstNodeScanner {
+object ComplexityAnalyzer {
 
   type ScriptComplexityScore = Int
 
-  def scan(node: AST_NODE): ScriptComplexityScore = node match {
+  def complexityOf(node: AST_NODE): ScriptComplexityScore = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
@@ -15,7 +14,7 @@ object ComplexityAnalyzer extends AstNodeScanner {
   }
 
   private def scanRoot(root: TREE_ROOT): ScriptComplexityScore = root match {
-    case c: TREE_ROOT.Contract => c.body.map(scan).sum
+    case c: TREE_ROOT.Contract => c.body.map(complexityOf).sum
     case _ => 0
   }
 

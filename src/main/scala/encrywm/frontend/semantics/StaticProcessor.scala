@@ -1,7 +1,7 @@
 package encrywm.frontend.semantics
 
+import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.Ast._
-import encrywm.ast.AstNodeScanner
 import encrywm.frontend.semantics.error._
 import encrywm.frontend.semantics.scope._
 import encrywm.lib.Types._
@@ -12,21 +12,23 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Random, Success}
 
-class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
+class StaticProcessor(ts: TypeSystem) {
 
-  import StaticAnalyser._
+  import StaticProcessor._
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
-  def analyse(root: TREE_ROOT): StaticAnalysisResult = Coeval(scan(root)).runTry match {
-    case Failure(e) => Left(StaticAnalysisFailure(e.getMessage))
-    case Success(_) => Right(StaticAnalysisSuccess)
+  def process(contract: Contract): StaticAnalysisResult = {
+    val local = contract.copy()
+    Coeval(scan(local)).runTry match {
+      case Failure(e) => Left(StaticAnalysisFailure(e.getMessage))
+      case Success(_) => Right(StaticAnalysisSuccess(local))
+    }
   }
 
-  // TODO: Make private when `AstNodeScanner` is removed.
-  override def scan(node: AST_NODE): Unit = node match {
+  private def scan(node: AST_NODE): Unit = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
@@ -361,11 +363,13 @@ class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
   private def assertDefined(n: String): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n)
 }
 
-object StaticAnalyser {
+object StaticProcessor {
 
-  type StaticAnalysisResult = Either[StaticAnalysisFailure, StaticAnalysisSuccess.type]
+  type StaticAnalysisResult = Either[StaticAnalysisFailure, StaticAnalysisSuccess]
 
-  case object StaticAnalysisSuccess
+  case class StaticAnalysisSuccess(root: TREE_ROOT)
 
   case class StaticAnalysisFailure(reason: String)
+
+  def default: StaticProcessor = new StaticProcessor(TypeSystem.default)
 }

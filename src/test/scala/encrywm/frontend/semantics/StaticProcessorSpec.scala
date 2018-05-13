@@ -8,7 +8,7 @@ import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Try
 
-class StaticAnalyserSpec extends PropSpec with Matchers {
+class StaticProcessorSpec extends PropSpec with Matchers {
 
   property("Semantically correct simple AST analysis") {
 
@@ -19,13 +19,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let c: String = "string"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Semantically incorrect simple AST analysis (Undefined name)") {
@@ -35,13 +35,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: undef = 9
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid AST with nested scope analysis") {
@@ -52,13 +52,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Valid AST with function call analysis") {
@@ -70,13 +70,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, 2)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid AST with nested scope analysis (Undefined name)") {
@@ -86,13 +86,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + c
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Invalid AST with undefined function call analysis") {
@@ -101,13 +101,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum()
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Analysis of invalid AST with wrong number of args passed to function") {
@@ -119,13 +119,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, 2, 3)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid If-expression") {
@@ -134,13 +134,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9 if 6 > 10 else 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid If expression and undefined ref inside") {
@@ -149,13 +149,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9 if b < 0 else 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid lambda def") {
@@ -164,13 +164,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |lamb (a: Int, b: Int) = a * b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid lambda def (unresolved name in body)") {
@@ -179,13 +179,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |lamb (a: Int, b: Int) = a * c
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Analysis of valid AST with If statement") {
@@ -195,13 +195,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Analysis of invalid AST with If statement and undefined ref in test part") {
@@ -211,13 +211,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    let a = 100
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid AST analysis with attribute referencing") {
@@ -226,13 +226,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let timestamp = context.transaction.timestamp
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid AST analysis with nonexistent attribute referencing") {
@@ -241,13 +241,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let timestamp = transaction.attr0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid lambda application to coll") {
@@ -258,13 +258,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(lamb (n: Int) = n > 10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Valid function application to coll") {
@@ -278,13 +278,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(isGreaterThan10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("`.map()` application to coll") {
@@ -297,13 +297,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |mapped[2].get + 10
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid `.map()` application to coll (Wrong number of arguments)") {
@@ -316,13 +316,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |mapped[2].get + 10
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Inalid lambda application to coll (Wrong argument type)") {
@@ -333,13 +333,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(lamb (n: String) = n > 10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Invalid function application to coll (Wrong argument type)") {
@@ -353,13 +353,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |list.exists(isGreaterThan10)
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   // Type checking
@@ -370,13 +370,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = 9L + 1
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Type checking of invalid assignment (Type mismatch)") {
@@ -385,13 +385,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 9L + 1
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of valid function definition") {
@@ -401,13 +401,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Type checking of invalid function definition (Type mismatch)") {
@@ -417,13 +417,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |    return a + b
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of invalid function definition (Return type mismatch) (Nested statements scanning)") {
@@ -436,13 +436,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |        return 0L
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of invalid function call (Argument type mismatch)") {
@@ -454,13 +454,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |sum(1, "string")
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of invalid assignment (Zero division in value part)") {
@@ -469,13 +469,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = 1 / 0
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of valid list") {
@@ -484,13 +484,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, 3, 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Type checking of invalid list (Elms types mismatch)") {
@@ -499,13 +499,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, 3L, 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of invalid list (Nested coll)") {
@@ -514,13 +514,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = [1, 2, [1, 2, 3], 4]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of valid dict") {
@@ -529,13 +529,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : "string", 2 : "string"}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Type checking of invalid dict (Elts types mismatch)") {
@@ -544,13 +544,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : "string", 2 : 8}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of invalid dict (Nested coll)") {
@@ -559,13 +559,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a = {1 : {1 : 2}, 2 : {3 : 4}}
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Type checking of valid list subscription") {
@@ -575,13 +575,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: Int = lst[1].get
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Type checking of invalid list subscription (Type mismatch)") {
@@ -591,13 +591,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let a: String = lst[1]
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid Base58 string analysis") {
@@ -606,13 +606,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let byteVector: Bytes = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid Base58 string analysis (Illegal symbol)") {
@@ -621,13 +621,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |let byteVector = base58"invalidString_oO0"
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Valid match statement") {
@@ -640,13 +640,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |       0 * 1000
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Valid match statement with many statements in the branch") {
@@ -661,13 +661,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |           return 0 * 1000
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 
   property("Invalid match statement (No default branch)") {
@@ -678,13 +678,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |       sig.sigBytes
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Scoping (Name referenced from outer scope)") {
@@ -696,13 +696,13 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |a
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe false
+    processR.isRight shouldBe false
   }
 
   property("Scoping with global modifier") {
@@ -714,12 +714,12 @@ class StaticAnalyserSpec extends PropSpec with Matchers {
         |a
       """.stripMargin)
 
-    val analyzer = new StaticAnalyser(TypeSystem.default)
+    val sp = new StaticProcessor(TypeSystem.default)
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.scan(AstRoot.get.value))
+    val processR = sp.process(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
+    processR.isRight shouldBe true
   }
 }

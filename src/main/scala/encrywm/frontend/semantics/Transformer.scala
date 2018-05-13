@@ -1,13 +1,13 @@
 package encrywm.frontend.semantics
 
 import encrywm.ast.Ast.EXPR
-import encrywm.ast.{Ast, AstNodeScanner}
+import encrywm.ast.Ast
 import encrywm.lib.Types.{ESFunc, ESList, ESOption}
 import org.bitbucket.inkytonik.kiama.rewriting.Rewriter._
 
-object Transformer extends AstNodeScanner {
+object Transformer {
 
-  override def scan(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
+  def transform(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
 
     // Rule: Call(Attribute(coll, "exists"), Func) -> Exists(coll, Func)
     case EXPR.Call(EXPR.Attribute(value, attr, _, _), args, _, _)
