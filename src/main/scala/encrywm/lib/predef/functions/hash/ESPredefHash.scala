@@ -1,6 +1,6 @@
 package encrywm.lib.predef.functions.hash
 
-import encrywm.backend.env.ESEnvComponent
+import encrywm.lang.backend.env.ESEnvComponent
 import encrywm.lib.predef.functions.signature.CheckSig
 
 object ESPredefHash {

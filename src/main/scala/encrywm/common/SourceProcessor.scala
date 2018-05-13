@@ -2,9 +2,9 @@ package encrywm.common
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
-import encrywm.tl.SchemaConverter
-import encrywm.frontend.parser.{Lexer, Parser}
-import encrywm.frontend.semantics.{ComplexityAnalyzer, StaticProcessor, Transformer}
+import encrywm.typelang.SchemaConverter
+import encrywm.lang.frontend.parser.{Lexer, Parser}
+import encrywm.lang.frontend.semantics.{ComplexityAnalyzer, StaticProcessor, Transformer}
 import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 

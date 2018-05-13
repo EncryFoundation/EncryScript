@@ -1,6 +1,6 @@
 package encrywm.lib.predef.functions
 
-import encrywm.backend.env.ESBuiltInFunc
+import encrywm.lang.backend.env.ESBuiltInFunc
 
 trait BuiltInFunctionHolder {
   val name: String

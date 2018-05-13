@@ -1,10 +1,9 @@
 package encrywm.common
 
-import encrywm.backend.env.{ESObject, ESValue}
-import encrywm.frontend.semantics.ComplexityAnalyzer
-import encrywm.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
+import encrywm.lang.backend.env.{ESEnvConvertable, ESObject, ESValue}
+import encrywm.lang.frontend.semantics.ComplexityAnalyzer
+import encrywm.lang.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
 import encrywm.lib.Types.{ESByteVector, ESProduct, ESScript}
-import encrywm.lib.predef.env.ESEnvConvertable
 
 case class ScriptMeta(complexityScore: ScriptComplexityScore, scriptFingerprint: ScriptFingerprint) extends ESEnvConvertable {
 

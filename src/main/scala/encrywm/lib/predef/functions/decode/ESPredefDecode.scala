@@ -1,6 +1,6 @@
 package encrywm.lib.predef.functions.decode
 
-import encrywm.backend.env.ESEnvComponent
+import encrywm.lang.backend.env.ESEnvComponent
 
 object ESPredefDecode {
   val predefFunctions: Map[String, ESEnvComponent] = Map(

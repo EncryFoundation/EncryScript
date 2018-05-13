@@ -1,6 +1,6 @@
 package encrywm.lib
 
-import encrywm.backend.env.ESObject
+import encrywm.lang.backend.env.ESObject
 
 object Types {
 
