@@ -1,33 +1,33 @@
 package encrywm.lang.frontend.semantics.error
 
-case class NameError(n: String) extends SemanticError(s"Name $n is undefined.")
+case class NameError(n: String, codeExample: String) extends SemanticError(s"Name $n is undefined.", codeExample: String)
 
-case class AlreadyDefinedError(n: String) extends SemanticError(s"Name $n is already defined in scope.")
+case class AlreadyDefinedError(n: String, codeExample: String) extends SemanticError(s"Name $n is already defined in scope.", codeExample: String)
 
-case class UnexpectedStatementError(s: String) extends SemanticError(s"Unexpected statement: $s.")
+case class UnexpectedStatementError(s: String, codeExample: String) extends SemanticError(s"Unexpected statement: $s.", codeExample: String)
 
-case object IllegalExprError extends SemanticError(s"Unexpected expression.")
+case class IllegalExprError(codeExample: String) extends SemanticError(s"Unexpected expression.", codeExample: String)
 
-case object IllegalOperandError extends SemanticError(s"Illegal operand type.")
+case class IllegalOperandError(codeExample: String) extends SemanticError(s"Illegal operand type.", codeExample: String)
 
-case object ZeroDivisionError extends SemanticError(s"Zero division.")
+case class ZeroDivisionError(codeExample: String) extends SemanticError(s"Zero division.", codeExample: String)
 
-case object MissedContextError extends SemanticError(s"Missed context for AST processing.")
+case class MissedContextError(codeExample: String) extends SemanticError(s"Missed context for AST processing.", codeExample: String)
 
-case class WrongNumberOfArgumentsError(fn: String) extends SemanticError(s"Wrong number of arguments in $fn.")
+case class WrongNumberOfArgumentsError(fn: String, codeExample: String) extends SemanticError(s"Wrong number of arguments in $fn.", codeExample: String)
 
-case class UnapplicableFunctionError(fn: String, coll: String) extends SemanticError(s"$fn is not applicable to $coll")
+case class UnapplicableFunctionError(fn: String, coll: String, codeExample: String) extends SemanticError(s"$fn is unapplicable to $coll", codeExample: String)
 
-case class NotAnObjectError(n: String) extends SemanticError(s"$n is not an object.")
+case class NotAnObjectError(n: String, codeExample: String) extends SemanticError(s"$n is not an object.", codeExample: String)
 
-case object TypeError extends SemanticError("Invalid type.")
+case class TypeError(codeExample: String) extends SemanticError("Missed type.", codeExample: String)
 
-case class UnresolvedSymbolError(s: String) extends SemanticError(s"Can not resolve symbol $s")
+case class UnresolvedSymbolError(s: String, codeExample: String) extends SemanticError(s"Can not resolve symbol $s", codeExample: String)
 
-case object Base58DecodeError extends SemanticError("Base58 decode error.")
+case class Base58DecodeError(codeExample: String) extends SemanticError("Base58 decode error.", codeExample: String)
 
-case class TypeMismatchError(t1: String, t2: String) extends SemanticError(s"Expected type $t1, got $t2.")
+case class TypeMismatchError(t1: String, t2: String, codeExample: String) extends SemanticError(s"Expected type $t1, got $t2.", codeExample: String)
 
-case object NestedCollectionError extends SemanticError("Nested collections are disallowed.")
+case class NestedCollectionError(codeExample: String) extends SemanticError("Nested collections are disallowed.", codeExample: String)
 
-case object DefaultBranchUndefinedError extends SemanticError("Match statement must contain default branch.")
+case class DefaultBranchUndefinedError(codeExample: String) extends SemanticError("Match statement must contain default branch.", codeExample: String)

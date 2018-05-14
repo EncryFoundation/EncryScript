@@ -1,23 +1,37 @@
-package encrywm.frontend.semantics
+package encrywm.lang.frontend.semantics
 
+import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.Ast._
-import encrywm.ast.{AstNodeScanner, AstStringifier}
-import encrywm.frontend.semantics.error._
-import encrywm.frontend.semantics.scope._
+import encrywm.ast.AstStringifier
+import encrywm.lang.frontend.semantics.error._
+import encrywm.lang.frontend.semantics.scope._
 import encrywm.lib.Types._
 import encrywm.lib.{ESMath, TypeSystem}
 import encrywm.utils.Stack
+import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 
-class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
+class StaticProcessor(ts: TypeSystem) {
+
+  import StaticProcessor._
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
-  override def scan(node: AST_NODE): Unit = node match {
+  def process(contract: Contract): StaticAnalysisResult = {
+    val local = contract.copy()
+    Coeval(scan(local)).runTry match {
+      case Failure(e) =>
+        e.printStackTrace()
+        Left(StaticAnalysisFailure(e.getMessage))
+      case Success(_) => Right(StaticAnalysisSuccess(local))
+    }
+  }
+
+  def scan(node: AST_NODE): Unit = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
@@ -294,7 +308,7 @@ class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
 
         case bop: EXPR.BinOp =>
           ESMath.ensureZeroDivision(bop.op, bop.right, exp)
-          ESMath.BinaryOperationResults.find {
+          ESMath.BinaryOperationRuleset.find {
             case (op, (o1, o2), _) =>
               bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
           }.map(_._3).getOrElse(throw IllegalOperandError(AstStringifier.toString(exp)))
@@ -350,4 +364,15 @@ class StaticAnalyser(ts: TypeSystem) extends AstNodeScanner {
     if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchError(t1.ident, t2.ident, AstStringifier.toString(node))
 
   private def assertDefined(n: String, node: AST_NODE): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameError(n, AstStringifier.toString(node))
+}
+
+object StaticProcessor {
+
+  type StaticAnalysisResult = Either[StaticAnalysisFailure, StaticAnalysisSuccess]
+
+  case class StaticAnalysisSuccess(root: TREE_ROOT)
+
+  case class StaticAnalysisFailure(reason: String)
+
+  def default: StaticProcessor = new StaticProcessor(TypeSystem.default)
 }
