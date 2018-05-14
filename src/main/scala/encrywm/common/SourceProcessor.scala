@@ -8,7 +8,7 @@ import encrywm.lang.frontend.semantics.{ComplexityAnalyzer, Optimizer, SchemaBin
 import encrywm.lib.TypeSystem
 import scorex.crypto.hash.Blake2b256
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object SourceProcessor {
 
@@ -28,19 +28,22 @@ object SourceProcessor {
   // TODO: Implement error pipelining properly.
   def process(s: String): Try[Contract] = Try {
     val comps = s.split(Lexer.SchemaSeparator)
-    (if (comps.size > 1) {
-      val schemas = encrytl.common.SourceProcessor.process(comps.head)
-        .getOrElse(throw SchemaError)
-      val parsedScript = Parser.parse(comps.last).get
-      new StaticProcessor(
-        TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
-          .getOrElse(throw SchemaError)))
-      ).process(parsedScript) match {
-        case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
-          Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
-        case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+    (if (comps.length > 1) {
+      encrytl.common.SourceProcessor.process(comps.head) match {
+        case Success(schemas) =>
+          val parsedScript = Parser.parse(comps.last).get
+          new StaticProcessor(
+            TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
+              .getOrElse(throw SchemaError)))
+          ).process(parsedScript) match {
+            case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
+              Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
+            case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+          }
+        case Failure(e) => println(e)
       }
-    } else {
+    }
+    else {
       val parsedScript = Parser.parse(s).get
       StaticProcessor.default.process(parsedScript) match {
         case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
