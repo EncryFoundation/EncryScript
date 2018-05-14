@@ -14,7 +14,7 @@ object SourceProcessor {
 
   type SerializedContract = Array[Byte]
 
-  case object SchemaError extends Error("Invalid schema")
+  case object SchemaException extends Exception("Invalid schema")
 
   /**
     * Performs source code processing according to the following algorithm:
@@ -31,16 +31,20 @@ object SourceProcessor {
     (if (comps.length > 1) {
       encrytl.common.SourceProcessor.process(comps.head) match {
         case Success(schemas) =>
-          val parsedScript = Parser.parse(comps.last).get
-          new StaticProcessor(
-            TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
-              .getOrElse(throw SchemaError)))
-          ).process(parsedScript) match {
-            case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
-              Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
-            case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Error(r)
+          Parser.parse(comps.last) match {
+            case Success(parsedScript) =>
+              new StaticProcessor(
+                TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
+                  .getOrElse(throw SchemaException)
+                ))
+              ).process(parsedScript) match {
+                case Right(StaticProcessor.StaticAnalysisSuccess(res)) =>
+                  Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas))
+                case Left(StaticProcessor.StaticAnalysisFailure(r)) => throw new Exception(r)
+              }
+            case Failure(e) => println(s"Exception while processing parsedScript: $e")
           }
-        case Failure(e) => println(e)
+        case Failure(e) => println(s"Exception while processing schemas: $e")
       }
     }
     else {
