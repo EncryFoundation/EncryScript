@@ -2,7 +2,7 @@ package encrywm.common
 
 import org.scalatest.{Matchers, PropSpec}
 
-class SourceProcessorTest extends PropSpec with Matchers {
+class SourceProcessorSpec extends PropSpec with Matchers {
 
   property("Script source processing") {
     val s =
@@ -50,5 +50,28 @@ class SourceProcessorTest extends PropSpec with Matchers {
     val procTry = SourceProcessor.process(s)
 
     procTry.isSuccess shouldBe true
+  }
+
+  property("Composite source processing (Unresolved ref in schema)") {
+    val s =
+      """
+        |schema PersonBox:Object(
+        |    name:String;
+        |    age:Null;
+        |)
+        |
+        |#---script---
+        |
+        |def checkAge(box: Box) -> Bool:
+        |   match box:
+        |       case personBox -> @PersonBox:
+        |           return personBox.body.age > 20
+        |       case _:
+        |           pass
+      """.stripMargin
+
+    val procTry = SourceProcessor.process(s)
+
+    procTry.isSuccess shouldBe false
   }
 }

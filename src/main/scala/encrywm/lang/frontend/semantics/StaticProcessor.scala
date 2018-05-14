@@ -10,24 +10,17 @@ import encrywm.utils.Stack
 import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
-import scala.util.{Failure, Random, Success}
+import scala.util.{Random, Try}
 
 class StaticProcessor(ts: TypeSystem) {
-
-  import StaticProcessor._
 
   private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
-  def process(contract: Contract): StaticAnalysisResult = {
+  def process(contract: Contract): Try[Contract] = {
     val local = contract.copy()
-    Coeval(scan(local)).runTry match {
-      case Failure(e) =>
-        e.printStackTrace()
-        Left(StaticAnalysisFailure(e.getMessage))
-      case Success(_) => Right(StaticAnalysisSuccess(local))
-    }
+    Coeval(scan(local)).runTry.map(_ => local)
   }
 
   private def scan(node: AST_NODE): Unit = node match {
@@ -369,12 +362,6 @@ class StaticProcessor(ts: TypeSystem) {
 }
 
 object StaticProcessor {
-
-  type StaticAnalysisResult = Either[StaticAnalysisFailure, StaticAnalysisSuccess]
-
-  case class StaticAnalysisSuccess(root: TREE_ROOT)
-
-  case class StaticAnalysisFailure(reason: String)
 
   def default: StaticProcessor = new StaticProcessor(TypeSystem.default)
 }
