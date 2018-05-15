@@ -34,15 +34,15 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
 
     def eval[T](expr: EXPR): T = {
       if (stepsCount > fuelLimit) {
-        throw IllegalOperationError
+        throw IllegalOperationException
       } else stepsCount += 1
       (expr match {
         case EXPR.Name(id, _, _) =>
           getFromEnv(id.name).map {
             case v: ESValue => v.value
             case o: ESObject => o
-            case _: ESFunc => throw IsFunctionError(id.name)
-          }.getOrElse(throw UnresolvedReferenceError(id.name))
+            case _: ESFunc => throw IsFunctionException(id.name)
+          }.getOrElse(throw UnresolvedReferenceException(id.name))
 
         case EXPR.BinOp(l, op, r, tpeOpt) =>
           val opT = tpeOpt.get
@@ -118,17 +118,17 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
               }
               body(fnArgs) match {
                 case Right(r) => r
-                case _ => throw BuiltInFunctionExecError
+                case _ => throw BuiltInFunctionExecException
               }
 
-            case other => throw NotAFunctionError(other.toString)
-          }.getOrElse(throw UnresolvedReferenceError(id.name))
+            case other => throw NotAFunctionException(other.toString)
+          }.getOrElse(throw UnresolvedReferenceException(id.name))
 
         case EXPR.Attribute(value, attr, _, Some(_)) =>
           val valT = value.tpeOpt.get
           eval[valT.Underlying](value) match {
             case obj: ESObject => obj.getAttr(attr.name).get.value
-            case _ => throw IllegalOperationError
+            case _ => throw IllegalOperationException
           }
 
         case EXPR.IfExp(test, body, orelse, Some(tpe)) =>
@@ -145,7 +145,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
               case exp: IntConst => eval[Int](exp) * (-1)
               case exp: LongConst => eval[Long](exp) * (-1)
             }
-            case _ => throw IllegalOperationError
+            case _ => throw IllegalOperationException
           }
 
         case EXPR.Subscript(exp, slice, _, Some(_)) =>
@@ -160,20 +160,20 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                   else None
                 case dct: Map[idxT.Underlying@unchecked, _] =>
                   dct.get(eval[idxT.Underlying](idx))
-                case _ => throw IllegalOperationError
+                case _ => throw IllegalOperationException
               }
 
-            case _ => throw IllegalOperationError
+            case _ => throw IllegalOperationException
           }
 
         case EXPR.ESList(elts, _, Some(ESList(valT))) =>
-          if (elts.size > 50) throw IllegalOperationError
+          if (elts.size > 50) throw IllegalOperationException
           elts.foldLeft(List[valT.Underlying]()) { case (acc, exp) =>
             acc :+ eval[valT.Underlying](exp)
           }
 
         case EXPR.ESDictNode(keys, values, Some(ESDict(keyT, valT))) =>
-          if (keys.size > 50) throw IllegalOperationError
+          if (keys.size > 50) throw IllegalOperationException
           keys.zip(values).foldLeft(Map[keyT.Underlying, valT.Underlying]()) { case (acc, (k, v)) =>
             acc.updated(eval[keyT.Underlying](k), eval[valT.Underlying](v))
           }
@@ -241,7 +241,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                     }
                   }
               }
-            case _ => throw IllegalOperationError
+            case _ => throw IllegalOperationException
           }
 
         case EXPR.Exists(coll, predicate) =>
@@ -268,7 +268,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                   }
                   untilTrue
               }
-            case _ => throw IllegalOperationError
+            case _ => throw IllegalOperationException
           }
 
         case EXPR.Base58Str(s) => Base58.decode(s).get
@@ -283,7 +283,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
 
         case EXPR.LongConst(v) => v
 
-        case exp => throw UnexpectedExpressionError(exp.toString)
+        case exp => throw UnexpectedExpressionException(exp.toString)
       }).asInstanceOf[T]
     }
 
@@ -291,7 +291,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
       execute(List(STMT.Return(Some(body))), nestedEnv) match {
         case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
-        case _ => throw new ExecutionError("Lambda execution error")
+        case _ => throw new ExecutionException("Lambda execution error")
       }
     }
 
@@ -299,7 +299,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
       val nestedEnv = currentEnv.child(s"fn_$randCode", argMap)
       execute(body, nestedEnv) match {
         case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
-        case _ => throw new ExecutionError("Function execution error")
+        case _ => throw new ExecutionException("Function execution error")
       }
     }
 
@@ -360,7 +360,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
               return execute(body, nestedCtx)
             }
 
-          case _ => throw IllegalOperationError
+          case _ => throw IllegalOperationException
         }
         Right(Nothing)
 

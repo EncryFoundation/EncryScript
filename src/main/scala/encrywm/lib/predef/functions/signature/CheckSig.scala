@@ -1,7 +1,7 @@
 package encrywm.lib.predef.functions.signature
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
-import encrywm.lang.backend.executor.error.BuiltInFunctionExecError
+import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESByteVector
 import encrywm.lib.predef.functions.BuiltInFunctionHolder
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
@@ -21,7 +21,7 @@ object CheckSig extends BuiltInFunctionHolder {
       val fnArgs = args.map(_._2.value.asInstanceOf[Array[Byte]])
       Right(Curve25519.verify(Signature @@ fnArgs.head, fnArgs(1), PublicKey @@ fnArgs.last))
     } else {
-      Left(BuiltInFunctionExecError)
+      Left(BuiltInFunctionExecException)
     }
   }
 }

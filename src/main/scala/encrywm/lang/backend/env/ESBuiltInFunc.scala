@@ -1,7 +1,7 @@
 package encrywm.lang.backend.env
 
 import encrywm.lang.backend.env.ESBuiltInFunc.EvalResult
-import encrywm.lang.backend.executor.error.ExecutionError
+import encrywm.lang.backend.executor.error.ExecutionException
 import encrywm.lib.Types.ESType
 
 case class ESBuiltInFunc(id: String,
@@ -12,5 +12,5 @@ object ESBuiltInFunc {
 
   val typeId: Byte = 3.toByte
 
-  type EvalResult = Either[ExecutionError, Any]
+  type EvalResult = Either[ExecutionException, Any]
 }
