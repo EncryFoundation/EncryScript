@@ -118,6 +118,9 @@ class StaticProcessor(ts: TypeSystem) {
         case EXPR.TypeMatching(local, tpe) =>
           val localT = ts.typeByIdent(tpe.ident.name).getOrElse(throw TypeError(AstStringifier.toString(cond)))
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
+        case EXPR.SchemaMatching(local, Identifier(schemaId)) =>
+          val localT = ts.typeByIdent(schemaId).getOrElse(throw TypeError(AstStringifier.toString(cond)))
+          currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case _ => // Do nothing.
       }
       body.foreach(scanStmt)
