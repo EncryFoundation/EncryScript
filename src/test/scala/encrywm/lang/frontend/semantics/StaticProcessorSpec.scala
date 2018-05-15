@@ -25,7 +25,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Semantically incorrect simple AST analysis (Undefined name)") {
@@ -41,7 +41,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid AST with nested scope analysis") {
@@ -58,7 +58,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Valid AST with function call analysis") {
@@ -76,7 +76,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid AST with nested scope analysis (Undefined name)") {
@@ -92,7 +92,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Invalid AST with undefined function call analysis") {
@@ -107,7 +107,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Analysis of invalid AST with wrong number of args passed to function") {
@@ -125,7 +125,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid If-expression") {
@@ -140,7 +140,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid If expression and undefined ref inside") {
@@ -155,7 +155,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid lambda def") {
@@ -170,7 +170,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid lambda def (unresolved name in body)") {
@@ -185,7 +185,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Analysis of valid AST with If statement") {
@@ -201,7 +201,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Analysis of invalid AST with If statement and undefined ref in test part") {
@@ -217,7 +217,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid AST analysis with attribute referencing") {
@@ -232,7 +232,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid AST analysis with nonexistent attribute referencing") {
@@ -247,7 +247,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid lambda application to coll") {
@@ -264,7 +264,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Valid function application to coll") {
@@ -284,7 +284,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("`.map()` application to coll") {
@@ -303,7 +303,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid `.map()` application to coll (Wrong number of arguments)") {
@@ -322,7 +322,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Inalid lambda application to coll (Wrong argument type)") {
@@ -339,7 +339,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Invalid function application to coll (Wrong argument type)") {
@@ -359,7 +359,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   // Type checking
@@ -376,7 +376,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Type checking of invalid assignment (Type mismatch)") {
@@ -391,7 +391,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of valid function definition") {
@@ -407,7 +407,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Type checking of invalid function definition (Type mismatch)") {
@@ -423,7 +423,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of invalid function definition (Return type mismatch) (Nested statements scanning)") {
@@ -442,7 +442,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of invalid function call (Argument type mismatch)") {
@@ -460,7 +460,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of invalid assignment (Zero division in value part)") {
@@ -475,7 +475,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of valid list") {
@@ -490,7 +490,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Type checking of invalid list (Elms types mismatch)") {
@@ -505,7 +505,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of invalid list (Nested coll)") {
@@ -520,7 +520,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of valid dict") {
@@ -535,7 +535,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Type checking of invalid dict (Elts types mismatch)") {
@@ -550,7 +550,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of invalid dict (Nested coll)") {
@@ -565,7 +565,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Type checking of valid list subscription") {
@@ -581,7 +581,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Type checking of invalid list subscription (Type mismatch)") {
@@ -597,7 +597,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid Base58 string analysis") {
@@ -612,7 +612,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid Base58 string analysis (Illegal symbol)") {
@@ -627,7 +627,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Valid match statement") {
@@ -646,7 +646,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Valid match statement with many statements in the branch") {
@@ -667,7 +667,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 
   property("Invalid match statement (No default branch)") {
@@ -684,7 +684,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Scoping (Name referenced from outer scope)") {
@@ -702,7 +702,7 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe false
+    processR.isSuccess shouldBe false
   }
 
   property("Scoping with global modifier") {
@@ -720,6 +720,6 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.isRight shouldBe true
+    processR.isSuccess shouldBe true
   }
 }
