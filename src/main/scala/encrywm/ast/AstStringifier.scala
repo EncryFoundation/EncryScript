@@ -48,7 +48,7 @@ object AstStringifier {
     case EXPR.LongConst(const) => const.toString
     case EXPR.True => true.toString
     case EXPR.False => false.toString
-    case EXPR.Str(str) => str
+    case EXPR.Str(str) => "\"" + str + "\""
     case EXPR.Base58Str(str) => s"base58{$str}"
     case EXPR.Attribute(value, attr, _, _) => s"${toString(value)}.${attr.name}"
     case EXPR.Subscript(_, _, _, _) => "<subscript_expr>"
