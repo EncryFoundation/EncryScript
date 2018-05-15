@@ -13,7 +13,7 @@ object AstStringifier {
 
   private def rootToString(root: TREE_ROOT): String = root match {
     case c: TREE_ROOT.Contract => c.body.map(toString).fold("")(_.concat(_))
-    case _ => ???
+    case c: TREE_ROOT.Expression => c.body.map(toString).fold("")(_.concat(_))
   }
 
   private def stmtToString(stmt: STMT): String = stmt match {
@@ -22,17 +22,16 @@ object AstStringifier {
         .concat(body.map(toString).fold("")((str, expr) => str.concat("\n" +  expr)))
     case STMT.Return(value) => "return " + value.map(toString(_)).getOrElse("")
     case STMT.Let(target, value, _) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))
-    case STMT.AugAssign(_, _, _) => ???
-    case STMT.For(_, _, _, _) => ???
-    case STMT.If(_, _, _) => ???
+    case STMT.AugAssign(_, _, _) => "<+=>"
+    case STMT.For(_, _, _, _) => "<for_stmt>"
+    case STMT.If(_, _, _) => "<if_stmt>"
     case STMT.Match(target, _) => s"match ${toString(target)}"
     case STMT.Case(cond, body, _) => s"case ${toString(cond)} \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
-    case STMT.Assert(_, _) => ???
+    case STMT.Assert(_, _) => "<assert_stmt>"
     case STMT.Expr(value) => toString(value)
     case STMT.UnlockIf(expr) => "unlock if ".concat(toString(expr))
     case STMT.Halt => "abort"
     case STMT.Pass => "pass"
-    case _ => ???
   }
 
   private def exprToString(expr: EXPR): String = expr match {
@@ -52,7 +51,7 @@ object AstStringifier {
     case EXPR.Str(str) => str
     case EXPR.Base58Str(str) => s"base58{$str}"
     case EXPR.Attribute(value, attr, _, _) => s"${toString(value)}.${attr.name}"
-    case EXPR.Subscript(_, _, _, _) => ???
+    case EXPR.Subscript(_, _, _, _) => "<subscript_expr>"
     case EXPR.Name(name, _, _) => name.name
     case EXPR.ESDictNode(keys, values, _) => keys.zip(values).foldLeft("")( (str, elem) => str.concat(toString(elem._1) + ":" + toString(elem._2)))
     case EXPR.ESSet(elts, _) => elts.foldLeft("")((str, expr) => str.concat(toString(expr) + ", "))
@@ -60,7 +59,6 @@ object AstStringifier {
     case EXPR.ESTuple(elts, _, _) => "( " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " )"
     case EXPR.Declaration(target, tpe) => toString(target) + tpe.map(": " + _.ident.name).getOrElse("")
     case EXPR.GenericCond => "_"
-    case _ => ???
   }
   
   private def compOpToString(op: COMP_OP): String = op match {
