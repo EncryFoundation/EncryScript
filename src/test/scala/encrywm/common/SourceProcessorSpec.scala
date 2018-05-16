@@ -2,6 +2,8 @@ package encrywm.common
 
 import org.scalatest.{Matchers, PropSpec}
 
+import scala.util.Failure
+
 class SourceProcessorSpec extends PropSpec with Matchers {
 
   property("Script source processing") {
@@ -52,12 +54,12 @@ class SourceProcessorSpec extends PropSpec with Matchers {
     procTry.isSuccess shouldBe true
   }
 
-  property("Composite source processing (Unresolved ref in schema)") {
+  property("Composite source processing (Invalid schema)") {
     val s =
       """
         |schema PersonBox:Object(
         |    name:String;
-        |    age:Null;
+        |    age:Undef;
         |)
         |
         |#---script---
@@ -73,5 +75,38 @@ class SourceProcessorSpec extends PropSpec with Matchers {
     val procTry = SourceProcessor.process(s)
 
     procTry.isSuccess shouldBe false
+
+    (procTry match {
+      case Failure(_: encrytl.core.Interpreter.UnresolvedRefError) => true
+      case _ => false
+    }) shouldBe true
+  }
+
+  property("Composite source processing (Invalid script)") {
+    val s =
+      """
+        |schema PersonBox:Object(
+        |    name:String;
+        |    age:Int;
+        |)
+        |
+        |#---script---
+        |
+        |def checkAge(box: Undef) -> Bool:
+        |   match box:
+        |       case personBox -> @PersonBox:
+        |           return personBox.body.age > 20
+        |       case _:
+        |           pass
+      """.stripMargin
+
+    val procTry = SourceProcessor.process(s)
+
+    procTry.isSuccess shouldBe false
+
+    (procTry match {
+      case Failure(_: encrywm.lang.frontend.semantics.error.UnresolvedSymbolError) => true
+      case _ => false
+    }) shouldBe true
   }
 }
