@@ -385,6 +385,8 @@ object Types {
     Signature25519,
     MultiSig,
     AssetBox,
+    AssetIssuingBox,
+    DataBox,
     AccountProposition,
     OpenProposition,
     ContractProposition,
