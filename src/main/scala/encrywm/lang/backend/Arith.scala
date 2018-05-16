@@ -1,12 +1,12 @@
 package encrywm.lang.backend
 
-import encrywm.lang.backend.executor.error.UnsupportedOperationError
+import encrywm.lang.backend.executor.error.UnsupportedOperationException
 
 object Arith {
 
   def checkType[T](v: Any): T = v match {
     case t: T@unchecked => t
-    case _ => throw UnsupportedOperationError
+    case _ => throw UnsupportedOperationException
   }
 
   def add[T](op1: Any, op2: Any): T = {
@@ -27,7 +27,7 @@ object Arith {
       case (o1: Long, o2: Int) => checkType[T](o1 + o2)
       case (o1: Long, o2: Double) => checkType[T](o1 + o2)
       case (o1: Long, o2: Long) => checkType[T](o1 + o2)
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -49,7 +49,7 @@ object Arith {
       case (o1: Long, o2: Int) => checkType[T](o1 - o2)
       case (o1: Long, o2: Double) => checkType[T](o1 - o2)
       case (o1: Long, o2: Long) => checkType[T](o1 - o2)
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -71,7 +71,7 @@ object Arith {
       case (o1: Long, o2: Int) => checkType[T](o1 * o2)
       case (o1: Long, o2: Double) => checkType[T](o1 * o2)
       case (o1: Long, o2: Long) => checkType[T](o1 * o2)
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -93,7 +93,7 @@ object Arith {
       case (o1: Long, o2: Int) => checkType[T](o1 / o2)
       case (o1: Long, o2: Double) => checkType[T](o1 / o2)
       case (o1: Long, o2: Long) => checkType[T](o1 / o2)
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 }

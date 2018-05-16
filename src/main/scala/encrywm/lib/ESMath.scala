@@ -3,7 +3,7 @@ package encrywm.lib
 import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{EXPR, OPERATOR}
-import encrywm.lang.frontend.semantics.error.ZeroDivisionError
+import encrywm.lang.frontend.semantics.exceptions.ZeroDivisionException
 
 object ESMath {
 
@@ -28,10 +28,10 @@ object ESMath {
     operand2 match {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
-          throw ZeroDivisionError
+          throw ZeroDivisionException
       case long: EXPR.LongConst
         if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
-          throw ZeroDivisionError
+          throw ZeroDivisionException
       case _ => // Do nothing.
     }
   }
