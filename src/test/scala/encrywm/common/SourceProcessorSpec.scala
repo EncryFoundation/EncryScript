@@ -105,7 +105,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
     procTry.isSuccess shouldBe false
 
     (procTry match {
-      case Failure(_: encrywm.lang.frontend.semantics.error.UnresolvedSymbolError) => true
+      case Failure(_: encrywm.lang.frontend.semantics.exceptions.UnresolvedSymbolException) => true
       case _ => false
     }) shouldBe true
   }
