@@ -1,7 +1,7 @@
 package encrywm.lang.backend
 
 import encrywm.lang.backend.env.ESObject
-import encrywm.lang.backend.executor.error.UnsupportedOperationError
+import encrywm.lang.backend.executor.error.UnsupportedOperationException
 
 object Compare {
 
@@ -26,7 +26,7 @@ object Compare {
       case (o1: Boolean, o2: Boolean) => o1 == o2
       case (o1: Array[Byte], o2: Array[Byte]) => o1 sameElements o2
       case (o1: ESObject, o2: ESObject) => o1 == o2
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -48,7 +48,7 @@ object Compare {
       case (o1: Double, o2: Long) => o1 > o2
       case (o1: Double, o2: Float) => o1 > o2
       case (o1: Double, o2: Double) => o1 > o2
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -70,7 +70,7 @@ object Compare {
       case (o1: Double, o2: Long) => o1 >= o2
       case (o1: Double, o2: Float) => o1 >= o2
       case (o1: Double, o2: Double) => o1 >= o2
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -92,7 +92,7 @@ object Compare {
       case (o1: Double, o2: Long) => o1 < o2
       case (o1: Double, o2: Float) => o1 < o2
       case (o1: Double, o2: Double) => o1 < o2
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 
@@ -114,7 +114,7 @@ object Compare {
       case (o1: Double, o2: Long) => o1 <= o2
       case (o1: Double, o2: Float) => o1 <= o2
       case (o1: Double, o2: Double) => o1 <= o2
-      case _ => throw UnsupportedOperationError
+      case _ => throw UnsupportedOperationException
     }
   }
 }

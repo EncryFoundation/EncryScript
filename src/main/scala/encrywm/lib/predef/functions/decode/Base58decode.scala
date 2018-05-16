@@ -1,7 +1,7 @@
 package encrywm.lib.predef.functions.decode
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
-import encrywm.lang.backend.executor.error.BuiltInFunctionExecError
+import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESString
 import encrywm.lib.predef.functions.BuiltInFunctionHolder
 import scorex.crypto.encode.Base58
@@ -21,7 +21,7 @@ object Base58decode extends BuiltInFunctionHolder {
       val fnArg = args.map(_._2.value.asInstanceOf[String]).head
       Right(Base58.decode(fnArg).toOption)
     } else {
-      Left(BuiltInFunctionExecError)
+      Left(BuiltInFunctionExecException)
     }
   }
 }
