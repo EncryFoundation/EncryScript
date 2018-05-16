@@ -44,6 +44,8 @@ object AstCodec {
   implicit def dCp = dT.bind[Types.ContractProposition.type](28)
   implicit def dHp = dT.bind[Types.HeightProposition.type](29)
   implicit def dTsT = dT.bind[Types.SDObject.type](30)
+  implicit def dAib = dT.bind[Types.AssetIssuingBox.type](31)
+  implicit def dDbx = dT.bind[Types.DataBox.type](32)
 
   implicit def dSt: Discriminated[STMT, Int] = Discriminated[STMT, Int](uint4)
   implicit def dFnDef = dSt.bind[STMT.FunctionDef](0)
