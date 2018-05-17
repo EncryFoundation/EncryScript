@@ -130,11 +130,32 @@ Language abilities:
         case _:
             abort                       // Halt script execution
 
+## Usage with EncryTL
+
+    // EncryTL schema description
+    schema PersonData:Object(
+        name:String;
+        age:Int;
+    )
+
+    #---script---
+
+    def checkAge(box: Box) -> Bool:
+       match box:
+           case dataBox -> DataBox:
+               match read(dataBox.data):
+                   case person -> @PersonData:
+                       return person.age > 20
+                   case _:
+                       return false
+           case _:
+               return false
+
 ## Use cases
 Threshold signature (2 of 3):
     
-    let publicKeys = {'Ivan' : pkFromAddress('5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9'), 
-                      'Marina' : pkFromAddress('11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i'), 
+    let publicKeys = {'Ivan' : pkFromAddress('5QCPz4eZAgT8DLAoZDSeouLMk1Kcf6DjJzrURiSV9U9'),
+                      'Marina' : pkFromAddress('11NDaGfSWVg9qjjPc4QjGYJL8ErvGRrmKGEW5FSMq3i'),
                       'Alice': pkFromAddress('75Gs7HHUNnoEzsPgRRVABzQaC3UZVcayw9NY457Kx5p')}
 
     if checkType(proof, MultiProof) and proof.proofs.size >= 2:
