@@ -9,14 +9,14 @@ object Generator {
 
   def generateEXPRs(count: Int): List[EXPR] =
     (0 until count).foldLeft(List[EXPR]()){
-      (seq, i) => seq :+ BoolOp(And, List(IntConst(2), IntConst(3)))
+      (seq, _) => seq :+ BoolOp(And, List(IntConst(2), IntConst(3)))
     }
 
   def generateBoolOp: EXPR.BoolOp = BoolOp(And, List(IntConst(2), IntConst(3)))
 
   def generateSTMTs(count: Int): List[STMT] =
     (0 until count).foldLeft(List[STMT]()){
-      (seq, i) => seq :+ FunctionDef(
+      (seq, _) => seq :+ FunctionDef(
         Identifier(s"count $count"),
         Arguments(List()),
         generateSTMTs(count-1),

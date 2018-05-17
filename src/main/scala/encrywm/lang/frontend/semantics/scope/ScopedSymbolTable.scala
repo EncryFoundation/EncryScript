@@ -1,5 +1,9 @@
 package encrywm.lang.frontend.semantics.scope
 
+import encrywm.ast.Ast.EXPR.Name
+import encrywm.ast.Ast.EXPR_CTX.Load
+import encrywm.ast.Ast.Identifier
+
 class ScopedSymbolTable(val scopeName: String,
                         val scopeLevel: Int,
                         val parentalScopeOpt: Option[ScopedSymbolTable] = None) extends SymbolTable {
@@ -20,7 +24,7 @@ object ScopedSymbolTable {
 
   def initialized: ScopedSymbolTable = {
     val symbolTable = new ScopedSymbolTable("GLOBAL", 1)
-    ESPredefScope.predefNames.foreach(symbolTable.insert)
+    ESPredefScope.predefNames.foreach(sym => symbolTable.insert(sym, Name(Identifier(sym.name), Load)))
     symbolTable
   }
 }
