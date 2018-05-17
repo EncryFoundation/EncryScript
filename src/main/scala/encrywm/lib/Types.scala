@@ -90,7 +90,7 @@ object Types {
   /** TL schema object type tag */
   case object SDObject extends ESType with ESProduct {
     override type Underlying = ESObject
-    override val ident: String = "TypeLangSchemaTag"
+    override val ident: String = "SelfDescribingObject"
   }
 
   case object ESContext extends ESType with ESProduct {
@@ -224,6 +224,30 @@ object Types {
     override val fields: Map[String, ESType] = Map(
       "amount" -> ESLong,
       "tokenIdOpt" -> ESOption(ESByteVector)
+    )
+  }
+
+  // ESBox impl
+  case object AssetIssuingBox extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "AssetIssuingBox"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESBox)
+
+    override val fields: Map[String, ESType] = Map(
+      "amount" -> ESLong
+    )
+  }
+
+  // ESBox impl
+  case object DataBox extends ESType with ESProduct {
+    override type Underlying = ESObject
+    override val ident: String = "DataBox"
+
+    override val superTypeOpt: Option[ESProduct] = Some(ESBox)
+
+    override val fields: Map[String, ESType] = Map(
+      "data" -> ESByteVector
     )
   }
 
@@ -361,6 +385,8 @@ object Types {
     Signature25519,
     MultiSig,
     AssetBox,
+    AssetIssuingBox,
+    DataBox,
     AccountProposition,
     OpenProposition,
     ContractProposition,
