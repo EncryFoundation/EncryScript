@@ -1,35 +1,35 @@
 package encrywm.lang.frontend.semantics.exceptions
 
-class SemanticException(m: String) extends Exception(m)
+class SemanticException(m: String, codeExample: String) extends Exception(m.concat(s" In '$codeExample'"))
 
-case class NameException(n: String) extends SemanticException(s"Name $n is undefined.")
+case class NameException(n: String, codeExample: String) extends SemanticException(s"Name $n is undefined.", codeExample: String)
 
-case class AlreadyDefinedException(n: String) extends SemanticException(s"Name $n is already defined in scope.")
+case class AlreadyDefinedException(n: String, codeExample: String) extends SemanticException(s"Name $n is already defined in scope.", codeExample: String)
 
-case class UnexpectedStatementException(s: String) extends SemanticException(s"Unexpected statement: $s.")
+case class UnexpectedStatementException(s: String, codeExample: String) extends SemanticException(s"Unexpected statement: $s.", codeExample: String)
 
-case object IllegalExprException extends SemanticException(s"Unexpected expression.")
+case class IllegalExprException(codeExample: String) extends SemanticException(s"Unexpected expression.", codeExample: String)
 
-case object IllegalOperandException extends SemanticException(s"Illegal operand type.")
+case class IllegalOperandException(codeExample: String) extends SemanticException(s"Illegal operand type.", codeExample: String)
 
-case object ZeroDivisionException extends SemanticException(s"Zero division.")
+case class ZeroDivisionException(codeExample: String) extends SemanticException(s"Zero division.", codeExample: String)
 
-case object MissedContextException extends SemanticException(s"Missed context for AST processing.")
+case class MissedContextException(codeExample: String) extends SemanticException(s"Missed context for AST processing.", codeExample: String)
 
-case class WrongNumberOfArgumentsException(fn: String) extends SemanticException(s"Wrong number of arguments in $fn.")
+case class WrongNumberOfArgumentsException(fn: String, codeExample: String) extends SemanticException(s"Wrong number of arguments in $fn.", codeExample: String)
 
-case class UnapplicableFunctionException(fn: String, coll: String) extends SemanticException(s"$fn is not applicable to $coll")
+case class UnapplicableFunctionException(fn: String, coll: String, codeExample: String) extends SemanticException(s"$fn is unapplicable to $coll", codeExample: String)
 
-case class NotAnObjectException(n: String) extends SemanticException(s"$n is not an object.")
+case class NotAnObjectException(n: String, codeExample: String) extends SemanticException(s"$n is not an object.", codeExample: String)
 
-case object TypeException extends SemanticException("Invalid type.")
+case class TypeException(codeExample: String) extends SemanticException("Missed type.", codeExample: String)
 
-case class UnresolvedSymbolException(s: String) extends SemanticException(s"Can not resolve symbol $s")
+case class UnresolvedSymbolException(s: String, codeExample: String) extends SemanticException(s"Can not resolve symbol $s", codeExample: String)
 
-case object Base58DecodeException extends SemanticException("Base58 decode error.")
+case class Base58DecodeException(codeExample: String) extends SemanticException("Base58 decode error.", codeExample: String)
 
-case class TypeMismatchException(t1: String, t2: String) extends SemanticException(s"Expected type $t1, got $t2.")
+case class TypeMismatchException(t1: String, t2: String, codeExample: String) extends SemanticException(s"Expected type $t1, got $t2.", codeExample: String)
 
-case object NestedCollectionException extends SemanticException("Nested collections are disallowed.")
+case class NestedCollectionException(codeExample: String) extends SemanticException("Nested collections are disallowed.", codeExample: String)
 
-case object DefaultBranchUndefinedException extends SemanticException("Match statement must contain default branch.")
+case class DefaultBranchUndefinedException(codeExample: String) extends SemanticException("Match statement must contain default branch.", codeExample: String)

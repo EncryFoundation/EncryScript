@@ -2,7 +2,7 @@ package encrywm.utils
 
 class Stack[T] {
 
-  protected var stack: List[T] = List.empty
+  var stack: List[T] = List.empty
 
   def currentOpt: Option[T] = stack.headOption
 
