@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 trait SymbolTable {
 
-  protected val symbols: mutable.TreeMap[String, Symbol] = mutable.TreeMap.empty[String, Symbol]
+  val symbols: mutable.TreeMap[String, Symbol] = mutable.TreeMap.empty[String, Symbol]
 
   def insert(sym: Symbol, node: AST_NODE): Unit = {
     symbols.get(sym.name).map(_ => throw AlreadyDefinedException(sym.name, AstStringifier.toString(node)))

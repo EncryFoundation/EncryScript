@@ -1,6 +1,5 @@
 package encrywm.lang.frontend.semantics.exception
 
-import encrywm.ast.Ast
 import encrywm.lang.frontend.parser.Statements
 import encrywm.lang.frontend.semantics.StaticProcessor
 import encrywm.lib.TypeSystem
