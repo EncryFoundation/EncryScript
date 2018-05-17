@@ -16,7 +16,7 @@ object Base58decode extends BuiltInFunctionHolder {
 
   private val body = (args: Seq[(String, ESValue)]) => {
     val validNumberOfArgs = args.size == 1
-    val validArgTypes = args.forall { case (_, v) => v.tpe.isInstanceOf[ESString.type] }
+    val validArgTypes = args.forall { case (_, v) => v.tpe == ESString }
     if (validNumberOfArgs && validArgTypes) {
       val fnArg = args.map(_._2.value.asInstanceOf[String]).head
       Right(Base58.decode(fnArg).toOption)

@@ -1,9 +1,8 @@
-package encrywm.lib.predef.functions.hash
+package encrywm.lib.predef.functions
 
 import encrywm.lang.backend.env.ESEnvComponent
-import encrywm.lib.predef.functions.signature.CheckSig
 
-object ESPredefHash {
+package object hash {
 
   val predefFunctions: Map[String, ESEnvComponent] = Map(
     Blake2b256Hash.name -> Blake2b256Hash.asFunc,

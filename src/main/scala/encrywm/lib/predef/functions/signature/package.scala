@@ -1,9 +1,10 @@
-package encrywm.lib.predef.functions.decode
+package encrywm.lib.predef.functions
 
 import encrywm.lang.backend.env.ESEnvComponent
 
-object ESPredefDecode {
+package object signature {
+
   val predefFunctions: Map[String, ESEnvComponent] = Map(
-    Base58decode.name -> Base58decode.asFunc
+    CheckSig.name -> CheckSig.asFunc
   )
 }

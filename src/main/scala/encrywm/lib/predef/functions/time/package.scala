@@ -1,8 +1,9 @@
-package encrywm.lib.predef.functions.time
+package encrywm.lib.predef.functions
 
 import encrywm.lang.backend.env.ESEnvComponent
 
-object ESPredefTime {
+package object time {
+
   val predefFunctions: Map[String, ESEnvComponent] = Map(
     Str2Time.name -> Str2Time.asFunc
   )

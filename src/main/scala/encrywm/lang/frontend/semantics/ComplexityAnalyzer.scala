@@ -1,6 +1,7 @@
 package encrywm.lang.frontend.semantics
 
 import encrywm.ast.Ast._
+import encrywm.lib.predef.functions
 
 object ComplexityAnalyzer {
 
@@ -33,14 +34,20 @@ object ComplexityAnalyzer {
     case _ => 0
   }
 
+  // FIXME: User-defined function call complexity estimated incorrectly.
   private def scanExpr(expr: EXPR): ScriptComplexityScore = expr match {
     case EXPR.BoolOp(_, values) => values.length
-    case EXPR.BinOp(left, _, right, _) => scanExpr(left) + scanExpr(right)
+    case EXPR.BinOp(left, _, right, _) => scanExpr(left) + scanExpr(right) + 1
     case EXPR.UnaryOp(_, operand, _) => scanExpr(operand)
     case EXPR.Lambda(_, body, _) => scanExpr(body)
     case EXPR.IfExp(test, body, orelse, _) => scanExpr(test) + Math.max(scanExpr(body), scanExpr(orelse))
     case EXPR.Compare(left, ops, comparators) => scanExpr(left) + ops.length + comparators.map(scanExpr).sum
-    case EXPR.Call(func, args, _, _) => scanExpr(func) + args.map(scanExpr).sum
+    case EXPR.Call(EXPR.Name(Identifier(n), _, _), args, _, _) => args.map(scanExpr).sum + {
+      if (functions.hashFunctions.map(_.name).contains(n)) 10
+      else if (functions.middleFunctions.map(_.name).contains(n)) 15
+      else if (functions.heavyFunctions.map(_.name).contains(n)) 20
+      else 2
+    }
     case EXPR.IntConst(_) => 1
     case EXPR.LongConst(_) => 1
     case EXPR.True => 1
@@ -49,7 +56,6 @@ object ComplexityAnalyzer {
     case EXPR.Base58Str(_) => 1
     case EXPR.Attribute(value, _, _, _) => scanExpr(value)
     case EXPR.Subscript(value, _, _, _) => scanExpr(value)
-    case EXPR.Name(_, _, _) => 1
     case EXPR.ESDictNode(keys, values, _) => keys.map(scanExpr).sum + values.map(scanExpr).sum
     case EXPR.ESSet(elts, _) => elts.map(scanExpr).sum
     case EXPR.ESList(elts, _, _) => elts.map(scanExpr).sum

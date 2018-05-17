@@ -143,9 +143,9 @@ Language abilities:
     def checkAge(box: Box) -> Bool:
        match box:
            case dataBox -> DataBox:
-               match read(dataBox.data):
+               match read(dataBox.data).get:
                    case person -> @PersonData:
-                       return person.age > 20
+                       return person.body.age > 20
                    case _:
                        return false
            case _:
