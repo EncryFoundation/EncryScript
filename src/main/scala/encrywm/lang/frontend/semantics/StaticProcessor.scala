@@ -79,10 +79,7 @@ class StaticProcessor(ts: TypeSystem) {
       params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2), node)))
       fd.body.foreach(scan)
 
-      val retType = findReturns(fd.body).map(_.value.map { exp =>
-        exp.tpeOpt.get
-      }).foldLeft(Seq[ESType]()) { case (acc, tOpt) =>
-        val tpe = tOpt.getOrElse(ESUnit)
+      val retType = findReturnTypes(fd.body).foldLeft(Seq[ESType]()) { case (acc, tpe) =>
         if (acc.nonEmpty) matchType(acc.head, tpe, fd)
         acc :+ tpe
       }.headOption.getOrElse(ESUnit)
@@ -242,14 +239,16 @@ class StaticProcessor(ts: TypeSystem) {
     scopes.lastOpt.foreach(_.insert(Symbol(name.id.name, tpe), name))
   }
 
-  private def findReturns(stmts: Seq[STMT]): Seq[STMT.Return] = {
+  /** Extracts types to be returned in the given number of statements (which form function body) */
+  private def findReturnTypes(stmts: Seq[STMT]): Seq[ESType] = {
 
-    def findReturnsIn(stmt: STMT): Seq[STMT.Return] = stmt match {
-      case ret: STMT.Return => Seq(ret)
-      case STMT.If(_, body, orelse) => findReturns(body) ++ findReturns(orelse)
-      case STMT.Match(_, branches) => findReturns(branches)
-      case STMT.Case(_, body, _) => findReturns(body)
-      case STMT.FunctionDef(_, _, body, _) => findReturns(body)
+    def findReturnsIn(stmt: STMT): Seq[ESType] = stmt match {
+      case ret: STMT.Return => Seq(ret.value.map(v => extractType(v.tpeOpt)).getOrElse(ESUnit))
+      case STMT.If(_, body, orelse) => findReturnTypes(body) ++ findReturnTypes(orelse)
+      case STMT.Match(_, branches) => findReturnTypes(branches)
+      case STMT.Case(_, body, _) => findReturnTypes(body)
+      case STMT.FunctionDef(_, _, body, _) => findReturnTypes(body)
+      case _: STMT.Pass.type => Seq(ESUnit)
       case _ => Seq.empty
     }
 
@@ -357,11 +356,14 @@ class StaticProcessor(ts: TypeSystem) {
     tpe
   }
 
+  private def extractType(opt: Option[ESType]): ESType = opt.getOrElse(throw new Exception("Type extraction failed"))
+
   private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
     val expT = exp.tpeOpt.get
     if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict]) throw NestedCollectionException(exps.foldLeft("")((str, expr) => str.concat("\n" + AstStringifier.toString(expr))))
   }
 
+  // TODO: Avoid passing unrelated argument `node`.
   private def matchType(t1: ESType, t2: ESType, node: AST_NODE): Unit =
     if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchException(t1.ident, t2.ident, AstStringifier.toString(node))
 
