@@ -131,8 +131,6 @@ object Ast {
     case object Div  extends OPERATOR
     case object Mod  extends OPERATOR
     case object Pow  extends OPERATOR
-
-    case object FloorDiv extends OPERATOR
   }
 
   sealed trait UNARY_OP

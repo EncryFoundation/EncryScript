@@ -85,8 +85,6 @@ object AstStringifier {
     case Ast.OPERATOR.Mult => "*"
     case Ast.OPERATOR.Div => "/"
     case Ast.OPERATOR.Mod => "%"
-    case Ast.OPERATOR.Pow => "**"
-    case Ast.OPERATOR.FloorDiv => "//"
   }
 
   private def unaryOpToString(op: UNARY_OP): String = op match {

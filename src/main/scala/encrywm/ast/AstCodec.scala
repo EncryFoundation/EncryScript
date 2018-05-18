@@ -117,8 +117,6 @@ object AstCodec {
   implicit def dMult = dOp.bind[OPERATOR.Mult.type](2)
   implicit def dDiv = dOp.bind[OPERATOR.Div.type](3)
   implicit def dMod = dOp.bind[OPERATOR.Mod.type](4)
-  implicit def dPow = dOp.bind[OPERATOR.Pow.type](5)
-  implicit def dFloorDiv = dOp.bind[OPERATOR.FloorDiv.type](6)
 
   implicit def dUnOp = Discriminated[UNARY_OP, Int](uint4)
   implicit def dInvert = dUnOp.bind[UNARY_OP.Invert.type](0)
