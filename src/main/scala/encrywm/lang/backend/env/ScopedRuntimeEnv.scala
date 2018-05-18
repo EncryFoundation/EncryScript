@@ -31,5 +31,5 @@ object ScopedRuntimeEnv {
     new ScopedRuntimeEnv(n, l, Map.empty, parent)
 
   def initialized(n: String, l: Int, env: Map[String, ESEnvComponent]): ScopedRuntimeEnv =
-    new ScopedRuntimeEnv(n, l, env ++ PredefFunctions.predefFunctions, None)
+    new ScopedRuntimeEnv(n, l, env ++ PredefFunctions.all, None)
 }

@@ -107,7 +107,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
               }
 
             case ESBuiltInFunc(name, dArgs, body) =>
-              if (PredefFunctions.all.map(_.name).contains(name))
+              if (PredefFunctions.hashFunctions.map(_.name).contains(name))
                 stepsCount += 9
               if (PredefFunctions.heavyFunctions.map(_.name).contains(name))
                 stepsCount += 29
