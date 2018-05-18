@@ -18,7 +18,9 @@ object AstStringifier {
 
   private def stmtToString(stmt: STMT): String = stmt match {
     case STMT.FunctionDef(name, args, body, returnType) =>
-      s"def ${name.name}(${args.args.map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_.concat(_))}): -> ${returnType.name}:"
+      s"def ${name.name}(" +
+        s"${args.args.head._1.name}: ${args.args.head._2.ident.name}" +
+        s"${args.args.drop(1).map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_ + ", " + _)}): -> ${returnType.name}:"
         .concat(body.map(toString).fold("")((str, expr) => str.concat("\n" +  expr)))
     case STMT.Return(value) => "return " + value.map(toString(_)).getOrElse("")
     case STMT.Let(target, value, _) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))

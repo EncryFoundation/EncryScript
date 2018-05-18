@@ -2,15 +2,16 @@ package encrywm.utils.mast
 
 import encrywm.ast.Ast.STMT.UnlockIf
 import encrywm.ast.Ast.TREE_ROOT.Contract
-import encrywm.ast.Ast.{BOOL_OP, EXPR, STMT}
-
-import scala.util.Random
+import encrywm.ast.Ast._
+import encrywm.utils.mast.Utils._
 
 object Mast {
 
   type ContractRootHash = Array[Byte]
 
-  def createContracts(contract: Contract): Seq[Contract] =
+  def mastRoot(contracts: Seq[Contract]): ContractRootHash = listRootHash(contracts.map(_.hash).toList)
+
+  def separateContracts(contract: Contract): Seq[Contract] =
     contract.body.foldLeft(Map[String, (Seq[String], Seq[STMT])]()){
       case (map, stmt) =>
         val variables = getAllVars(stmt)
@@ -18,8 +19,8 @@ object Mast {
           case unlock: STMT.UnlockIf =>
             map ++ splitUnlockIf(unlock).foldLeft(Map[String, (Seq[String], Seq[STMT])]()){
               case (unlockMap, unlockStmt) => unlockMap +
-                    (Random.nextInt(Integer.MAX_VALUE).toString ->
-                    (Seq.empty[String], createNodeLine(map, getAllVars(unlockStmt)) :+ unlockStmt))
+                    (map.size + unlockMap.size.toString ->
+                      (Seq.empty[String], createNodeLine(map, getAllVars(unlockStmt)) :+ unlockStmt))
             }
           case _ =>
             map + (variables.last -> (variables.dropRight(1), Seq(stmt)))
@@ -45,7 +46,7 @@ object Mast {
     * @param boolOp
     * @return
     */
-  private def splitBoolOps(boolOp: EXPR.BoolOp): Seq[EXPR] = {
+  private def splitBoolOps(boolOp: EXPR.BoolOp): Seq[EXPR] =
     boolOp.op match {
       case BOOL_OP.Or => boolOp.values.foldLeft(Seq[EXPR]()) {
         case (seq, expr) => expr match {
@@ -56,22 +57,19 @@ object Mast {
       }
       case _ => Seq(boolOp)
     }
-  }
 
   //TODO: Rename
-  private def createNodeLine(varsMap: Map[String, (Seq[String], Seq[STMT])], stmtVars: Seq[String]): Seq[STMT] = {
+  private def createNodeLine(varsMap: Map[String, (Seq[String], Seq[STMT])], stmtVars: Seq[String]): Seq[STMT] =
     stmtVars.foldLeft(Seq[STMT]()) {
       case (globalSeq, varName) =>
-        varsMap.get(varName).map(varInfo =>
+        globalSeq ++ varsMap.get(varName).map(varInfo => {
           varInfo._1.foldLeft(Seq[STMT]()) {
-            case (seq, refVarName) => seq ++ varsMap.get(refVarName).map(refVarInfo => {
-              createNodeLine(varsMap - refVarName, refVarInfo._1)
-              }
-            ).getOrElse(Seq.empty[STMT])
+            case (seq, refVarName) =>
+              seq ++ varsMap.get(refVarName).map(refVarInfo => createNodeLine(varsMap - refVarName, refVarInfo._1)).getOrElse(Seq.empty[STMT])
           } ++ varInfo._2
+        }
         ).getOrElse(Seq.empty[STMT])
     }
-  }
 
   private def getAllVars(stmt: STMT): Seq[String] =
     stmt match {
@@ -93,7 +91,7 @@ object Mast {
     case EXPR.BinOp(left, _, right, _) => getAllVars(left) ++ getAllVars(right)
     case EXPR.UnaryOp(_, operand, _) => getAllVars(operand)
     case EXPR.IfExp(test, body, orelse, _) => getAllVars(test) ++ getAllVars(body) ++ getAllVars(orelse)
-    case EXPR.Compare(left, ops, comparators) =>
+    case EXPR.Compare(left, _, comparators) =>
       getAllVars(left) ++ comparators.foldLeft(Seq[String]()){ case (comparatorVars, comparator) => comparatorVars ++ getAllVars(comparator) }
     case EXPR.Call(func, args, _, _) =>
       getAllVars(func) ++ args.foldLeft(Seq[String]()){ case (argumentVars, argument) => argumentVars ++ getAllVars(argument) }
@@ -103,7 +101,7 @@ object Mast {
     case EXPR.ESTuple(elts, _, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
     case EXPR.Declaration(target, _) => getAllVars(target)
     case EXPR.Name(name, _, _) => Seq(name.name)
-    case EXPR.Attribute(value, attr, _, _) => getAllVars(value)
+    case EXPR.Attribute(value, _, _, _) => getAllVars(value)
     case _ => Seq.empty[String]
   }
 }
