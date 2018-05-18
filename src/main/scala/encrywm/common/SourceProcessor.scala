@@ -5,7 +5,7 @@ import encrywm.ast.AstCodec._
 import encrywm.lang.frontend.parser.{Lexer, Parser}
 import encrywm.lang.frontend.semantics.{ComplexityAnalyzer, Optimizer, SchemaBinder, StaticProcessor, Transformer}
 import encrywm.lib.TypeSystem
-import encrywm.typelang.SchemaConverter
+import encrywm.typelang.Converter
 import scorex.crypto.hash.Blake2b256
 
 import scala.util.Try
@@ -29,7 +29,7 @@ object SourceProcessor {
       encrytl.common.SourceProcessor.process(comps.head).flatMap { schemas =>
         Parser.parse(comps.last).flatMap { parsedScript =>
           new StaticProcessor(
-            TypeSystem(schemas.map(s => SchemaConverter.schema2ESType(s)
+            TypeSystem(schemas.map(s => Converter.schema2ESType(s)
               .getOrElse(throw new Exception("Schema conversion failed"))
             ))
           ).process(parsedScript).map { res =>

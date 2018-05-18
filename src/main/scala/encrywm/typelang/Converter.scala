@@ -1,17 +1,27 @@
 package encrywm.typelang
 
-import encrytl.core.Schema
+import encrytl.core.{Schema, TypedObject}
+import encrywm.lang.backend.env.{ESObject, ESValue}
 import scorex.crypto.encode.Base58
 
 import scala.util.Try
 
-object SchemaConverter {
+object Converter {
 
   import encrytl.core.Types._
   import encrywm.lib.Types._
 
+  /** Converts `encrytl.core.Schema` to `ESTypedObject` */
   def schema2ESType(schema: Schema): Try[ESTypedObject] = Try {
     ESTypedObject(schema.ident, List("fingerprint" -> ESByteVector, "body" -> convertType(schema.tpe)))
+  }
+
+  /** Converts `encrytl.core.TypedObject` to `ESObject` */
+  def typedObj2ESObj(obj: TypedObject): Try[ESObject] = Try {
+    val fields = obj.fields.map { case (n, v) =>
+      n -> ESValue(n, convertType(v.tpe))(v.value)
+    }.toMap
+    ESObject(Base58.encode(obj.fingerprint), fields, SDObject)
   }
 
   private def convertType(tpe: EType): ESType = tpe match {

@@ -7,7 +7,7 @@ import encrywm.lang.backend.executor.error._
 import encrywm.lang.backend.{Arith, Compare}
 import encrywm.lib.{TypeSystem, Types}
 import encrywm.lib.Types.{ESFunc => _, _}
-import encrywm.lib.predef.functions
+import encrywm.lib.predef.PredefFunctions
 import monix.eval.Coeval
 import scorex.crypto.encode.Base58
 
@@ -107,9 +107,9 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
               }
 
             case ESBuiltInFunc(name, dArgs, body) =>
-              if (functions.hashFunctions.map(_.name).contains(name))
+              if (PredefFunctions.all.map(_.name).contains(name))
                 stepsCount += 9
-              if (functions.heavyFunctions.map(_.name).contains(name))
+              if (PredefFunctions.heavyFunctions.map(_.name).contains(name))
                 stepsCount += 29
               val fnArgs = args.zip(dArgs).map { case (arg, (n, _)) =>
                 val argT = arg.tpeOpt.get

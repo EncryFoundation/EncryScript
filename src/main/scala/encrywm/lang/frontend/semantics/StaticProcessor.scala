@@ -21,7 +21,7 @@ class StaticProcessor(ts: TypeSystem) {
 
   def process(contract: Contract): Try[Contract] = {
     val local = contract.copy()
-    Coeval(scan(local)).runTry.map(_ => local)
+    Try(scan(local)).map(_ => local)
   }
 
   def scan(node: AST_NODE): Unit = node match {
@@ -44,7 +44,12 @@ class StaticProcessor(ts: TypeSystem) {
       scan(asg.value)
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
-          val valueType = inferType(asg.value)
+          // Infer type for the value being assigned,
+          // if the value is func then its return type is used.
+          val valueType = inferType(asg.value) match {
+            case ESFunc(_, retT) => retT
+            case otherT => otherT
+          }
           typeOpt.map { t =>
             val mainT = ts.typeByIdent(t.ident.name).getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg)))
             val typeParams = t.typeParams.map(id => ts.typeByIdent(id.name).getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg))))
@@ -269,6 +274,7 @@ class StaticProcessor(ts: TypeSystem) {
           }
 
         case fc: EXPR.Call =>
+          fc.args.map(inferType)
           fc.func match {
             case EXPR.Name(n, _, _) =>
               scope.lookup(n.name).map { case Symbol(_, t) => t }
