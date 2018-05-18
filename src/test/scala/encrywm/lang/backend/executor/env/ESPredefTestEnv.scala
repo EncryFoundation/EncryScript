@@ -1,10 +1,10 @@
 package encrywm.lang.backend.executor.env
 
 import encrywm.lang.backend.env.ESEnvComponent
-import encrywm.lib.predef.functions.decode.Base58decode
-import encrywm.lib.predef.functions.hash._
-import encrywm.lib.predef.functions.signature._
-import encrywm.lib.predef.functions.time._
+import encrywm.lib.predef.decode.Base58decode
+import encrywm.lib.predef.hash._
+import encrywm.lib.predef.signature._
+import encrywm.lib.predef.time._
 
 class ESPredefTestEnv(contextBuilder: ESContextBuilder) {
 

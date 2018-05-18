@@ -1,6 +1,6 @@
 package encrywm.lang.backend.env
 
-import encrywm.lib.predef
+import encrywm.lib.predef.PredefFunctions
 
 class ScopedRuntimeEnv(val name: String,
                        val level: Int,
@@ -31,5 +31,5 @@ object ScopedRuntimeEnv {
     new ScopedRuntimeEnv(n, l, Map.empty, parent)
 
   def initialized(n: String, l: Int, env: Map[String, ESEnvComponent]): ScopedRuntimeEnv =
-    new ScopedRuntimeEnv(n, l, env ++ predef.predefFunctions, None)
+    new ScopedRuntimeEnv(n, l, env ++ PredefFunctions.predefFunctions, None)
 }

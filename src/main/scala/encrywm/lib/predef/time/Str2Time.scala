@@ -1,11 +1,11 @@
-package encrywm.lib.predef.functions.time
+package encrywm.lib.predef.time
 
 import java.text.SimpleDateFormat
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESString
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
+import encrywm.lib.predef.BuiltInFunctionHolder
 
 object Str2Time extends BuiltInFunctionHolder {
 

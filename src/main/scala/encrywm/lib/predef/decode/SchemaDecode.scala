@@ -1,10 +1,10 @@
-package encrywm.lib.predef.functions.decode
+package encrywm.lib.predef.decode
 
 import encrytl.core.TypedObjectCodec
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESObject, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESByteVector
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
+import encrywm.lib.predef.BuiltInFunctionHolder
 import encrywm.typelang.Converter
 
 import scala.util.Try

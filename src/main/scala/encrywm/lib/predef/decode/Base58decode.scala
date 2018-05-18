@@ -1,9 +1,9 @@
-package encrywm.lib.predef.functions.decode
+package encrywm.lib.predef.decode
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESString
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
+import encrywm.lib.predef.BuiltInFunctionHolder
 import scorex.crypto.encode.Base58
 
 object Base58decode extends BuiltInFunctionHolder {

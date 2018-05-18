@@ -1,10 +1,10 @@
 package encrywm.lang.frontend.semantics.scope
 
 import encrywm.lib.Types._
-import encrywm.lib.predef.functions.decode.{Base58decode, SchemaDecode}
-import encrywm.lib.predef.functions.hash._
-import encrywm.lib.predef.functions.signature._
-import encrywm.lib.predef.functions.time._
+import encrywm.lib.predef.decode.{Base58decode, SchemaDecode}
+import encrywm.lib.predef.hash._
+import encrywm.lib.predef.signature._
+import encrywm.lib.predef.time._
 
 object ESPredefScope {
 

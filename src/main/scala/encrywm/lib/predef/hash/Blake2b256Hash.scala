@@ -1,9 +1,9 @@
-package encrywm.lib.predef.functions.hash
+package encrywm.lib.predef.hash
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESByteVector
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
+import encrywm.lib.predef.BuiltInFunctionHolder
 import scorex.crypto.hash.Blake2b256
 
 object Blake2b256Hash extends BuiltInFunctionHolder {

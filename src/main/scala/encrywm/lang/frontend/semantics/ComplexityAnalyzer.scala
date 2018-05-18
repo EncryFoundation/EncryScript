@@ -1,7 +1,7 @@
 package encrywm.lang.frontend.semantics
 
 import encrywm.ast.Ast._
-import encrywm.lib.predef.functions
+import encrywm.lib.predef.PredefFunctions
 
 object ComplexityAnalyzer {
 
@@ -43,9 +43,9 @@ object ComplexityAnalyzer {
     case EXPR.IfExp(test, body, orelse, _) => scanExpr(test) + Math.max(scanExpr(body), scanExpr(orelse))
     case EXPR.Compare(left, ops, comparators) => scanExpr(left) + ops.length + comparators.map(scanExpr).sum
     case EXPR.Call(EXPR.Name(Identifier(n), _, _), args, _, _) => args.map(scanExpr).sum + {
-      if (functions.hashFunctions.map(_.name).contains(n)) 10
-      else if (functions.middleFunctions.map(_.name).contains(n)) 15
-      else if (functions.heavyFunctions.map(_.name).contains(n)) 20
+      if (PredefFunctions.all.map(_.name).contains(n)) 10
+      else if (PredefFunctions.middleFunctions.map(_.name).contains(n)) 15
+      else if (PredefFunctions.heavyFunctions.map(_.name).contains(n)) 20
       else 2
     }
     case EXPR.IntConst(_) => 1

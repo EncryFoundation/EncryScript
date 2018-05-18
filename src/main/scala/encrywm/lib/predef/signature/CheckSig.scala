@@ -1,25 +1,25 @@
-package encrywm.lib.predef.functions.hash
+package encrywm.lib.predef.signature
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESByteVector
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
-import scorex.crypto.hash.Blake2b512
+import encrywm.lib.predef.BuiltInFunctionHolder
+import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
-object Blake2b512Hash extends BuiltInFunctionHolder {
+object CheckSig extends BuiltInFunctionHolder {
 
-  val name: String = "blake2b512hash"
+  val name: String = "checkSig"
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
-  val args = IndexedSeq("input" -> ESByteVector)
+  val args = IndexedSeq("sig" -> ESByteVector, "msg" -> ESByteVector, "pubKey" -> ESByteVector)
 
   private val body = (args: Seq[(String, ESValue)]) => {
-    val validNumberOfArgs = args.size == 1
+    val validNumberOfArgs = args.size == 3
     val validArgTypes = args.forall { case (_, v) => v.tpe.isInstanceOf[ESByteVector.type] }
     if (validNumberOfArgs && validArgTypes) {
       val fnArgs = args.map(_._2.value.asInstanceOf[Array[Byte]])
-      Right(Blake2b512.hash(fnArgs.head))
+      Right(Curve25519.verify(Signature @@ fnArgs.head, fnArgs(1), PublicKey @@ fnArgs.last))
     } else {
       Left(BuiltInFunctionExecException)
     }
