@@ -284,8 +284,6 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     val processR = sp.process(AstRoot.get.value)
 
-    processR.get
-
     processR.isSuccess shouldBe true
   }
 

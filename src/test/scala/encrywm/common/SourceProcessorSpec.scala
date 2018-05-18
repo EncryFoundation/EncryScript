@@ -45,8 +45,8 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |    match box:
         |       case dataBox -> DataBox:
         |           match read(dataBox.data).get:
-        |               case person -> @PersonData:
-        |                   return person.body.age > 20
+        |               case personData -> @PersonData:
+        |                   return personData.body.age > 20
         |               case _:
         |                   return false
         |       case _:
@@ -73,7 +73,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |       case personBox -> @PersonBox:
         |           return personBox.body.age > 20
         |       case _:
-        |           pass
+        |           return false
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
@@ -101,7 +101,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |       case personBox -> @PersonBox:
         |           return personBox.body.age > 20
         |       case _:
-        |           pass
+        |           return false
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
