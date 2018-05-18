@@ -1,4 +1,4 @@
-package encrywm.lib.predef.functions
+package encrywm.lib.predef
 
 import encrywm.lang.backend.env.ESBuiltInFunc
 

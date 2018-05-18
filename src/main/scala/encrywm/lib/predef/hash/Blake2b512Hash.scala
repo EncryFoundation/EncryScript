@@ -1,14 +1,14 @@
-package encrywm.lib.predef.functions.hash
+package encrywm.lib.predef.hash
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESByteVector
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
-import scorex.crypto.hash.Keccak512
+import encrywm.lib.predef.BuiltInFunctionHolder
+import scorex.crypto.hash.Blake2b512
 
-object Keccak512Hash extends BuiltInFunctionHolder {
+object Blake2b512Hash extends BuiltInFunctionHolder {
 
-  val name = "keccak512hash"
+  val name: String = "blake2b512hash"
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
@@ -19,7 +19,7 @@ object Keccak512Hash extends BuiltInFunctionHolder {
     val validArgTypes = args.forall { case (_, v) => v.tpe.isInstanceOf[ESByteVector.type] }
     if (validNumberOfArgs && validArgTypes) {
       val fnArgs = args.map(_._2.value.asInstanceOf[Array[Byte]])
-      Right(Keccak512.hash(fnArgs.head))
+      Right(Blake2b512.hash(fnArgs.head))
     } else {
       Left(BuiltInFunctionExecException)
     }
