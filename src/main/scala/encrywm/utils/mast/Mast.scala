@@ -79,30 +79,31 @@ object Mast {
       case unlockIf: STMT.UnlockIf => getAllVars(unlockIf.test)
       case expr: STMT.Expr => getAllVars(expr.value)
       case STMT.FunctionDef(name, _, body, _) =>
-        body.foldLeft(Seq[String]()){ case (seq, bodyElem) => seq ++ getAllVars(bodyElem) } ++ Seq(name.name)
+        body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ getAllVars(bodyElem) } ++ Seq(name.name)
       case STMT.If(test, body, orelse) =>
         getAllVars(test) ++
-          body.foldLeft(Seq[String]()){ case (seq, bodyElem) => seq ++ getAllVars(bodyElem) } ++
-            orelse.foldLeft(Seq[String]()){ case (seq, bodyElem) => seq ++ getAllVars(bodyElem) }
+          body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ getAllVars(bodyElem) } ++
+            orelse.foldLeft(Seq[String]()){ case (orElseVars, bodyElem) => orElseVars ++ getAllVars(bodyElem) }
       case STMT.Match(target, _) => getAllVars(target)
       case _ => Seq.empty[String]
     }
 
   private def getAllVars(expr: EXPR): Seq[String] = expr match {
-    case EXPR.BoolOp(_, values) => values.foldLeft(Seq[String]()){ case (seq, value) => seq ++ getAllVars(value) }
+    case EXPR.BoolOp(_, values) => values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ getAllVars(value) }
     case EXPR.BinOp(left, _, right, _) => getAllVars(left) ++ getAllVars(right)
     case EXPR.UnaryOp(_, operand, _) => getAllVars(operand)
     case EXPR.IfExp(test, body, orelse, _) => getAllVars(test) ++ getAllVars(body) ++ getAllVars(orelse)
     case EXPR.Compare(left, ops, comparators) =>
-      getAllVars(left) ++ comparators.foldLeft(Seq[String]()){ case (seq, comparator) => seq ++ getAllVars(comparator) }
+      getAllVars(left) ++ comparators.foldLeft(Seq[String]()){ case (comparatorVars, comparator) => comparatorVars ++ getAllVars(comparator) }
     case EXPR.Call(func, args, _, _) =>
-      getAllVars(func) ++ args.foldLeft(Seq[String]()){ case (seq, arg) => seq ++ getAllVars(arg) }
-    case EXPR.ESDictNode(_, values, _) => values.foldLeft(Seq[String]()){ case (seq, value) => seq ++ getAllVars(value) }
-    case EXPR.ESSet(elts, _) => elts.foldLeft(Seq[String]()){ case (seq, elt) => seq ++ getAllVars(elt) }
-    case EXPR.ESList(elts, _, _) => elts.foldLeft(Seq[String]()){ case (seq, elt) => seq ++ getAllVars(elt) }
-    case EXPR.ESTuple(elts, _, _) => elts.foldLeft(Seq[String]()){ case (seq, elt) => seq ++ getAllVars(elt) }
+      getAllVars(func) ++ args.foldLeft(Seq[String]()){ case (argumentVars, argument) => argumentVars ++ getAllVars(argument) }
+    case EXPR.ESDictNode(_, values, _) => values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ getAllVars(value) }
+    case EXPR.ESSet(elts, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
+    case EXPR.ESList(elts, _, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
+    case EXPR.ESTuple(elts, _, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
     case EXPR.Declaration(target, _) => getAllVars(target)
     case EXPR.Name(name, _, _) => Seq(name.name)
+    case EXPR.Attribute(value, attr, _, _) => getAllVars(value)
     case _ => Seq.empty[String]
   }
 }

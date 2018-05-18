@@ -35,7 +35,7 @@ object AstStringifier {
   }
 
   private def exprToString(expr: EXPR): String = expr match {
-    case EXPR.BoolOp(op, values) => values.tail.foldLeft(toString(values.head))((str, expr) => str.concat(s"${boolOpToString(op)} ${toString(expr)}"))
+    case EXPR.BoolOp(op, values) => values.tail.foldLeft(toString(values.head))((str, expr) => str.concat(s" ${boolOpToString(op)} ${toString(expr)}"))
     case EXPR.BinOp(left, op, right, _) => s"${toString(left)} ${binOpToString(op)} ${toString(right)}"
     case EXPR.UnaryOp(op, operand, _) => unaryOpToString(op) + toString(operand)
     case EXPR.Lambda(args, body, _) => "lamb (" + args.args.foldLeft("")((str, ident) => str + s"${ident._1}: ${ident._2.ident.name}") + ") = " + toString(body)
