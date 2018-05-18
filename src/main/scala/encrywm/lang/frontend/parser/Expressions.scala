@@ -70,7 +70,6 @@ object Expressions {
   val Mult: core.Parser[OPERATOR.Mult.type, Char, String] = op("*", Ast.OPERATOR.Mult)
   val Div: core.Parser[OPERATOR.Div.type, Char, String] = op("/", Ast.OPERATOR.Div)
   val Mod: core.Parser[OPERATOR.Mod.type, Char, String] = op("%", Ast.OPERATOR.Mod)
-  val FloorDiv: core.Parser[OPERATOR.FloorDiv.type, Char, String] = op("//", Ast.OPERATOR.FloorDiv)
   val UAdd: core.Parser[UNARY_OP.UAdd.type, Char, String] = op("+", Ast.UNARY_OP.UAdd)
   val USub: core.Parser[UNARY_OP.USub.type, Char, String] = op("-", Ast.UNARY_OP.USub)
   val Invert: core.Parser[UNARY_OP.Invert.type, Char, String] = op("~", Ast.UNARY_OP.Invert)
@@ -90,7 +89,7 @@ object Expressions {
 
   val expr: P[Ast.EXPR] = P( arith_expr )
   val arith_expr: P[Ast.EXPR] = P( Chain(term, Add | Sub) )
-  val term: P[Ast.EXPR] = P( Chain(factor, Mult | Div | Mod | FloorDiv) )
+  val term: P[Ast.EXPR] = P( Chain(factor, Mult | Div | Mod) )
   // NUMBER appears here and below in `atom` to give it precedence.
   // This ensures that "-2" will parse as `Num(-2)` rather than
   // as `UnaryOp(USub, Num(2))`.
