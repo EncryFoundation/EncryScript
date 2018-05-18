@@ -44,7 +44,7 @@ class StaticProcessor(ts: TypeSystem) {
       asg.target match {
         case EXPR.Declaration(name: EXPR.Name, typeOpt) =>
           // Infer type for the value being assigned,
-          // if the value is func then it's return type is used.
+          // if the value is func then its return type is used.
           val valueType = inferType(asg.value) match {
             case ESFunc(_, retT) => retT
             case otherT => otherT
