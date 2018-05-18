@@ -19,12 +19,9 @@ class StaticProcessor(ts: TypeSystem) {
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 
-  def process(contract: Contract): Try[Contract] = {
-    val local = contract.copy()
-    Try(scan(local)).map(_ => local)
-  }
+  def process(contract: Contract): Try[Contract] = Try(scan(contract)).map(_ => contract)
 
-  def scan(node: AST_NODE): Unit = node match {
+  private def scan(node: AST_NODE): Unit = node match {
     case root: TREE_ROOT => scanRoot(root)
     case stmt: STMT => scanStmt(stmt)
     case expr: EXPR => scanExpr(expr)
