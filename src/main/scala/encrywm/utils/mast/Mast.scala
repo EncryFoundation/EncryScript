@@ -14,13 +14,13 @@ object Mast {
   def separateContracts(contract: Contract): Seq[Contract] =
     contract.body.foldLeft(Map[String, (Seq[String], Seq[STMT])]()){
       case (map, stmt) =>
-        val variables = getAllVars(stmt)
+        val variables = stmt.variables
         stmt match {
           case unlock: STMT.UnlockIf =>
             map ++ splitUnlockIf(unlock).foldLeft(Map[String, (Seq[String], Seq[STMT])]()){
               case (unlockMap, unlockStmt) => unlockMap +
                     (map.size + unlockMap.size.toString ->
-                      (Seq.empty[String], createNodeLine(map, getAllVars(unlockStmt)) :+ unlockStmt))
+                      (Seq.empty[String], createNodeLine(map, unlockStmt.variables) :+ unlockStmt))
             }
           case _ =>
             map + (variables.last -> (variables.dropRight(1), Seq(stmt)))
@@ -70,38 +70,4 @@ object Mast {
         }
         ).getOrElse(Seq.empty[STMT])
     }
-
-  private def getAllVars(stmt: STMT): Seq[String] =
-    stmt match {
-      case let: STMT.Let => getAllVars(let.value) ++ getAllVars(let.target)
-      case unlockIf: STMT.UnlockIf => getAllVars(unlockIf.test)
-      case expr: STMT.Expr => getAllVars(expr.value)
-      case STMT.FunctionDef(name, _, body, _) =>
-        body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ getAllVars(bodyElem) } ++ Seq(name.name)
-      case STMT.If(test, body, orelse) =>
-        getAllVars(test) ++
-          body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ getAllVars(bodyElem) } ++
-            orelse.foldLeft(Seq[String]()){ case (orElseVars, bodyElem) => orElseVars ++ getAllVars(bodyElem) }
-      case STMT.Match(target, _) => getAllVars(target)
-      case _ => Seq.empty[String]
-    }
-
-  private def getAllVars(expr: EXPR): Seq[String] = expr match {
-    case EXPR.BoolOp(_, values) => values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ getAllVars(value) }
-    case EXPR.BinOp(left, _, right, _) => getAllVars(left) ++ getAllVars(right)
-    case EXPR.UnaryOp(_, operand, _) => getAllVars(operand)
-    case EXPR.IfExp(test, body, orelse, _) => getAllVars(test) ++ getAllVars(body) ++ getAllVars(orelse)
-    case EXPR.Compare(left, _, comparators) =>
-      getAllVars(left) ++ comparators.foldLeft(Seq[String]()){ case (comparatorVars, comparator) => comparatorVars ++ getAllVars(comparator) }
-    case EXPR.Call(func, args, _, _) =>
-      getAllVars(func) ++ args.foldLeft(Seq[String]()){ case (argumentVars, argument) => argumentVars ++ getAllVars(argument) }
-    case EXPR.ESDictNode(_, values, _) => values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ getAllVars(value) }
-    case EXPR.ESSet(elts, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
-    case EXPR.ESList(elts, _, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
-    case EXPR.ESTuple(elts, _, _) => elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ getAllVars(elt) }
-    case EXPR.Declaration(target, _) => getAllVars(target)
-    case EXPR.Name(name, _, _) => Seq(name.name)
-    case EXPR.Attribute(value, _, _, _) => getAllVars(value)
-    case _ => Seq.empty[String]
-  }
 }

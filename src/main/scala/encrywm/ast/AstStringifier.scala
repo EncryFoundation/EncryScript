@@ -57,8 +57,8 @@ object AstStringifier {
     case EXPR.Name(name, _, _) => name.name
     case EXPR.ESDictNode(keys, values, _) => keys.zip(values).foldLeft("")( (str, elem) => str.concat(toString(elem._1) + ":" + toString(elem._2)))
     case EXPR.ESSet(elts, _) => elts.foldLeft("")((str, expr) => str.concat(toString(expr) + ", "))
-    case EXPR.ESList(elts, _, _) => "[ " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " ]"
-    case EXPR.ESTuple(elts, _, _) => "( " + elts.foldLeft("")((str, expr) => str.concat(toString(expr))) + " )"
+    case EXPR.ESList(elts, _, _) => "[" + elts.drop(1).foldLeft(toString(elts.head))((str, expr) => str.concat(", " + toString(expr))) + "]"
+    case EXPR.ESTuple(elts, _, _) => "(" + elts.drop(1).foldLeft(toString(elts.head))((str, expr) => str.concat(", " + toString(expr))) + ")"
     case EXPR.Declaration(target, tpe) => toString(target) + tpe.map(": " + _.ident.name).getOrElse("")
     case EXPR.GenericCond => "_"
   }

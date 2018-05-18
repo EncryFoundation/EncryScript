@@ -8,6 +8,7 @@ object Ast {
   import encrywm.lib.Types._
 
   type Hash = Array[Byte]
+  type VariableName = String
 
   sealed trait AST_NODE {
     val hash: Hash
@@ -24,55 +25,73 @@ object Ast {
     }
   }
 
-  sealed trait STMT extends AST_NODE
+  sealed trait STMT extends AST_NODE {
+    val variables: Seq[VariableName]
+  }
 
   object STMT {
 
     case class FunctionDef(name: Identifier, args: Arguments, body: List[STMT], returnType: Identifier) extends STMT {
+      override val variables: Seq[VariableName] =
+        body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ bodyElem.variables } ++ Seq(name.name)
       override val hash: Hash = listRootHash(name.hash +: args.hash +: body.map(_.hash) :+ returnType.hash)
     }
     case class Return(value: Option[EXPR]) extends STMT {
+      override val variables: Seq[VariableName] = value.map(_.variables).getOrElse(Seq.empty[String])
       override val hash: Hash = value.map(_.hash).getOrElse(Array.emptyByteArray)
     }
 
     case class Let(target: EXPR, value: EXPR, global: Boolean = false) extends STMT {
+      override val variables: Seq[VariableName] = target.variables ++ value.variables
       override val hash: Hash = listRootHash(List(target.hash, value.hash, if (global) Array(1: Byte) else Array(0: Byte)))
     }
 
     // Reassignment could be introduced later.
     case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = listRootHash(List(target.hash, op.hash, value.hash))
     }
 
     // For loop could be introduced later.
     case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = listRootHash(target.hash +: iter.hash +: (body.map(_.hash) ++ orelse.map(_.hash)))
     }
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT {
+      override val variables: Seq[VariableName] = test.variables ++
+        body.foldLeft(Seq[String]()){ case (bodyVars, bodyElem) => bodyVars ++ bodyElem.variables } ++
+          orelse.foldLeft(Seq[String]()){ case (orElseVars, bodyElem) => orElseVars ++ bodyElem.variables }
       override val hash: Hash = listRootHash(test.hash +: (body.map(_.hash) ++ orelse.map(_.hash)))
     }
     case class Match(target: EXPR, branches: List[STMT]) extends STMT {
+      override val variables: Seq[VariableName] = target.variables
       override val hash: Hash = listRootHash(target.hash +: branches.map(_.hash))
     }
     case class Case(cond: EXPR, body: List[STMT], isDefault: Boolean = false) extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = listRootHash(cond.hash +: body.map(_.hash))
     }
 
     case class Assert(test: EXPR, msg: Option[EXPR]) extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = listRootHash(List(test.hash, msg.map(_.hash).getOrElse(Array.emptyByteArray)))
     }
 
     case class Expr(value: EXPR) extends STMT {
+      override val variables: Seq[VariableName] = value.variables
       override val hash: Hash = value.hash
     }
 
     case class UnlockIf(test: EXPR) extends STMT {
+      override val variables: Seq[VariableName] = test.variables
       override val hash: Hash = test.hash
     }
     case object Halt extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = Blake2b256("STMT_HALT")
     }
     case object Pass extends STMT {
+      override val variables: Seq[VariableName] = Seq.empty[String]
       override val hash: Hash = Blake2b256("STMT_PASS")
     }
 
@@ -80,25 +99,38 @@ object Ast {
     case class Attributes(lineno: Int, col_offset: Int)
   }
 
-  sealed trait EXPR extends AST_NODE { var tpeOpt: Option[ESType] }
+  sealed trait EXPR extends AST_NODE {
+    var tpeOpt: Option[ESType]
+    val variables: Seq[VariableName]
+  }
 
   object EXPR {
 
     case class BoolOp(op: BOOL_OP, values: List[EXPR]) extends EXPR {
       var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = listRootHash(op.hash +: values.map(_.hash))
+      override val variables: Seq[VariableName] =
+        values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ value.variables }
     }
+
     case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(left.hash, op.hash, right.hash))
+      override val variables: Seq[VariableName] = left.variables ++ right.variables
     }
+
     case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(op.hash, operand.hash))
+      override val variables: Seq[VariableName] = operand.variables
     }
+
     case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(args.hash, body.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
+
     case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(test.hash, body.hash, orelse.hash))
+      override val variables: Seq[VariableName] = test.variables ++ body.variables ++ orelse.variables
     }
 
     // Sequences are required for compare to distinguish between
@@ -106,10 +138,15 @@ object Ast {
     case class Compare(left: EXPR, ops: List[COMP_OP], comparators: List[EXPR]) extends EXPR {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = listRootHash(left.hash +: (ops.map(_.hash) ++ comparators.map(_.hash)))
+      override val variables: Seq[VariableName] =
+        left.variables ++ comparators.foldLeft(Seq[String]()){ case (comparatorVars, comparator) => comparatorVars ++ comparator.variables }
     }
+
     //TODO: Add ESType to hash
     case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(func.hash +: (args.map(_.hash) ++ keywords.map(_.hash)))
+      override val variables: Seq[VariableName] =
+        func.variables ++ args.foldLeft(Seq[String]()){ case (argumentVars, argument) => argumentVars ++ argument.variables }
     }
 
     sealed trait Num extends EXPR
@@ -117,10 +154,12 @@ object Ast {
     case class IntConst(n: Int) extends EXPR with Num {
       var tpeOpt: Option[ESType] = Some(ESInt)
       override val hash: Hash = Blake2b256(n.toString)
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
     case class LongConst(n: Long) extends EXPR with Num {
       var tpeOpt: Option[ESType] = Some(ESLong)
       override val hash: Hash = Blake2b256(n.toString)
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     sealed trait Bool extends EXPR
@@ -128,44 +167,56 @@ object Ast {
     case object True extends EXPR with Bool {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = Blake2b256("BOOL_TRUE")
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
     case object False extends EXPR with Bool {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = Blake2b256("BOOL_FALSE")
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Str(s: String) extends EXPR {
       override var tpeOpt: Option[ESType] = Some(ESString)
       override val hash: Hash = Blake2b256(s)
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Base58Str(s: String) extends EXPR {
       override var tpeOpt: Option[ESType] = Some(ESByteVector)
       override val hash: Hash = Blake2b256(hash)
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     // The following expression can appear in assignment context
     case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(value.hash, attr.hash, ctx.hash))
+      override val variables: Seq[VariableName] = value.variables
     }
     case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(value.hash, slice.hash, ctx.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
     case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(List(id.hash, ctx.hash))
+      override val variables: Seq[VariableName] = Seq(id.name)
     }
 
     case class ESDictNode(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(keys.map(_.hash) ++ values.map(_.hash))
+      override val variables: Seq[VariableName] =
+        values.foldLeft(Seq[String]()){ case (valueVars, value) => valueVars ++ value.variables }
     }
     case class ESSet(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(elts.map(_.hash))
+      override val variables: Seq[VariableName] = elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
     case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(elts.map(_.hash))
+      override val variables: Seq[VariableName] = elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
     case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
       override val hash: Hash = listRootHash(elts.map(_.hash))
+      override val variables: Seq[VariableName] = elts.foldLeft(Seq[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
     sealed trait Transformer extends EXPR
@@ -173,49 +224,59 @@ object Ast {
     case class SizeOf(coll: EXPR) extends EXPR with Transformer {
       override var tpeOpt: Option[ESType] = Some(ESInt)
       override val hash: Hash = coll.hash
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Exists(coll: EXPR, predicate: EXPR) extends EXPR with Transformer {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = listRootHash(List(coll.hash, predicate.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Sum(coll: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
       override val hash: Hash = coll.hash
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Map(coll: EXPR, func: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
       override val hash: Hash = listRootHash(List(coll.hash, func.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class IsDefined(opt: EXPR) extends EXPR with Transformer {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
       override val hash: Hash = opt.hash
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Get(opt: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
       override val hash: Hash = opt.hash
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class Declaration(target: EXPR, typeOpt: Option[TypeIdentifier]) extends EXPR {
       var tpeOpt: Option[ESType] = Some(ESUnit)
       override val hash: Hash = listRootHash(List(target.hash, typeOpt.map(_.hash).getOrElse(Array.emptyByteArray)))
+      override val variables: Seq[VariableName] = target.variables
     }
 
     case class TypeMatching(name: Identifier, tipe: TypeIdentifier) extends EXPR {
       var tpeOpt: Option[ESType] = Some(ESUnit)
       override val hash: Hash = listRootHash(List(name.hash, tipe.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     case class SchemaMatching(name: Identifier, schemaId: Identifier) extends EXPR {
       var tpeOpt: Option[ESType] = Some(ESUnit)
       override val hash: Hash = listRootHash(List(name.hash, schemaId.hash))
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
 
     // Used to define default condition in `case` branch.
     case object GenericCond extends EXPR {
       override var tpeOpt: Option[ESType] = Some(ESUnit)
       override val hash: Hash = Blake2b256("EXPR_GENERIC_COND")
+      override val variables: Seq[VariableName] = Seq.empty[String]
     }
   }
 
