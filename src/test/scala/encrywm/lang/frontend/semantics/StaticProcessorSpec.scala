@@ -670,6 +670,27 @@ class StaticProcessorSpec extends PropSpec with Matchers {
     processR.isSuccess shouldBe true
   }
 
+  property("Return type checking inside match statement branches (Wrong type)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |def func(a: Int) -> Int:
+        |   match context.proof:
+        |       case sig -> Signature25519:
+        |           let b = 100
+        |           return b * a
+        |       case _:
+        |           return "string"
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val processR = sp.process(AstRoot.get.value)
+
+    processR.isSuccess shouldBe false
+  }
+
   property("Invalid match statement (No default branch)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
