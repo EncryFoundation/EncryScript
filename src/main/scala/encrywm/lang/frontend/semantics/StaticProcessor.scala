@@ -47,8 +47,10 @@ class StaticProcessor(ts: TypeSystem) {
             case otherT => otherT
           }
           typeOpt.map { t =>
-            val mainT: ESType = ts.typeByIdent(t.ident.name).getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg)))
-            val typeParams: List[ESType] = t.typeParams.map(id => ts.typeByIdent(id.name).getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg))))
+            val mainT: ESType = ts.typeByIdent(t.ident.name)
+              .getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg)))
+            val typeParams: List[ESType] = t.typeParams.map(id => ts.typeByIdent(id.name)
+              .getOrElse(throw NameException(t.ident.name, AstStringifier.toString(asg))))
             mainT -> typeParams
           }.foreach {
             case (ESOption(_), tps) if tps.size == 1 => matchType(ESOption(tps.head), valueType, asg)
@@ -62,32 +64,33 @@ class StaticProcessor(ts: TypeSystem) {
         case _ => throw IllegalExprException(AstStringifier.toString(asg))
       }
 
-    case fd: STMT.FunctionDef =>
-      val declaredRetType: ESType = ts.typeByIdent(fd.returnType.name)
-        .getOrElse(throw NameException(fd.returnType.name, AstStringifier.toString(fd)))
-      val params: List[(String, ESType)] = fd.args.args.map { arg =>
-        val argT = ts.typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, AstStringifier.toString(fd)))
+    case funcDef: STMT.FunctionDef =>
+      val declaredRetType: ESType = ts.typeByIdent(funcDef.returnType.name)
+        .getOrElse(throw NameException(funcDef.returnType.name, AstStringifier.toString(funcDef)))
+      val params: List[(String, ESType)] = funcDef.args.args.map { arg =>
+        val argT = ts.typeByIdent(arg._2.ident.name)
+          .getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, AstStringifier.toString(funcDef)))
         arg._1.name -> argT
       }
-      currentScopeOpt.foreach(_.insert(Symbol(fd.name.name, ESFunc(params, declaredRetType)), node))
-      val fnScope: ScopedSymbolTable = ScopedSymbolTable(fd.name.name, currentScopeOpt.get)
+      currentScopeOpt.foreach(_.insert(Symbol(funcDef.name.name, ESFunc(params, declaredRetType)), node))
+      val fnScope: ScopedSymbolTable = ScopedSymbolTable(funcDef.name.name, currentScopeOpt.get, isFunc = true)
       scopes.push(fnScope)
       params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2), node)))
-      fd.body.foreach(scan)
+      funcDef.body.foreach(scan)
 
-      val retType: ESType = findReturnTypes(fd.body).foldLeft(Seq[ESType]()) { case (acc, tpe) =>
-        if (acc.nonEmpty) matchType(acc.head, tpe, fd)
+      val retType: ESType = findReturnTypes(funcDef.body).foldLeft(Seq[ESType]()) { case (acc, tpe) =>
+        if (acc.nonEmpty) matchType(acc.head, tpe, funcDef)
         acc :+ tpe
       }.headOption.getOrElse(ESUnit)
-      matchType(declaredRetType, retType, fd)
+      matchType(declaredRetType, retType, funcDef)
 
       scopes.popHead()
 
-    case ret: STMT.Return =>
-      ret.value.foreach(scanExpr)
+    case STMT.Return(value) =>
+      value.foreach(scanExpr)
 
-    case expr: STMT.Expr =>
-      scanExpr(expr.value)
+    case STMT.Expr(value) =>
+      scanExpr(value)
 
     case ifStmt: STMT.If =>
       scanExpr(ifStmt.test)
@@ -103,7 +106,8 @@ class StaticProcessor(ts: TypeSystem) {
     case STMT.Match(target, branches) =>
       scanExpr(target)
       if (!branches.forall(_.isInstanceOf[STMT.Case]))
-        throw UnexpectedStatementException("Case clause is expected", branches.foldLeft("")((str, branch) => str.concat(AstStringifier.toString(branch))))
+        throw UnexpectedStatementException("Case clause is expected", branches
+          .foldLeft("")((str, branch) => str.concat(AstStringifier.toString(branch))))
       else if (!branches.last.asInstanceOf[STMT.Case].isDefault)
         throw DefaultBranchUndefinedException(AstStringifier.toString(branches.last))
       branches.foreach(scanStmt)
@@ -114,17 +118,21 @@ class StaticProcessor(ts: TypeSystem) {
       scopes.push(bodyScope)
       cond match {
         case EXPR.TypeMatching(local, tpe) =>
-          val localT: ESType = ts.typeByIdent(tpe.ident.name).getOrElse(throw TypeException(AstStringifier.toString(cond)))
+          val localT: ESType = ts.typeByIdent(tpe.ident.name)
+            .getOrElse(throw TypeException(AstStringifier.toString(cond)))
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case EXPR.SchemaMatching(local, Identifier(schemaId)) =>
-          val localT: ESType = ts.typeByIdent(schemaId).getOrElse(throw TypeException(AstStringifier.toString(cond)))
+          val localT: ESType = ts.typeByIdent(schemaId)
+            .getOrElse(throw TypeException(AstStringifier.toString(cond)))
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case _ => // Do nothing.
       }
       body.foreach(scanStmt)
       scopes.popHead()
 
-    case STMT.UnlockIf(test) =>
+    case ui @ STMT.UnlockIf(test) =>
+      if (currentScopeOpt.exists(_.isFunc))
+        throw IllegalUnlockIfScopeException(AstStringifier.toString(ui))
       scanExpr(test)
 
     case _ => // Do nothing.
@@ -144,7 +152,8 @@ class StaticProcessor(ts: TypeSystem) {
 
       case EXPR.Lambda(args, body, _) =>
         val paramSymbols: Seq[Symbol] = args.args.map { arg =>
-          val argT: ESType = ts.typeByIdent(arg._2.ident.name).getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, AstStringifier.toString(node)))
+          val argT: ESType = ts.typeByIdent(arg._2.ident.name)
+            .getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, AstStringifier.toString(node)))
           Symbol(arg._1.name, argT)
         }
         val bodyScope: ScopedSymbolTable = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
@@ -155,7 +164,8 @@ class StaticProcessor(ts: TypeSystem) {
 
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
         currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
-          if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsException(id.name, AstStringifier.toString(node))
+          if (params.size != args.size + keywords.size)
+            throw WrongNumberOfArgumentsException(id.name, AstStringifier.toString(node))
           val argTypes: Seq[ESType] = params.map(_._2)
           args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
             matchType(t1, t2, node)
@@ -177,7 +187,8 @@ class StaticProcessor(ts: TypeSystem) {
             }
           case _ =>
             currentScopeOpt.flatMap(_.lookup(func.attr.name)).map { case Symbol(_, ESFunc(params, _)) =>
-              if (params.size != args.size + keywords.size) throw WrongNumberOfArgumentsException(func.attr.name, AstStringifier.toString(node))
+              if (params.size != args.size + keywords.size)
+                throw WrongNumberOfArgumentsException(func.attr.name, AstStringifier.toString(node))
               val argTypes: Seq[ESType] = params.map(_._2)
               args.map(inferType).zip(argTypes).foreach { case (t1, t2) =>
                 matchType(t1, t2, node)
@@ -213,11 +224,12 @@ class StaticProcessor(ts: TypeSystem) {
               case Some(ESDict(keyT, _)) => matchType(idxT, keyT, sub)
               case _ => throw IllegalExprException(AstStringifier.toString(sub))
             }
-          // TODO: Complete for other SLICE_OPs.
+          // TODO: Support for other SLICE_OPs.
         }
 
       case EXPR.TypeMatching(_, tpe) =>
-        ts.typeByIdent(tpe.ident.name).getOrElse(throw UnresolvedSymbolException(tpe.ident.name, AstStringifier.toString(node)))
+        ts.typeByIdent(tpe.ident.name)
+          .getOrElse(throw UnresolvedSymbolException(tpe.ident.name, AstStringifier.toString(node)))
 
       case EXPR.Base58Str(s) =>
         if (Base58.decode(s).isFailure) throw Base58DecodeException(AstStringifier.toString(node))
@@ -263,7 +275,8 @@ class StaticProcessor(ts: TypeSystem) {
         case attr: EXPR.Attribute =>
           inferType(attr.value) match {
             case p: ESProduct =>
-              p.getAttrType(attr.attr.name).getOrElse(throw NameException(attr.attr.name, AstStringifier.toString(exp)))
+              p.getAttrType(attr.attr.name)
+                .getOrElse(throw NameException(attr.attr.name, AstStringifier.toString(exp)))
             case ESFunc(_, retT) => retT
             case _ => throw IllegalExprException(AstStringifier.toString(attr))
           }
@@ -356,14 +369,16 @@ class StaticProcessor(ts: TypeSystem) {
 
   private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
     val expT = exp.tpeOpt.get
-    if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict]) throw NestedCollectionException(exps.foldLeft("")((str, expr) => str.concat("\n" + AstStringifier.toString(expr))))
+    if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict])
+      throw NestedCollectionException(exps.foldLeft("")((str, expr) => str.concat("\n" + AstStringifier.toString(expr))))
   }
 
   // TODO: Avoid passing unrelated argument `node`.
   private def matchType(t1: ESType, t2: ESType, node: AST_NODE): Unit =
     if (!(t1 == t2 || t2.isSubtypeOf(t1))) throw TypeMismatchException(t1.ident, t2.ident, AstStringifier.toString(node))
 
-  private def assertDefined(n: String, node: AST_NODE): Unit = if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameException(n, AstStringifier.toString(node))
+  private def assertDefined(n: String, node: AST_NODE): Unit =
+    if (currentScopeOpt.flatMap(_.lookup(n)).isEmpty) throw NameException(n, AstStringifier.toString(node))
 }
 
 object StaticProcessor {

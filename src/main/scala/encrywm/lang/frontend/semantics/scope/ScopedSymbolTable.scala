@@ -6,7 +6,8 @@ import encrywm.ast.Ast.Identifier
 
 class ScopedSymbolTable(val scopeName: String,
                         val scopeLevel: Int,
-                        val parentalScopeOpt: Option[ScopedSymbolTable] = None) extends SymbolTable {
+                        val parentalScopeOpt: Option[ScopedSymbolTable] = None,
+                        val isFunc: Boolean = false) extends SymbolTable {
 
   override def lookup(name: String, currentScopeOnly: Boolean = false): Option[Symbol] = symbols.get(name) match {
       case Some(r) => Some(r)
@@ -19,8 +20,8 @@ class ScopedSymbolTable(val scopeName: String,
 
 object ScopedSymbolTable {
 
-  def apply(name: String, oldScope: ScopedSymbolTable): ScopedSymbolTable =
-    new ScopedSymbolTable(name, oldScope.scopeLevel + 1, Some(oldScope))
+  def apply(name: String, oldScope: ScopedSymbolTable, isFunc: Boolean = false): ScopedSymbolTable =
+    new ScopedSymbolTable(name, oldScope.scopeLevel + 1, Some(oldScope), isFunc)
 
   def initialized: ScopedSymbolTable = {
     val symbolTable = new ScopedSymbolTable("GLOBAL", 1)

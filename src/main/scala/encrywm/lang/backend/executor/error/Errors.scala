@@ -1,17 +1,17 @@
 package encrywm.lang.backend.executor.error
 
-class ExecutionException(s: String) extends Exception(s)
+class RuntimeException(s: String) extends Exception(s)
 
-case class UnresolvedReferenceException(r: String) extends ExecutionException(s"Unresolved reference $r")
+case class UnresolvedReferenceException(r: String) extends RuntimeException(s"Unresolved reference $r")
 
-case class IsFunctionException(f: String) extends ExecutionException(s"$f is a function")
+case class IsFunctionException(f: String) extends RuntimeException(s"$f is a function")
 
-case class NotAFunctionException(f: String) extends ExecutionException(s"$f is not a function")
+case class NotAFunctionException(f: String) extends RuntimeException(s"$f is not a function")
 
-case class UnexpectedExpressionException(exp: String) extends ExecutionException(s"Unexpected expression $exp")
+case class UnexpectedExpressionException(exp: String) extends RuntimeException(s"Unexpected expression $exp")
 
-case object UnsupportedOperationException extends ExecutionException(s"Unsupported operation")
+case object UnsupportedOperationException extends RuntimeException(s"Unsupported operation")
 
-case object BuiltInFunctionExecException extends ExecutionException("Built-in function execution failed")
+case object BuiltInFunctionExecException extends RuntimeException("Built-in function execution failed")
 
-case object IllegalOperationException extends ExecutionException("Illegal operation")
+case object IllegalOperationException extends RuntimeException("Illegal operation")
