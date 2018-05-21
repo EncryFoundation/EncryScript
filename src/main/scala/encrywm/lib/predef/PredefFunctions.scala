@@ -23,10 +23,10 @@ object PredefFunctions {
     SchemaDecode
   )
 
-  val predefFunctions: Map[String, ESEnvComponent] =
+  val all: Map[String, ESEnvComponent] =
     (timeF ++ cryptoF ++ hashF ++ decodeF).map(f => f.name -> f.asFunc).toMap
 
-  val all: Seq[BuiltInFunctionHolder] = Seq(
+  val hashFunctions: Seq[BuiltInFunctionHolder] = Seq(
     Blake2b256Hash,
     Blake2b512Hash,
     Keccak256Hash,
