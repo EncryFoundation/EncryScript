@@ -23,12 +23,12 @@ object AstStringifier {
         s"${args.args.drop(1).map(arg => s"${arg._1.name}: ${arg._2.ident.name}").fold("")(_ + ", " + _)}): -> ${returnType.name}:"
         .concat(body.map(toString).fold("")((str, expr) => str.concat("\n" +  expr)))
     case STMT.Return(value) => "return " + value.map(toString(_)).getOrElse("")
-    case STMT.Let(target, value, _) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value))
+    case STMT.Let(target, value, _) => s"let ".concat(toString(target)).concat(" = ").concat(toString(value)) + "\n"
     case STMT.AugAssign(_, _, _) => "<+=>"
     case STMT.For(_, _, _, _) => "<for_stmt>"
     case STMT.If(_, _, _) => "<if_stmt>"
-    case STMT.Match(target, _) => s"match ${toString(target)}"
-    case STMT.Case(cond, body, _) => s"case ${toString(cond)} \n" + body.foldLeft("")((str, stmt) => str.concat(toString(stmt) + "\n"))
+    case STMT.Match(target, branches) => s"match ${toString(target)}: \n" + branches.foldLeft("")((resultStr, branch) => resultStr + toString(branch))
+    case STMT.Case(cond, body, _) => s"case ${toString(cond)}: \n" + body.foldLeft("")((str, stmt) => str.concat("  " + toString(stmt) + "\n"))
     case STMT.Assert(_, _) => "<assert_stmt>"
     case STMT.Expr(value) => toString(value)
     case STMT.UnlockIf(expr) => "unlock if ".concat(toString(expr))
