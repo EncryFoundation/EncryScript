@@ -7,14 +7,14 @@ import encrywm.lang.frontend.semantics.exceptions._
 import encrywm.lang.frontend.semantics.scope._
 import encrywm.lib.Types._
 import encrywm.lib.{ESMath, TypeSystem}
-import encrywm.utils.Stack
+import encrywm.utils.ScopeHolder
 import scorex.crypto.encode.Base58
 
 import scala.util.{Random, Try}
 
 class StaticProcessor(ts: TypeSystem) {
 
-  private lazy val scopes: Stack[ScopedSymbolTable] = new Stack
+  private lazy val scopes: ScopeHolder[ScopedSymbolTable] = new ScopeHolder
 
   private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
 

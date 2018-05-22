@@ -15,3 +15,5 @@ case object UnsupportedOperationException extends RuntimeException(s"Unsupported
 case object BuiltInFunctionExecException extends RuntimeException("Built-in function execution failed")
 
 case object IllegalOperationException extends RuntimeException("Illegal operation")
+
+case object FunctionExecException extends RuntimeException("Function execution failed.")

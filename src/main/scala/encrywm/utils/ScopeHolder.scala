@@ -1,6 +1,6 @@
 package encrywm.utils
 
-class Stack[T] {
+class ScopeHolder[T] {
 
   var stack: List[T] = List.empty
 

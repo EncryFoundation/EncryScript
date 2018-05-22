@@ -291,7 +291,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
       val nestedEnv = currentEnv.child(s"lambda_$randCode", argMap)
       execute(List(STMT.Return(Some(body))), nestedEnv) match {
         case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
-        case _ => throw new RuntimeException("Lambda execution error")
+        case _ => throw FunctionExecException
       }
     }
 
@@ -299,7 +299,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
       val nestedEnv = currentEnv.child(s"fn_$randCode", argMap)
       execute(body, nestedEnv) match {
         case Right(Return(Val(v: T@unchecked))) if v.isInstanceOf[T] => v
-        case _ => throw new RuntimeException("Function execution error")
+        case _ => throw FunctionExecException
       }
     }
 
