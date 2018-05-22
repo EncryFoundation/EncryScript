@@ -84,7 +84,7 @@ class MastTest extends PropSpec with Matchers {
     val processR = sp.process(AstRoot.get.value)
 
 
-    //Separate contract to 2 contracts
+    //Separate contract to 4 contracts
     val separatedContracts = Mast.separateContract(processR.get)
 
     separatedContracts.head shouldEqual
@@ -159,5 +159,55 @@ class MastTest extends PropSpec with Matchers {
     (0 until contractCount).foldLeft(Seq[Contract]()){
       case (contractsSeq, i) => contractsSeq :+ sp.process(contract(i).get.value).get
     }.map(_.hash).distinct.length shouldBe contractCount
+  }
+
+  property("Check correct mast Root") {
+
+    val mainContract = (Statements.contract ~ End).parse(
+      """
+        |let a = 2
+        |let b = 1
+        |
+        |match a:
+        |    case 1:
+        |        unlock if true
+        |    case 2:
+        |        unlock if true
+        |    case _:
+        |        unlock if true
+        |
+        |match b:
+        |    case 1:
+        |        unlock if true
+        |    case 2:
+        |        unlock if true
+        |    case _:
+        |        unlock if true
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    def processR(contract: Contract) = sp.process(contract).get
+
+    val contracts = Mast.separateContract(processR(mainContract.get.value))
+
+    val mastRoot = Mast.mastRootFromContracts(contracts)
+
+    //1 contract
+    val unlockContractSource =
+      (Statements.contract ~ End).parse(
+        s"""
+           |let b = 1
+           |
+           |match b:
+           |  case 1:
+           |    unlock if true
+           |  case _:
+           |    unlock if true
+      """.stripMargin)
+
+    val unlockContract = processR(unlockContractSource.get.value).hash
+
+    Mast.mastRootFromHashes(unlockContract +: contracts.tail.map(_.hash)) shouldEqual mastRoot
   }
 }

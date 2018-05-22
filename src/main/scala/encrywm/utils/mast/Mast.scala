@@ -11,7 +11,11 @@ object Mast {
 
   type ContractRootHash = Array[Byte]
 
-  def mastRoot(contracts: Seq[Contract]): ContractRootHash = listRootHash(contracts.map(_.hash).toList)
+  def mastRootFromContracts(contracts: Seq[Contract]): ContractRootHash =
+    listRootHash(contracts.map(_.hash).sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)
+
+  def mastRootFromHashes(contractsHashes: Seq[Hash]): ContractRootHash =
+    listRootHash(contractsHashes.sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)
 
   def separateContract(contract: Contract): Seq[Contract] =
     simplifyContract(contract).foldLeft(Seq[Contract]()){
@@ -97,12 +101,12 @@ object Mast {
     * @return
     */
 
-  def createContractFromSTMT(stmts: Seq[STMT], variables: Seq[VariableName], fromSTMT: STMT): Option[Contract] = {
+  private def createContractFromSTMT(stmts: Seq[STMT], variables: Seq[VariableName], fromSTMT: STMT): Option[Contract] = {
     val stmtsAfterDrop: (Seq[STMT], Seq[Ast.VariableName]) = dropRedundantSTMTs(stmts, variables)
     if(stmtsAfterDrop._2.isEmpty) Some(Contract((fromSTMT +: stmtsAfterDrop._1.toList).reverse)) else None
   }
 
-  def dropRedundantSTMT(stmt: STMT, variablesToDrop: Seq[Ast.VariableName]): (STMT, Seq[Ast.VariableName]) = stmt match {
+  private def dropRedundantSTMT(stmt: STMT, variablesToDrop: Seq[Ast.VariableName]): (STMT, Seq[Ast.VariableName]) = stmt match {
     case let: STMT.Let =>
       if(variablesToDrop.contains(let.variableName)) let -> (variablesToDrop.filter(_ != let.variableName) ++ let.variables)
       else let -> variablesToDrop
@@ -122,7 +126,7 @@ object Mast {
     case uselessStmt => uselessStmt -> variablesToDrop
   }
 
-  def dropRedundantSTMTs(stmts: Seq[STMT], variables: Seq[Ast.VariableName]): (Seq[STMT], Seq[Ast.VariableName]) =
+  private def dropRedundantSTMTs(stmts: Seq[STMT], variables: Seq[Ast.VariableName]): (Seq[STMT], Seq[Ast.VariableName]) =
     stmts.foldLeft(Seq[STMT](), variables){
       case (resultIf, bodyStmt) =>
         val dropStmt: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(bodyStmt, resultIf._2)
@@ -147,7 +151,7 @@ object Mast {
     * @param contract: Contract
     * @return
     */
-  def simplifyContract(contract: Contract): Seq[Contract] = {
+  private def simplifyContract(contract: Contract): Seq[Contract] = {
     contract.body.tail.foldLeft(Seq[Contract](Contract(List(contract.body.head)))) {
       case (contracts, stmt) => stmt match {
         case matchStmt: STMT.Match =>
