@@ -33,3 +33,5 @@ case class TypeMismatchException(t1: String, t2: String, codeExample: String) ex
 case class NestedCollectionException(codeExample: String) extends SemanticException("Nested collections are disallowed.", codeExample: String)
 
 case class DefaultBranchUndefinedException(codeExample: String) extends SemanticException("Match statement must contain default branch.", codeExample: String)
+
+case class IllegalUnlockIfScopeException(codeExample: String) extends SemanticException("'Unlock if' statement appeared within function scope.", codeExample: String)
