@@ -83,7 +83,7 @@ class StaticProcessor(ts: TypeSystem) {
       }.headOption.getOrElse(ESUnit)
       matchType(declaredRetType, retType, funcDef)
 
-      scopes = scopes.drop(1)
+      scopes = scopes.tail
 
     case STMT.Return(value) =>
       value.foreach(scanExpr)
@@ -96,11 +96,11 @@ class StaticProcessor(ts: TypeSystem) {
       val bodyScope = ScopedSymbolTable(s"if_body_${Random.nextInt()}", currentScopeOpt.get)
       scopes = bodyScope :: scopes
       ifStmt.body.foreach(scanStmt)
-      scopes = scopes.drop(1)
+      scopes = scopes.tail
       val elseScope = ScopedSymbolTable(s"if_else_${Random.nextInt()}", currentScopeOpt.get)
       scopes = elseScope :: scopes
       ifStmt.orelse.foreach(scanStmt)
-      scopes = scopes.drop(1)
+      scopes = scopes.tail
 
     case STMT.Match(target, branches) =>
       scanExpr(target)
@@ -127,7 +127,7 @@ class StaticProcessor(ts: TypeSystem) {
         case _ => // Do nothing.
       }
       body.foreach(scanStmt)
-      scopes = scopes.drop(1)
+      scopes = scopes.tail
 
     case ui @ STMT.UnlockIf(test) =>
       if (currentScopeOpt.exists(_.isFunc))
@@ -159,7 +159,7 @@ class StaticProcessor(ts: TypeSystem) {
         scopes = bodyScope :: scopes
         paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s, node)))
         scanExpr(body)
-        scopes = scopes.drop(1)
+        scopes = scopes.tail
 
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
         currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
