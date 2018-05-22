@@ -126,7 +126,7 @@ object Mast {
     stmts.foldLeft(Seq[STMT](), variables){
       case (resultIf, bodyStmt) =>
         val dropStmt: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(bodyStmt, resultIf._2)
-        if (dropStmt._2.length != resultIf._2.length) (resultIf._1 :+ bodyStmt) -> dropStmt._2 else resultIf
+        if (dropStmt._2 != resultIf._2) (resultIf._1 :+ bodyStmt) -> dropStmt._2 else resultIf
     }
 
 

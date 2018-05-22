@@ -1,8 +1,10 @@
 package encrywm.utils.mast
 
+import encrywm.ast.Ast.COMP_OP.Lt
 import encrywm.ast.Ast.EXPR._
 import encrywm.ast.Ast.EXPR_CTX.{Load, Store}
 import encrywm.ast.Ast.Identifier
+import encrywm.ast.Ast.OPERATOR.Add
 import encrywm.ast.Ast.STMT.{Case, Let, Match, UnlockIf}
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.lang.frontend.parser.Statements
@@ -16,7 +18,32 @@ import scala.util.Random
 
 class MastTest extends PropSpec with Matchers {
 
-  property("Separation of simple contract with function"){
+  property("Optimization of simple contract"){
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |let a = 1
+        |let b = a + 2
+        |let c = 4
+        |unlock if b < 10000
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    val processR = sp.process(AstRoot.get.value)
+
+    val separatedContracts = Mast.separateContract(processR.get)
+
+    separatedContracts.head shouldEqual
+      Contract(
+        List(
+          Let(Declaration(Name(Identifier("a"),Store,None),None),IntConst(1),false),
+          Let(Declaration(Name(Identifier("b"),Store,None),None), BinOp(Name(Identifier("a"),Load,Some(ESInt)),Add,IntConst(2),Some(ESInt)),false),
+          UnlockIf(Compare(Name(Identifier("b"),Load,Some(ESInt)),List(Lt),List(IntConst(10000))))
+        )
+      )
+  }
+
+  property("Separation of heavy contract"){
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a = 2

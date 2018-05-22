@@ -43,7 +43,7 @@ object Ast {
 
     case class Let(target: EXPR, value: EXPR, global: Boolean = false) extends STMT {
       val variableName: String = target.variables.head
-      override val variables: Seq[VariableName] = value.variables.drop(1)
+      override val variables: Seq[VariableName] = value.variables
       override val hash: Hash = listRootHash(List(target.hash, value.hash, if (global) Array(1: Byte) else Array(0: Byte)))
     }
 
