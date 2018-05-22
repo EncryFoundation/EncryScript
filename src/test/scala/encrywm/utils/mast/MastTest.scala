@@ -18,13 +18,16 @@ import scala.util.Random
 
 class MastTest extends PropSpec with Matchers {
 
-  property("Optimization of simple contract"){
+  property("Optimization of simple contract") {
+
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a = 1
         |let b = a + 2
         |let c = 4
         |unlock if b < 10000
+        |let d = 2
+        |unlock if d < 10000
       """.stripMargin)
 
     val sp = new StaticProcessor(TypeSystem.default)
@@ -36,14 +39,24 @@ class MastTest extends PropSpec with Matchers {
     separatedContracts.head shouldEqual
       Contract(
         List(
-          Let(Declaration(Name(Identifier("a"),Store,None),None),IntConst(1),false),
-          Let(Declaration(Name(Identifier("b"),Store,None),None), BinOp(Name(Identifier("a"),Load,Some(ESInt)),Add,IntConst(2),Some(ESInt)),false),
-          UnlockIf(Compare(Name(Identifier("b"),Load,Some(ESInt)),List(Lt),List(IntConst(10000))))
+          Let(Declaration(Name(Identifier("d"), Store, None), None), IntConst(2)),
+          UnlockIf(Compare(Name(Identifier("d"), Load, Some(ESInt)), List(Lt), List(IntConst(10000)))
+          )
+        )
+      )
+
+    separatedContracts.last shouldEqual
+      Contract(
+        List(
+          Let(Declaration(Name(Identifier("a"), Store, None) ,None), IntConst(1)),
+          Let(Declaration(Name(Identifier("b"), Store, None), None), BinOp(Name(Identifier("a"), Load, Some(ESInt)), Add, IntConst(2), Some(ESInt))),
+          UnlockIf(Compare(Name(Identifier("b"), Load, Some(ESInt)), List(Lt), List(IntConst(10000))))
         )
       )
   }
 
-  property("Separation of heavy contract"){
+  property("Separation of heavy contract") {
+
     val AstRoot = (Statements.contract ~ End).parse(
       """
         |let a = 2
@@ -77,12 +90,12 @@ class MastTest extends PropSpec with Matchers {
     separatedContracts.head shouldEqual
       Contract(
         List(
-          Let(Declaration(Name(Identifier("b"),Store,None),None),IntConst(1),false),
+          Let(Declaration(Name(Identifier("b"), Store, None) , None), IntConst(1)),
           Match(
-            Name(Identifier("b"),Load,Some(ESInt)),
+            Name(Identifier("b"), Load, Some(ESInt)),
             List(
-              Case(IntConst(1),List(UnlockIf(True)),false),
-              Case(GenericCond,List(UnlockIf(True)),true)
+              Case(IntConst(1), List(UnlockIf(True))),
+              Case(GenericCond, List(UnlockIf(True)), isDefault = true)
             )
           )
         )
@@ -91,11 +104,11 @@ class MastTest extends PropSpec with Matchers {
     separatedContracts(1) shouldEqual
       Contract(
         List(
-          Let(Declaration(Name(Identifier("a"),Store,None),None),IntConst(2),false),
+          Let(Declaration(Name(Identifier("a"), Store, None) , None), IntConst(2)),
           Match(Name(Identifier("a"),Load,Some(ESInt)),
             List(
-              Case(IntConst(1),List(UnlockIf(True)),false),
-              Case(GenericCond,List(UnlockIf(True)),true)
+              Case(IntConst(1), List(UnlockIf(True))),
+              Case(GenericCond, List(UnlockIf(True)), isDefault = true)
             )
           )
         )
@@ -104,12 +117,12 @@ class MastTest extends PropSpec with Matchers {
     separatedContracts(2) shouldEqual
       Contract(
         List(
-          Let(Declaration(Name(Identifier("b"),Store,None),None),IntConst(1),false),
+          Let(Declaration(Name(Identifier("b"), Store, None), None), IntConst(1)),
           Match(
-            Name(Identifier("b"),Load,Some(ESInt)),
+            Name(Identifier("b"), Load, Some(ESInt)),
             List(
-              Case(IntConst(2),List(UnlockIf(True)),false),
-              Case(GenericCond,List(UnlockIf(True)),true)
+              Case(IntConst(2), List(UnlockIf(True))),
+              Case(GenericCond, List(UnlockIf(True)), isDefault = true)
             )
           )
         )
@@ -118,19 +131,20 @@ class MastTest extends PropSpec with Matchers {
     separatedContracts.last shouldEqual
       Contract(
         List(
-          Let(Declaration(Name(Identifier("a"),Store,None),None),IntConst(2),false),
+          Let(Declaration(Name(Identifier("a"), Store, None), None), IntConst(2)),
           Match(
-            Name(Identifier("a"),Load,Some(ESInt)),
+            Name(Identifier("a"), Load, Some(ESInt)),
             List(
-              Case(IntConst(2),List(UnlockIf(True)),false),
-              Case(GenericCond,List(UnlockIf(True)),true)
+              Case(IntConst(2), List(UnlockIf(True))),
+              Case(GenericCond, List(UnlockIf(True)), isDefault = true)
             )
           )
         )
       )
   }
 
-  property("Different contracts should give different hashes"){
+  property("Different contracts should give different hashes") {
+
     def contract(i: Int) =
       (Statements.contract ~ End).parse(
       s"""
