@@ -7,16 +7,15 @@ import encrywm.lang.frontend.semantics.exceptions._
 import encrywm.lang.frontend.semantics.scope._
 import encrywm.lib.Types._
 import encrywm.lib.{ESMath, TypeSystem}
-import encrywm.utils.ScopeHolder
 import scorex.crypto.encode.Base58
 
 import scala.util.{Random, Try}
 
 class StaticProcessor(ts: TypeSystem) {
 
-  private lazy val scopes: ScopeHolder[ScopedSymbolTable] = new ScopeHolder
+  private var scopes: List[ScopedSymbolTable] = List.empty
 
-  private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.currentOpt
+  private def currentScopeOpt: Option[ScopedSymbolTable] = scopes.headOption
 
   def process(contract: Contract): Try[Contract] = Try(scan(contract)).map(_ => contract)
 
@@ -29,7 +28,7 @@ class StaticProcessor(ts: TypeSystem) {
 
   private def scanRoot(node: TREE_ROOT): Unit = node match {
     case c: TREE_ROOT.Contract =>
-      scopes.push(ScopedSymbolTable.initialized)
+      scopes = ScopedSymbolTable.initialized :: scopes
       c.body.foreach(scan)
     case _ => // Do nothing.
   }
@@ -74,7 +73,7 @@ class StaticProcessor(ts: TypeSystem) {
       }
       currentScopeOpt.foreach(_.insert(Symbol(funcDef.name.name, ESFunc(params, declaredRetType)), node))
       val fnScope: ScopedSymbolTable = ScopedSymbolTable(funcDef.name.name, currentScopeOpt.get, isFunc = true)
-      scopes.push(fnScope)
+      scopes = fnScope :: scopes
       params.foreach(p => currentScopeOpt.foreach(_.insert(Symbol(p._1, p._2), node)))
       funcDef.body.foreach(scan)
 
@@ -84,7 +83,7 @@ class StaticProcessor(ts: TypeSystem) {
       }.headOption.getOrElse(ESUnit)
       matchType(declaredRetType, retType, funcDef)
 
-      scopes.popHead()
+      scopes = scopes.drop(1)
 
     case STMT.Return(value) =>
       value.foreach(scanExpr)
@@ -95,13 +94,13 @@ class StaticProcessor(ts: TypeSystem) {
     case ifStmt: STMT.If =>
       scanExpr(ifStmt.test)
       val bodyScope = ScopedSymbolTable(s"if_body_${Random.nextInt()}", currentScopeOpt.get)
-      scopes.push(bodyScope)
+      scopes = bodyScope :: scopes
       ifStmt.body.foreach(scanStmt)
-      scopes.popHead()
+      scopes = scopes.drop(1)
       val elseScope = ScopedSymbolTable(s"if_else_${Random.nextInt()}", currentScopeOpt.get)
-      scopes.push(elseScope)
+      scopes = elseScope :: scopes
       ifStmt.orelse.foreach(scanStmt)
-      scopes.popHead()
+      scopes = scopes.drop(1)
 
     case STMT.Match(target, branches) =>
       scanExpr(target)
@@ -115,7 +114,7 @@ class StaticProcessor(ts: TypeSystem) {
     case STMT.Case(cond, body, _) =>
       scanExpr(cond)
       val bodyScope: ScopedSymbolTable = ScopedSymbolTable(s"case_branch_${Random.nextInt()}", currentScopeOpt.get)
-      scopes.push(bodyScope)
+      scopes = bodyScope :: scopes
       cond match {
         case EXPR.TypeMatching(local, tpe) =>
           val localT: ESType = ts.typeByIdent(tpe.ident.name)
@@ -128,7 +127,7 @@ class StaticProcessor(ts: TypeSystem) {
         case _ => // Do nothing.
       }
       body.foreach(scanStmt)
-      scopes.popHead()
+      scopes = scopes.drop(1)
 
     case ui @ STMT.UnlockIf(test) =>
       if (currentScopeOpt.exists(_.isFunc))
@@ -157,10 +156,10 @@ class StaticProcessor(ts: TypeSystem) {
           Symbol(arg._1.name, argT)
         }
         val bodyScope: ScopedSymbolTable = ScopedSymbolTable(s"lamb_body_${Random.nextInt()}", currentScopeOpt.get)
-        scopes.push(bodyScope)
+        scopes = bodyScope :: scopes
         paramSymbols.foreach(s => currentScopeOpt.foreach(_.insert(s, node)))
         scanExpr(body)
-        scopes.popHead()
+        scopes = scopes.drop(1)
 
       case EXPR.Call(EXPR.Name(id, _, _), args, keywords, _) =>
         currentScopeOpt.flatMap(_.lookup(id.name)).map { case Symbol(_, ESFunc(params, _)) =>
@@ -244,7 +243,7 @@ class StaticProcessor(ts: TypeSystem) {
   }
 
   private def addNameToGlobalScope(name: EXPR.Name, tpe: ESType): Unit = {
-    scopes.lastOpt.foreach(_.insert(Symbol(name.id.name, tpe), name))
+    scopes.lastOption.foreach(_.insert(Symbol(name.id.name, tpe), name))
   }
 
   /** Extracts types to be returned in the given number of statements (which form function body) */
