@@ -1,6 +1,6 @@
 package encrywm.lib
 
-import encrywm.ast.{Ast, AstStringifier}
+import encrywm.ast.Ast
 import encrywm.ast.Ast.OPERATOR._
 import encrywm.ast.Ast.{AST_NODE, EXPR, OPERATOR}
 import encrywm.lang.frontend.semantics.exceptions.ZeroDivisionException
@@ -37,11 +37,11 @@ object ESMath {
       case int: EXPR.IntConst
         if (op == OPERATOR.Div) && int.n == 0 =>
         //TODO: replace 0
-        throw ZeroDivisionException(AstStringifier.toString(node))
+        throw ZeroDivisionException(node)
       case long: EXPR.LongConst
         if (op == OPERATOR.Div) && long.n == 0L =>
         //TODO: replace 0
-        throw ZeroDivisionException(AstStringifier.toString(node))
+        throw ZeroDivisionException(node)
       case _ => // Do nothing.
     }
   }

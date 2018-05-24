@@ -18,9 +18,9 @@ object Mast {
     listRootHash(contractsHashes.sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)
 
   def separateContract(contract: Contract): Seq[Contract] =
-    simplifyContract(contract).foldLeft(Seq[Contract]()){
+    simplifyContract(contract).foldLeft(Seq[Contract]()) {
       case (contracts, simpleContract) =>
-        contracts ++ simpleContract.body.reverse.foldLeft(Seq[Contract]()){
+        contracts ++ simpleContract.body.reverse.foldLeft(Seq[Contract]()) {
           case (contractsFromSimple, simpleContractStmt) =>
             contractsFromSimple ++ getUnlocks(simpleContractStmt).flatMap(unlockIfStmtWithVariables =>
               createContractFromSTMT(simpleContract.body.takeWhile(_ != unlockIfStmtWithVariables._1).reverse, unlockIfStmtWithVariables._2, unlockIfStmtWithVariables._1)
@@ -30,8 +30,6 @@ object Mast {
 
   /**
     * getUnlocks - find STMT.unlockIf in stmt and return seq of stmts, which contains unlockIfSTMT with variables name which used in UnlockIfSTMT
-    * @param stmt
-    * @return
     */
   private def getUnlocks(stmt: STMT): Seq[(STMT, Seq[VariableName])] = stmt match {
     case unlock: STMT.UnlockIf => Seq(unlock -> unlock.variables)
@@ -72,9 +70,6 @@ object Mast {
     * ((0 < 3) || (1 < 2)) -> ((0 < 3)), (1 < 2)
     * ((0 < 3) & (1 < 2)) -> ((0 < 3) & (1 < 2))
     * (((0 < 3) & (1 < 2)) || (3 < 10)) -> ((0 < 3) & (1 < 2)), (3 < 10)
-    *
-    * @param boolOp
-    * @return
     */
   private def splitBoolOps(boolOp: EXPR.BoolOp): Seq[EXPR] =
     boolOp.op match {
@@ -88,7 +83,6 @@ object Mast {
       case _ => Seq(boolOp)
     }
 
-
   /**
     * Create ast "way" to unlockIf stmt, by removing unused stmt from origin ast.
     * Example:
@@ -97,8 +91,6 @@ object Mast {
     * |let c = 4        |  ---->  |let b = a + 3    |
     * |let d = 5        |         |Unlock if b > 2  |
     * |Unlock if b > 2  |
-    *
-    * @return
     */
 
   private def createContractFromSTMT(stmts: Seq[STMT], variables: Seq[VariableName], fromSTMT: STMT): Option[Contract] = {
@@ -127,7 +119,7 @@ object Mast {
   }
 
   private def dropRedundantSTMTs(stmts: Seq[STMT], variables: Seq[Ast.VariableName]): (Seq[STMT], Seq[Ast.VariableName]) =
-    stmts.foldLeft(Seq[STMT](), variables){
+    stmts.foldLeft(Seq[STMT](), variables) {
       case (resultIf, bodyStmt) =>
         val dropStmt: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(bodyStmt, resultIf._2)
         if (dropStmt._2 != resultIf._2) (resultIf._1 :+ bodyStmt) -> dropStmt._2 else resultIf

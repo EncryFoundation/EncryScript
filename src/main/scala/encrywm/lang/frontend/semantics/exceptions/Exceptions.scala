@@ -1,37 +1,39 @@
 package encrywm.lang.frontend.semantics.exceptions
 
-class SemanticException(m: String, codeExample: String) extends Exception(m.concat(s" In '$codeExample'"))
+import encrywm.ast.Ast.AST_NODE
 
-case class NameException(n: String, codeExample: String) extends SemanticException(s"Name $n is undefined.", codeExample: String)
+class SemanticException(m: String, codeExample: AST_NODE) extends Exception(m.concat(s" In '$codeExample'"))
 
-case class AlreadyDefinedException(n: String, codeExample: String) extends SemanticException(s"Name $n is already defined in scope.", codeExample: String)
+case class NameException(n: String, codeExample: AST_NODE) extends SemanticException(s"Name $n is undefined.", codeExample: AST_NODE)
 
-case class UnexpectedStatementException(s: String, codeExample: String) extends SemanticException(s"Unexpected statement: $s.", codeExample: String)
+case class AlreadyDefinedException(n: String, codeExample: AST_NODE) extends SemanticException(s"Name $n is already defined in scope.", codeExample: AST_NODE)
 
-case class IllegalExprException(codeExample: String) extends SemanticException(s"Unexpected expression.", codeExample: String)
+case class UnexpectedStatementException(s: String, codeExample: AST_NODE) extends SemanticException(s"Unexpected statement: $s.", codeExample: AST_NODE)
 
-case class IllegalOperandException(codeExample: String) extends SemanticException(s"Illegal operand type.", codeExample: String)
+case class IllegalExprException(codeExample: AST_NODE) extends SemanticException(s"Unexpected expression.", codeExample: AST_NODE)
 
-case class ZeroDivisionException(codeExample: String) extends SemanticException(s"Zero division.", codeExample: String)
+case class IllegalOperandException(codeExample: AST_NODE) extends SemanticException(s"Illegal operand type.", codeExample: AST_NODE)
 
-case class MissedContextException(codeExample: String) extends SemanticException(s"Missed context for AST processing.", codeExample: String)
+case class ZeroDivisionException(codeExample: AST_NODE) extends SemanticException(s"Zero division.", codeExample: AST_NODE)
 
-case class WrongNumberOfArgumentsException(fn: String, codeExample: String) extends SemanticException(s"Wrong number of arguments in $fn.", codeExample: String)
+case class MissedContextException(codeExample: AST_NODE) extends SemanticException(s"Missed context for AST processing.", codeExample: AST_NODE)
 
-case class UnapplicableFunctionException(fn: String, coll: String, codeExample: String) extends SemanticException(s"$fn is unapplicable to $coll", codeExample: String)
+case class WrongNumberOfArgumentsException(fn: String, codeExample: AST_NODE) extends SemanticException(s"Wrong number of arguments in $fn.", codeExample: AST_NODE)
 
-case class NotAnObjectException(n: String, codeExample: String) extends SemanticException(s"$n is not an object.", codeExample: String)
+case class UnapplicableFunctionException(fn: String, coll: String, codeExample: AST_NODE) extends SemanticException(s"$fn is unapplicable to $coll", codeExample: AST_NODE)
 
-case class TypeException(codeExample: String) extends SemanticException("Missed type.", codeExample: String)
+case class NotAnObjectException(n: String, codeExample: AST_NODE) extends SemanticException(s"$n is not an object.", codeExample: AST_NODE)
 
-case class UnresolvedSymbolException(s: String, codeExample: String) extends SemanticException(s"Can not resolve symbol $s", codeExample: String)
+case class TypeException(codeExample: AST_NODE) extends SemanticException("Missed type.", codeExample: AST_NODE)
 
-case class Base58DecodeException(codeExample: String) extends SemanticException("Base58 decode error.", codeExample: String)
+case class UnresolvedSymbolException(s: String, codeExample: AST_NODE) extends SemanticException(s"Can not resolve symbol $s", codeExample: AST_NODE)
 
-case class TypeMismatchException(t1: String, t2: String, codeExample: String) extends SemanticException(s"Expected type $t1, got $t2.", codeExample: String)
+case class Base58DecodeException(codeExample: AST_NODE) extends SemanticException("Base58 decode error.", codeExample: AST_NODE)
 
-case class NestedCollectionException(codeExample: String) extends SemanticException("Nested collections are disallowed.", codeExample: String)
+case class TypeMismatchException(t1: String, t2: String, codeExample: AST_NODE) extends SemanticException(s"Expected type $t1, got $t2.", codeExample: AST_NODE)
 
-case class DefaultBranchUndefinedException(codeExample: String) extends SemanticException("Match statement must contain default branch.", codeExample: String)
+case class NestedCollectionException(codeExample: AST_NODE) extends SemanticException("Nested collections are disallowed.", codeExample: AST_NODE)
 
-case class IllegalUnlockIfScopeException(codeExample: String) extends SemanticException("'Unlock if' statement appeared within function scope.", codeExample: String)
+case class DefaultBranchUndefinedException(codeExample: AST_NODE) extends SemanticException("Match statement must contain default branch.", codeExample: AST_NODE)
+
+case class IllegalUnlockIfScopeException(codeExample: AST_NODE) extends SemanticException("'Unlock if' statement appeared within function scope.", codeExample: AST_NODE)
