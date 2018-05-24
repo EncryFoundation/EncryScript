@@ -60,6 +60,7 @@ object AstStringifier {
     case EXPR.ESList(elts, _, _) => "[" + elts.drop(1).foldLeft(toString(elts.head))((str, expr) => str.concat(", " + toString(expr))) + "]"
     case EXPR.ESTuple(elts, _, _) => "(" + elts.drop(1).foldLeft(toString(elts.head))((str, expr) => str.concat(", " + toString(expr))) + ")"
     case EXPR.Declaration(target, tpe) => toString(target) + tpe.map(": " + _.ident.name).getOrElse("")
+    case EXPR.SchemaMatching(name, schemaId) => s"${name.name} -> @${schemaId.name}"
     case EXPR.GenericCond => "_"
   }
   
