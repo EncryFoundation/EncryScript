@@ -1,6 +1,8 @@
 package encrywm.utils.mast
 
 import encrywm.ast.Ast.Hash
+import encrywm.ast.Ast.TREE_ROOT.Contract
+import encrywm.ast.AstCodec.codec
 import scorex.crypto.hash.Blake2b256
 
 object Utils {
@@ -12,4 +14,6 @@ object Utils {
     ).toList
     if(hashList.length != 1) listRootHash(hashList) else hashList.head
   }
+
+  def getContractHash(contract: Contract): Hash = codec.encode(contract).map(vector => Blake2b256(vector.toByteArray)).getOrElse(Array.emptyByteArray)
 }

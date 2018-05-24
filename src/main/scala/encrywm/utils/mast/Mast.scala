@@ -12,7 +12,7 @@ object Mast {
   type ContractRootHash = Array[Byte]
 
   def mastRootFromContracts(contracts: Seq[Contract]): ContractRootHash =
-    listRootHash(contracts.map(_.hash).sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)
+    listRootHash(contracts.map(Utils.getContractHash).sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)
 
   def mastRootFromHashes(contractsHashes: Seq[Hash]): ContractRootHash =
     listRootHash(contractsHashes.sortWith(_.zip(_).forall(bytes => bytes._1 > bytes._2)).toList)

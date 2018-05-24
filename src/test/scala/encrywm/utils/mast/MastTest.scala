@@ -158,7 +158,7 @@ class MastTest extends PropSpec with Matchers {
 
     (0 until contractCount).foldLeft(Seq[Contract]()){
       case (contractsSeq, i) => contractsSeq :+ sp.process(contract(i).get.value).get
-    }.map(_.hash).distinct.length shouldBe contractCount
+    }.map(contract => Mast.mastRootFromContracts(Seq(contract))).distinct.length shouldBe contractCount
   }
 
   property("Check correct mast Root") {
@@ -206,8 +206,8 @@ class MastTest extends PropSpec with Matchers {
            |    unlock if true
       """.stripMargin)
 
-    val unlockContract = processR(unlockContractSource.get.value).hash
+    val unlockContract = Utils.getContractHash(processR(unlockContractSource.get.value))
 
-    Mast.mastRootFromHashes(unlockContract +: contracts.tail.map(_.hash)) shouldEqual mastRoot
+    Mast.mastRootFromHashes(unlockContract +: contracts.tail.map(Utils.getContractHash)) shouldEqual mastRoot
   }
 }
