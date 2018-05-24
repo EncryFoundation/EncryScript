@@ -463,6 +463,23 @@ class StaticProcessorSpec extends PropSpec with Matchers {
     processR.isSuccess shouldBe false
   }
 
+  property("Usage of 'Unlock if' statement inside function. (Illegal scope)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |def unlockingFunc(a: Int, b: Int) -> Int:
+        |    unlock if a > b
+        |    return a + b
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val processR = sp.process(AstRoot.get.value)
+
+    processR.isSuccess shouldBe false
+  }
+
   property("Type checking of invalid assignment (Zero division in value part)") {
     val AstRoot = (Statements.contract ~ End).parse(
       """
@@ -668,6 +685,48 @@ class StaticProcessorSpec extends PropSpec with Matchers {
     val processR = sp.process(AstRoot.get.value)
 
     processR.isSuccess shouldBe true
+  }
+
+  property("Return-type checking inside match statement branches (Wrong type [String])") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |def func(a: Int) -> Int:
+        |   match context.proof:
+        |       case sig -> Signature25519:
+        |           let b = 100
+        |           return b * a
+        |       case _:
+        |           return "string"
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val processR = sp.process(AstRoot.get.value)
+
+    processR.isSuccess shouldBe false
+  }
+
+  property("Return-type checking inside match statement branches (Wrong type -> `pass` statement should be treated as `Unit` return-type)") {
+    val AstRoot = (Statements.contract ~ End).parse(
+      """
+        |def func(a: Int) -> Int:
+        |   match context.proof:
+        |       case sig -> Signature25519:
+        |           let b = 100
+        |           return b * a
+        |       case _:
+        |           pass
+      """.stripMargin)
+
+    val sp = new StaticProcessor(TypeSystem.default)
+
+    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
+
+    val processR = sp.process(AstRoot.get.value)
+
+    processR.isSuccess shouldBe false
   }
 
   property("Invalid match statement (No default branch)") {

@@ -18,5 +18,5 @@ trait Execution {
     new ESContextBuilder(state, transaction)
   }
 
-  val exc: Executor = Executor(testEnv.asVal, Int.MaxValue, TypeSystem.default, debug = true)
+  val exc: Executor = Executor(testEnv.asVal, Int.MaxValue, TypeSystem.default)
 }

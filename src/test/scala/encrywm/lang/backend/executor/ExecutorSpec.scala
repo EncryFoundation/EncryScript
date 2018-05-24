@@ -6,13 +6,32 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   import encrywm.common.SourceProcessor._
 
-  property("Simple contract") {
+  property("Simple script") {
+
+    val tree = process(
+      """
+        |let a = 999
+        |let b = 9
+        |a
+        |b
+      """.stripMargin)
+
+    val excR = exc.executeContract(tree.get)
+    excR.isRight shouldBe true
+
+    excR.right.get.isInstanceOf[Executor.Nothing.type] shouldBe true
+  }
+
+  property("Binary operations") {
 
     val tree = process(
       """
         |let a = 999
         |let b = 9
         |a + b + 8
+        |10 % 4
+        |6 - 3
+        |90 * 3 - 5
       """.stripMargin)
 
     val excR = exc.executeContract(tree.get)

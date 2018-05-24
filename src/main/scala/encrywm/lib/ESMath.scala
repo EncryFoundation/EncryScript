@@ -14,6 +14,10 @@ object ESMath {
     (Add, (ESInt, ESLong), ESLong),
     (Add, (ESLong, ESInt), ESLong),
     (Add, (ESLong, ESLong), ESLong),
+    (Sub, (ESInt, ESInt), ESInt),
+    (Sub, (ESInt, ESLong), ESLong),
+    (Sub, (ESLong, ESInt), ESLong),
+    (Sub, (ESLong, ESLong), ESLong),
     (Mult, (ESInt, ESInt), ESInt),
     (Mult, (ESInt, ESLong), ESLong),
     (Mult, (ESLong, ESInt), ESLong),
@@ -22,6 +26,10 @@ object ESMath {
     (Div, (ESInt, ESLong), ESLong),
     (Div, (ESLong, ESInt), ESLong),
     (Div, (ESLong, ESLong), ESLong),
+    (Mod, (ESInt, ESInt), ESInt),
+    (Mod, (ESInt, ESLong), ESLong),
+    (Mod, (ESLong, ESInt), ESLong),
+    (Mod, (ESLong, ESLong), ESLong),
   )
 
   def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR, node: AST_NODE): Unit = {

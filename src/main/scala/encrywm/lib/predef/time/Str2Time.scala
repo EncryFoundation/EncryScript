@@ -1,25 +1,27 @@
-package encrywm.lib.predef.functions.decode
+package encrywm.lib.predef.time
+
+import java.text.SimpleDateFormat
 
 import encrywm.lang.backend.env.{ESBuiltInFunc, ESValue}
 import encrywm.lang.backend.executor.error.BuiltInFunctionExecException
 import encrywm.lib.Types.ESString
-import encrywm.lib.predef.functions.BuiltInFunctionHolder
-import scorex.crypto.encode.Base58
+import encrywm.lib.predef.BuiltInFunctionHolder
 
-object Base58decode extends BuiltInFunctionHolder {
+object Str2Time extends BuiltInFunctionHolder {
 
-  val name: String = "decode"
+  val name = "unixTime"
 
   override def asFunc: ESBuiltInFunc = ESBuiltInFunc(name, args, body)
 
-  val args = IndexedSeq("s" -> ESString)
+  val args = IndexedSeq("input" -> ESString)
 
   private val body = (args: Seq[(String, ESValue)]) => {
     val validNumberOfArgs = args.size == 1
     val validArgTypes = args.forall { case (_, v) => v.tpe.isInstanceOf[ESString.type] }
     if (validNumberOfArgs && validArgTypes) {
-      val fnArg = args.map(_._2.value.asInstanceOf[String]).head
-      Right(Base58.decode(fnArg).toOption)
+      val fnArgs = args.map(_._2.value.asInstanceOf[String])
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+      Right(dateFormat.parse(fnArgs.head).getTime)
     } else {
       Left(BuiltInFunctionExecException)
     }

@@ -34,7 +34,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
   property("Composite source processing") {
     val s =
       """
-        |schema PersonBox:Object(
+        |schema PersonData:Object(
         |    name:String;
         |    age:Int;
         |)
@@ -42,11 +42,15 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |#---script---
         |
         |def checkAge(box: Box) -> Bool:
-        |   match box:
-        |       case personBox -> @PersonBox:
-        |           return personBox.body.age > 20
+        |    match box:
+        |       case dataBox -> DataBox:
+        |           match read(dataBox.data).get:
+        |               case personData -> @PersonData:
+        |                   return personData.body.age > 20
+        |               case _:
+        |                   return false
         |       case _:
-        |           pass
+        |           return false
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
@@ -69,7 +73,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |       case personBox -> @PersonBox:
         |           return personBox.body.age > 20
         |       case _:
-        |           pass
+        |           return false
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
@@ -97,7 +101,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |       case personBox -> @PersonBox:
         |           return personBox.body.age > 20
         |       case _:
-        |           pass
+        |           return false
       """.stripMargin
 
     val procTry = SourceProcessor.process(s)
