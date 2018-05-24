@@ -118,7 +118,6 @@ object AstCodec {
   implicit def dDiv = dOp.bind[OPERATOR.Div.type](3)
   implicit def dMod = dOp.bind[OPERATOR.Mod.type](4)
   implicit def dPow = dOp.bind[OPERATOR.Pow.type](5)
-  implicit def dFloorDiv = dOp.bind[OPERATOR.FloorDiv.type](6)
 
   implicit def dUnOp = Discriminated[UNARY_OP, Int](uint4)
   implicit def dInvert = dUnOp.bind[UNARY_OP.Invert.type](0)
@@ -145,6 +144,8 @@ object AstCodec {
   implicit def dArguments = dAN.bind[Arguments](0)
   implicit def dKeyword = dAN.bind[Keyword](1)
   implicit def dAlias = dAN.bind[Alias](2)
+
+  val newCodec: Codec[EXPR] = Codec[EXPR]
 
   val codec: Codec[TREE_ROOT] = Codec[TREE_ROOT]
 }

@@ -27,11 +27,11 @@ object ESMath {
   def ensureZeroDivision(op: Ast.OPERATOR, operand2: Ast.EXPR, node: AST_NODE): Unit = {
     operand2 match {
       case int: EXPR.IntConst
-        if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && int.n == 0 =>
+        if (op == OPERATOR.Div) && int.n == 0 =>
         //TODO: replace 0
         throw ZeroDivisionException(AstStringifier.toString(node))
       case long: EXPR.LongConst
-        if (op == OPERATOR.Div || op == OPERATOR.FloorDiv) && long.n == 0L =>
+        if (op == OPERATOR.Div) && long.n == 0L =>
         //TODO: replace 0
         throw ZeroDivisionException(AstStringifier.toString(node))
       case _ => // Do nothing.
