@@ -2,6 +2,7 @@ package encrywm.utils.mast
 
 import encrywm.ast.Ast
 import encrywm.ast.Ast.EXPR.UnaryOp
+import encrywm.ast.Ast.STMT.UnlockIf
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.Ast.UNARY_OP.Not
 import encrywm.ast.Ast._
@@ -23,7 +24,7 @@ object Mast {
         contracts ++ simpleContract.body.reverse.foldLeft(Seq[Contract]()) {
           case (contractsFromSimple, simpleContractStmt) =>
             contractsFromSimple ++ getUnlocks(simpleContractStmt).flatMap(unlockIfStmtWithVariables =>
-              createContractFromSTMT(simpleContract.body.takeWhile(_ != unlockIfStmtWithVariables._1).reverse, unlockIfStmtWithVariables._2, unlockIfStmtWithVariables._1)
+              createContractFromSTMT( simpleContract.body.takeWhile( _ != unlockIfStmtWithVariables._1 ).reverse, unlockIfStmtWithVariables._2, unlockIfStmtWithVariables._1 )
             )
         }
     }.distinct
@@ -32,7 +33,7 @@ object Mast {
     * getUnlocks - find STMT.unlockIf in stmt and return seq of stmts, which contains unlockIfSTMT with variables name which used in UnlockIfSTMT
     */
   private def getUnlocks(stmt: STMT): Seq[(STMT, Seq[VariableName])] = stmt match {
-    case unlock: STMT.UnlockIf => Seq(unlock -> unlock.variables)
+    case unlock: STMT.UnlockIf => splitUnlockIf(unlock).map(unlockStmt => unlockStmt -> unlockStmt.variables)
     case matchSTMT: STMT.Match =>
       matchSTMT.branches.foldLeft(Seq[(STMT, Seq[VariableName])]()) {
         case (unlocksInMatchSTMT, branchSTMT) =>
@@ -41,7 +42,13 @@ object Mast {
     case ifSTMT: STMT.If =>
       ifSTMT.body.foldLeft(Seq[(STMT, Seq[VariableName])]()) {
         case (bodySeq, bodyStmt) =>
-          bodySeq ++ getUnlocks(bodyStmt).map(matchBranch => ifSTMT -> matchBranch._2)
+          bodySeq ++
+            getUnlocks( bodyStmt ).map( stmtWithUnlock => ifSTMT.copy( orelse = List.empty[Ast.STMT] ) -> (stmtWithUnlock._2 ++ ifSTMT.test.variables))
+      } ++ ifSTMT.orelse.foldLeft(Seq[(STMT, Seq[VariableName])]()) {
+        case (orElseStmts, orElseStmt) =>
+          orElseStmts ++
+            getUnlocks(orElseStmt).map(stmtWithUnlock =>
+              ifSTMT.copy(test = UnaryOp(UNARY_OP.Not, ifSTMT.test), body = ifSTMT.orelse, orelse = List.empty[Ast.STMT]) -> (stmtWithUnlock._2 ++ ifSTMT.test.variables))
       }
     case caseStmt: STMT.Case =>
       caseStmt.body.foldLeft(Seq[(STMT, Seq[VariableName])]()) {
@@ -50,19 +57,19 @@ object Mast {
       }
     case _ => Seq()
   }
-//
-//  /**
-//    * splitUnlockIf - splitUnlockIfStmt by boolOps
-//    * @param unlockIf
-//    * @return
-//    */
-//  private def splitUnlockIf(unlockIf: (STMT, Seq[VariableName])): Seq[UnlockIf] =
-//    unlockIf.test match {
-//      case boolOp: EXPR.BoolOp =>
-//        val split = splitBoolOps(boolOp)
-//        split.map(op => UnlockIf(op))
-//      case _ => Seq(unlockIf)
-//    }
+
+  /**
+    * splitUnlockIf - splitUnlockIfStmt by boolOps
+    * @param unlockIf
+    * @return
+    */
+  private def splitUnlockIf(unlockIf: STMT.UnlockIf): Seq[UnlockIf] =
+    unlockIf.test match {
+      case boolOp: EXPR.BoolOp =>
+        val split = splitBoolOps(boolOp)
+        split.map(op => UnlockIf(op))
+      case _ => Seq(unlockIf)
+    }
 
   /**
     * Split boolOps by ||
@@ -104,7 +111,8 @@ object Mast {
       else let -> variablesToDrop
     case ifStmt: STMT.If =>
       val resultIfBody: (Seq[STMT], Seq[Ast.VariableName]) = dropRedundantSTMTs(ifStmt.body, variablesToDrop)
-      ifStmt.copy(body = resultIfBody._1.toList) -> resultIfBody._2
+      if (resultIfBody._1.nonEmpty) ifStmt.copy(body = resultIfBody._1.toList) -> (resultIfBody._2 ++ ifStmt.test.variables)
+      else ifStmt -> variablesToDrop
     case matchStmt: STMT.Match =>
       if(variablesToDrop.contains(matchStmt.target.variables.head)) {
         val mainBranchBody: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(matchStmt.branches.head, variablesToDrop)
@@ -128,7 +136,7 @@ object Mast {
 
   /**
     * simplifyContract - separate heavy contract to simple by ifSTMT and matchSTMT, but not optimize them
-    * (Simple contract - contract, which contains only 2 branches in each matchStmt, and only body in ifStmt)
+    * (Simple contract - contract, which contains only 2 branches in each matchStmt, only body in ifStmt and only one condition in unlockIf)
     * Example:
     * |let a = 2          |
     * |let b = 1          |

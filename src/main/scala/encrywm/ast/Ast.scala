@@ -1,8 +1,5 @@
 package encrywm.ast
 
-import encrywm.utils.mast.Utils.listRootHash
-import scorex.crypto.hash.Blake2b256
-
 object Ast {
 
   import encrywm.lib.Types._
@@ -23,12 +20,18 @@ object Ast {
 
     case class Contract(body: List[STMT]) extends TREE_ROOT {
 
-      override def toString: VariableName = body.map(_.toString).fold("")(_.concat(_))
+      override def toString: VariableName =
+        body.map(_.toString).tail.foldLeft(body.head.toString) {
+          case (contract, stmt) => s"$contract\n$stmt"
+        }
     }
 
     case class Expression(body: List[STMT]) extends TREE_ROOT {
 
-      override def toString: VariableName = body.map(_.toString).fold("")(_.concat(_))
+      override def toString: VariableName =
+        body.map(_.toString).tail.foldLeft(body.head.toString) {
+          case (contract, stmt) => s"$contract\n$stmt"
+      }
     }
   }
 
@@ -81,7 +84,17 @@ object Ast {
 
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT {
 
-      override def toString: VariableName = "<if_stmt>"
+      override def toString: VariableName =
+        body.foldLeft( s"if ($test):" ) {
+          case (ifStmtBody, ifStmtBodyStmt) => s"$ifStmtBody\n$ifStmtBodyStmt"
+        } ++
+          (
+            if (orelse.nonEmpty)
+                  orelse.foldLeft("else:"){
+                    case (orElseBody, orElseStmtBody) => s"$orElseBody\n$orElseStmtBody"
+                  }
+            else ""
+          )
 
       override val variables: List[VariableName] = test.variables ++
         body.foldLeft(List[String]()){ case (bodyVars, bodyElem) => bodyVars ++ bodyElem.variables } ++
@@ -90,14 +103,14 @@ object Ast {
 
     case class Match(target: EXPR, branches: List[STMT]) extends STMT {
 
-      override def toString: VariableName = s"match $target: \n" + branches.tail.foldLeft(branches.head.toString)((resultStr, branch) => s"$resultStr'\n'$branch")
+      override def toString: VariableName = s"match $target:\n" + branches.tail.foldLeft(branches.head.toString)((resultStr, branch) => s"$resultStr\n$branch")
 
       override val variables: List[VariableName] = target.variables
     }
 
     case class Case(cond: EXPR, body: List[STMT], isDefault: Boolean = false) extends STMT {
 
-      override def toString: VariableName = s"case $cond: '\n'" + body.tail.foldLeft(body.head.toString)((caseBody, stmt) => s"$caseBody'\n'$stmt")
+      override def toString: VariableName = s"  case $cond:\n" + body.tail.foldLeft(body.head.toString)((caseBody, stmt) => s"$caseBody\n$stmt")
 
       override val variables: List[VariableName] = List.empty[String]
     }
@@ -167,7 +180,7 @@ object Ast {
 
     case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
 
-      override def toString: VariableName = s"$op $operand"
+      override def toString: VariableName = s"$op($operand)"
 
       override val variables: List[VariableName] = operand.variables
     }
@@ -195,7 +208,7 @@ object Ast {
       override var tpeOpt: Option[ESType] = Some(ESBoolean)
 
       override def toString: VariableName =
-        s"$left ${ops.map(_.toString).zip(comparators.map(_.toString)).foldLeft("")((compareStmt, elem) => s"$compareStmt ${elem._1} ${elem._2}")}"
+        s"$left ${ops.map(_.toString).zip(comparators.map(_.toString)).foldLeft("")((compareStmt, elem) => s"$compareStmt${elem._1} ${elem._2}")}"
 
       override val variables: List[VariableName] =
         left.variables ++ comparators.foldLeft(List[String]()){ case (comparatorVars, comparator) => comparatorVars ++ comparator.variables }
@@ -386,6 +399,8 @@ object Ast {
 
     // Used to define default condition in `case` branch.
     case object GenericCond extends EXPR {
+
+      override def toString: VariableName = "_"
 
       override var tpeOpt: Option[ESType] = Some(ESUnit)
 
