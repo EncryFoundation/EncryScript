@@ -29,8 +29,9 @@ object SourceProcessor {
       encrytl.common.SourceProcessor.process(comps.head).flatMap { schemas =>
         Parser.parse(comps.last).flatMap { parsedScript =>
           new StaticProcessor(
-            TypeSystem(schemas.map(s => Converter.schema2ESType(s)
-              .getOrElse(throw new Exception("Schema conversion failed"))
+            TypeSystem(schemas.map(s => {
+              Converter.schema2ESType(s)
+            }.getOrElse(throw new Exception("Schema conversion failed"))
             ))
           ).process(parsedScript).map { res =>
             Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas)) match {

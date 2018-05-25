@@ -39,7 +39,7 @@ class ExceptionMessageSpec extends PropSpec with Matchers {
     val processR = sp.process(AstRoot.get.value)
 
     processR match {
-      case Failure(e) => e.getMessage shouldEqual "Expected type Int, got String. In 'def sum(a: String): -> Int:\nreturn a'"
+      case Failure(e) => e.getMessage shouldEqual "Expected type Int, got String. In 'def sum(a: String): -> Int: \n return a'"
     }
   }
 
@@ -54,7 +54,7 @@ class ExceptionMessageSpec extends PropSpec with Matchers {
     val processR = sp.process(AstRoot.get.value)
 
     processR match {
-      case Failure(e) => e.getMessage shouldEqual "Expected type Int, got String. In '[ 12\"str\"45 ]'"
+      case Failure(e) => e.getMessage shouldEqual "Expected type Int, got String. In '[1, 2, \"str\", 4, 5]'"
     }
   }
 
