@@ -31,6 +31,9 @@ object Mast {
 
   /**
     * getUnlocks - find STMT.unlockIf in stmt and return seq of stmts, which contains unlockIfSTMT with variables name which used in UnlockIfSTMT
+    * If get UnlockIf(boolOp1 || boolOp2) separate them to UnlockIf(boolOp1), UnlockIf(boolOp2)
+    * If get IfStmt witch contains body and orElse part, with unlockIf stmt in each of them, separate if stmt to 2 stmt.
+    * First ifStmt will contains only body, second will have revert ifStmt.test by Not, and body = orElse
     */
   private def getUnlocks(stmt: STMT): Seq[(STMT, Seq[VariableName])] = stmt match {
     case unlock: STMT.UnlockIf => splitUnlockIf(unlock).map(unlockStmt => unlockStmt -> unlockStmt.variables)
