@@ -36,7 +36,7 @@ object SourceProcessor {
           ).process(parsedScript).map { res =>
             Transformer.transform(SchemaBinder.bind(new Optimizer().optimize(res), schemas)) match {
               case c: Contract => c
-              case other: Any => throw new Exception(s"Unexpected node type: $other")
+              case other => throw new Exception(s"Unexpected node type: $other")
             }
           }
         }
@@ -46,7 +46,7 @@ object SourceProcessor {
         StaticProcessor.default.process(parsedScript).map { res =>
           Transformer.transform(new Optimizer().optimize(res)) match {
             case c: Contract => c
-            case other: Any => throw new Exception(s"Unexpected node type: $other")
+            case other => throw new Exception(s"Unexpected node type: $other")
           }
         }
       }
