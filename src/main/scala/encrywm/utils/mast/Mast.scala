@@ -61,11 +61,7 @@ object Mast {
     case _ => Seq()
   }
 
-  /**
-    * splitUnlockIf - splitUnlockIfStmt by boolOps
-    * @param unlockIf
-    * @return
-    */
+  /** splitUnlockIf - splitUnlockIfStmt by boolOps */
   private def splitUnlockIf(unlockIf: STMT.UnlockIf): Seq[UnlockIf] =
     unlockIf.test match {
       case boolOp: EXPR.BoolOp =>
@@ -102,7 +98,6 @@ object Mast {
     * |let d = 5        |         |Unlock if b > 2  |
     * |Unlock if b > 2  |
     */
-
   private def createContractFromSTMT(stmts: Seq[STMT], variables: Seq[VariableName], fromSTMT: STMT): Option[Contract] = {
     val stmtsAfterDrop: (Seq[STMT], Seq[Ast.VariableName]) = dropRedundantSTMTs(stmts, variables)
     if(stmtsAfterDrop._2.isEmpty) Some(Contract((fromSTMT +: stmtsAfterDrop._1.toList).reverse)) else None
@@ -110,14 +105,14 @@ object Mast {
 
   private def dropRedundantSTMT(stmt: STMT, variablesToDrop: Seq[Ast.VariableName]): (STMT, Seq[Ast.VariableName]) = stmt match {
     case let: STMT.Let =>
-      if(variablesToDrop.contains(let.variableName)) let -> (variablesToDrop.filter(_ != let.variableName) ++ let.variables)
+      if (variablesToDrop.contains(let.variableName)) let -> (variablesToDrop.filter(_ != let.variableName) ++ let.variables)
       else let -> variablesToDrop
     case ifStmt: STMT.If =>
       val resultIfBody: (Seq[STMT], Seq[Ast.VariableName]) = dropRedundantSTMTs(ifStmt.body, variablesToDrop)
       if (resultIfBody._1.nonEmpty) ifStmt.copy(body = resultIfBody._1.toList) -> (resultIfBody._2 ++ ifStmt.test.variables)
       else ifStmt -> variablesToDrop
     case matchStmt: STMT.Match =>
-      if(variablesToDrop.contains(matchStmt.target.variables.head)) {
+      if (variablesToDrop.contains(matchStmt.target.variables.head)) {
         val mainBranchBody: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(matchStmt.branches.head, variablesToDrop)
         val genericCondBody: (STMT, Seq[Ast.VariableName]) = dropRedundantSTMT(matchStmt.branches.last, variablesToDrop)
         val variablesNames: Seq[Ast.VariableName] = if (mainBranchBody._2.length > genericCondBody._2.length) mainBranchBody._2 else genericCondBody._2
@@ -150,9 +145,7 @@ object Mast {
     * |case 2:            |         |    unlock if true |         |    unlock if true |
     * |   unlock if true  |         |case _:            |         |case _:            |
     * |case _:            |         |    unlock if true |         |    unlock if true |
-    * \   unlock if true  |
-    * @param contract: Contract
-    * @return
+    * |   unlock if true  |
     */
   private def simplifyContract(contract: Contract): Seq[Contract] = {
     contract.body.tail.foldLeft(Seq[Contract](Contract(List(contract.body.head)))) {
