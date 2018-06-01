@@ -20,7 +20,7 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyzeTry = Try(analyzer.complexityOfScript(AstRoot.get.value))
 
     analyzeTry.isSuccess shouldBe true
 
@@ -37,7 +37,7 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyzeTry = Try(analyzer.complexityOfScript(AstRoot.get.value))
 
     analyzeTry.isSuccess shouldBe true
 
@@ -55,7 +55,7 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyzeTry = Try(analyzer.complexityOfScript(AstRoot.get.value))
 
     analyzeTry.isSuccess shouldBe true
 
@@ -75,7 +75,7 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyzeTry = Try(analyzer.complexityOfScript(AstRoot.get.value))
 
     analyzeTry.isSuccess shouldBe true
 

@@ -24,7 +24,7 @@ case class EncryContract(serializedScript: SerializedScript, meta: ScriptMeta) {
   def validMeta: Boolean = {
     (SourceProcessor.getScriptFingerprint(serializedScript) sameElements meta.scriptFingerprint) &&
     ScriptSerializer.deserialize(serializedScript).map { s =>
-      val complexity = ComplexityAnalyzer.complexityOf(s)
+      val complexity = ComplexityAnalyzer.complexityOfScript(s)
       complexity == meta.complexityScore
     }.getOrElse(false)
   }

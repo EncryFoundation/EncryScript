@@ -54,7 +54,7 @@ object SourceProcessor {
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
-    val complexityScore = ComplexityAnalyzer.complexityOf(c)
+    val complexityScore = ComplexityAnalyzer.complexityOfScript(c)
     val serializedScript = ScriptSerializer.serialize(c)
     val fingerprint = getScriptFingerprint(serializedScript)
     EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
