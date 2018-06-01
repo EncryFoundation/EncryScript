@@ -10,7 +10,7 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Random, Try}
 
-class StaticProcessor(ts: TypeSystem) {
+class StaticProcessor(typeSystem: TypeSystem) {
 
   private var scopes: List[ScopedSymbolTable] = List.empty
 
@@ -45,9 +45,9 @@ class StaticProcessor(ts: TypeSystem) {
             case otherT => otherT
           }
           typeOpt.map { t =>
-            val mainT: ESType = ts.typeByIdent(t.ident.name)
+            val mainT: ESType = typeSystem.typeByIdent(t.ident.name)
               .getOrElse(throw NameException(t.ident.name, asg))
-            val typeParams: List[ESType] = t.typeParams.map(id => ts.typeByIdent(id.name)
+            val typeParams: List[ESType] = t.typeParams.map(id => typeSystem.typeByIdent(id.name)
               .getOrElse(throw NameException(t.ident.name, asg)))
             mainT -> typeParams
           }.foreach {
@@ -63,10 +63,10 @@ class StaticProcessor(ts: TypeSystem) {
       }
 
     case funcDef: STMT.FunctionDef =>
-      val declaredRetType: ESType = ts.typeByIdent(funcDef.returnType.name)
+      val declaredRetType: ESType = typeSystem.typeByIdent(funcDef.returnType.name)
         .getOrElse(throw NameException(funcDef.returnType.name, funcDef))
       val params: List[(String, ESType)] = funcDef.args.args.map { arg =>
-        val argT = ts.typeByIdent(arg._2.ident.name)
+        val argT: ESType = typeSystem.typeByIdent(arg._2.ident.name)
           .getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, funcDef))
         arg._1.name -> argT
       }
@@ -115,11 +115,11 @@ class StaticProcessor(ts: TypeSystem) {
       scopes = bodyScope :: scopes
       cond match {
         case EXPR.TypeMatching(local, tpe) =>
-          val localT: ESType = ts.typeByIdent(tpe.ident.name)
+          val localT: ESType = typeSystem.typeByIdent(tpe.ident.name)
             .getOrElse(throw TypeException(cond))
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case EXPR.SchemaMatching(local, Identifier(schemaId)) =>
-          val localT: ESType = ts.typeByIdent(schemaId)
+          val localT: ESType = typeSystem.typeByIdent(schemaId)
             .getOrElse(throw TypeException(cond))
           currentScopeOpt.foreach(_.insert(Symbol(local.name, localT), node))
         case _ => // Do nothing.
@@ -128,8 +128,7 @@ class StaticProcessor(ts: TypeSystem) {
       scopes = scopes.tail
 
     case ui @ STMT.UnlockIf(test) =>
-      if (currentScopeOpt.exists(_.isFunc))
-        throw IllegalUnlockIfScopeException(ui)
+      if (currentScopeOpt.exists(_.isFunc)) throw IllegalUnlockIfScopeException(ui)
       scanExpr(test)
 
     case _ => // Do nothing.
@@ -149,7 +148,7 @@ class StaticProcessor(ts: TypeSystem) {
 
       case EXPR.Lambda(args, body, _) =>
         val paramSymbols: Seq[Symbol] = args.args.map { arg =>
-          val argT: ESType = ts.typeByIdent(arg._2.ident.name)
+          val argT: ESType = typeSystem.typeByIdent(arg._2.ident.name)
             .getOrElse(throw UnresolvedSymbolException(arg._2.ident.name, node))
           Symbol(arg._1.name, argT)
         }
@@ -225,7 +224,7 @@ class StaticProcessor(ts: TypeSystem) {
         }
 
       case EXPR.TypeMatching(_, tpe) =>
-        ts.typeByIdent(tpe.ident.name)
+        typeSystem.typeByIdent(tpe.ident.name)
           .getOrElse(throw UnresolvedSymbolException(tpe.ident.name, node))
 
       case EXPR.Base58Str(s) =>
@@ -351,13 +350,13 @@ class StaticProcessor(ts: TypeSystem) {
 
         case EXPR.Lambda(args, body, _) =>
           ESFunc(args.args.map { case (argId, typeId) =>
-            argId.name -> ts.typeByIdent(typeId.ident).get }, inferType(body))
+            argId.name -> typeSystem.typeByIdent(typeId.ident).get }, inferType(body))
 
         case _ => throw IllegalExprException(exp)
       }
     }
 
-    val tpe = inferTypeIn(exp)
+    val tpe: ESType = inferTypeIn(exp)
     if (exp.tpeOpt.isEmpty) exp.tpeOpt = Some(tpe)
     tpe
   }
