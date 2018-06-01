@@ -37,7 +37,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
         throw IllegalOperationException
       } else stepsCount += 1
       (expr match {
-        case EXPR.Name(id, _, _) =>
+        case EXPR.Name(id, _) =>
           getFromEnv(id.name).map {
             case v: ESValue => v.value
             case o: ESObject => o
@@ -90,7 +90,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
           }
 
         // TODO: `kwargs` handling?
-        case EXPR.Call(EXPR.Name(id, _, _), args, _, _) =>
+        case EXPR.Call(EXPR.Name(id, _), args, _, _) =>
           getFromEnv(id.name).map {
             case ESFunc(_, fnArgs, _, body) =>
               val argMap = args.zip(fnArgs).map { case (exp, (argN, _)) =>
@@ -124,7 +124,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
             case other => throw NotAFunctionException(other.toString)
           }.getOrElse(throw UnresolvedReferenceException(id.name))
 
-        case EXPR.Attribute(value, attr, _, Some(_)) =>
+        case EXPR.Attribute(value, attr, Some(_)) =>
           val valT = value.tpeOpt.get
           eval[valT.Underlying](value) match {
             case obj: ESObject => obj.getAttr(attr.name).get.value
@@ -148,7 +148,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
             case _ => throw IllegalOperationException
           }
 
-        case EXPR.Subscript(exp, slice, _, Some(_)) =>
+        case EXPR.Subscript(exp, slice, Some(_)) =>
           val expT = exp.tpeOpt.get
           slice match {
             case SLICE.Index(idx) =>
@@ -166,7 +166,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
             case _ => throw IllegalOperationException
           }
 
-        case EXPR.ESList(elts, _, Some(ESList(valT))) =>
+        case EXPR.ESList(elts, Some(ESList(valT))) =>
           if (elts.size > 50) throw IllegalOperationException
           elts.foldLeft(List[valT.Underlying]()) { case (acc, exp) =>
             acc :+ eval[valT.Underlying](exp)
@@ -219,7 +219,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                     func match {
                       case lamb: Lambda =>
                         applyLambda[inT.Underlying](Map(localN -> localV), lamb.body)
-                      case Name(id, _, _) => getFromEnv(id.name).map {
+                      case Name(id, _) => getFromEnv(id.name).map {
                         case fn: ESFunc =>
                           applyFunc[inT.Underlying](Map(localN -> localV), fn.body)
                       }.get
@@ -234,7 +234,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                     func match {
                       case lamb: Lambda =>
                         applyLambda[inT.Underlying](Map(keyN -> keyV, valN -> valV), lamb.body)
-                      case Name(id, _, _) => getFromEnv(id.name).map {
+                      case Name(id, _) => getFromEnv(id.name).map {
                         case fn: ESFunc =>
                           applyFunc[inT.Underlying](Map(keyN -> keyV, valN -> valV), fn.body)
                       }.get
@@ -257,7 +257,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
                         case lamb: Lambda =>
                           if (applyLambda[Boolean](Map(localN -> localV), lamb.body))
                             return true
-                        case Name(id, _, _) => getFromEnv(id.name).foreach {
+                        case Name(id, _) => getFromEnv(id.name).foreach {
                           case fn: ESFunc =>
                             if (applyFunc[Boolean](Map(localN -> localV), fn.body))
                               return true
@@ -305,7 +305,7 @@ class Executor private[encrywm](globalEnv: ScopedRuntimeEnv,
 
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
-      case STMT.Let(EXPR.Declaration(EXPR.Name(id, _, _), _), value, global) =>
+      case STMT.Let(EXPR.Declaration(EXPR.Name(id, _), _), value, global) =>
         val valT = value.tpeOpt.get
         val esVal = ESValue(id.name, valT)(eval[valT.Underlying](value))
         if (global) {

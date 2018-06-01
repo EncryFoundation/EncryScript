@@ -94,13 +94,6 @@ object AstCodec {
   implicit def dScM = dEx.bind[EXPR.SchemaMatching](30)
   implicit def dGc = dEx.bind[EXPR.GenericCond.type](31)
 
-  implicit def dECTX = Discriminated[EXPR_CTX, Int](uint4)
-  implicit def dLoad = dECTX.bind[EXPR_CTX.Load.type](0)
-  implicit def dStore = dECTX.bind[EXPR_CTX.Store.type](1)
-  implicit def dParam = dECTX.bind[EXPR_CTX.Param.type](2)
-  implicit def dAugLoad = dECTX.bind[EXPR_CTX.AugLoad.type](3)
-  implicit def dAugStore = dECTX.bind[EXPR_CTX.AugStore.type](4)
-
   implicit def dSl = Discriminated[SLICE, Int](uint2)
   implicit def dEllipsis = dSl.bind[SLICE.Ellipsis.type](0)
   implicit def dSlice = dSl.bind[SLICE.Slice](1)
@@ -136,9 +129,6 @@ object AstCodec {
   implicit def dIsNot = dCoOp.bind[COMP_OP.IsNot.type](7)
   implicit def dIn = dCoOp.bind[COMP_OP.In.type](8)
   implicit def dNotIn = dCoOp.bind[COMP_OP.NotIn.type](9)
-
-  implicit def dEXCPH = Discriminated[EXCP_HANDLER, Int](uint2)
-  implicit def dExceptHandler = dEXCPH.bind[EXCP_HANDLER.ExceptHandler](0)
 
   implicit def dAN = Discriminated[AST_NODE, Int](uint4)
   implicit def dArguments = dAN.bind[Arguments](0)
