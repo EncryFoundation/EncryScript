@@ -127,7 +127,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
       body.foreach(scanStmt)
       scopes = scopes.tail
 
-    case ui @ STMT.UnlockIf(test) =>
+    case ui@STMT.UnlockIf(test) =>
       if (currentScopeOpt.exists(_.isFunc)) throw IllegalUnlockIfScopeException(ui)
       scanExpr(test)
 
@@ -136,6 +136,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
   private def scanExpr(node: EXPR): Unit = {
     def scanMany(exprs: Seq[EXPR]): Unit = exprs.foreach(scanExpr)
+
     node match {
       case n: EXPR.Name =>
         assertDefined(n.id.name, node)
@@ -173,7 +174,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
       case EXPR.Call(func: EXPR.Attribute, args, keywords, _) =>
         scanMany(Seq(func, func.value) ++ args ++ keywords.map(_.value))
-        func.value.tpeOpt.get match {
+        func.value.tipe match {
           case coll: ESCollection if args.size == 1 =>
             coll.getAttrType(func.attr.name) match {
               case Some(f: ESFunc) =>
@@ -204,7 +205,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
       case dct: EXPR.ESDictNode =>
         dct.keys.foreach(scanExpr)
-        if (!dct.keys.forall(k => k.tpeOpt.get.isPrimitive)) throw IllegalExprException(node)
+        if (!dct.keys.forall(k => k.tipe.isPrimitive)) throw IllegalExprException(node)
         dct.values.foreach(scanExpr)
 
       case lst: EXPR.ESList => lst.elts.foreach(scanExpr)
@@ -214,10 +215,10 @@ class StaticProcessor(typeSystem: TypeSystem) {
         sub.slice match {
           case SLICE.Index(idx) =>
             scanExpr(idx)
-            val idxT: ESType = idx.tpeOpt.get
-            sub.value.tpeOpt match {
-              case Some(ESList(_)) => matchType(idxT, ESInt, sub)
-              case Some(ESDict(keyT, _)) => matchType(idxT, keyT, sub)
+            val idxT: ESType = idx.tipe
+            sub.value.tipe match {
+              case ESList(_) => matchType(idxT, ESInt, sub)
+              case ESDict(keyT, _) => matchType(idxT, keyT, sub)
               case _ => throw IllegalExprException(sub)
             }
           // TODO: Support for other SLICE_OPs.
@@ -247,7 +248,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
   private def findReturnTypes(stmts: Seq[STMT]): Seq[ESType] = {
 
     def findReturnsIn(stmt: STMT): Seq[ESType] = stmt match {
-      case ret: STMT.Return => Seq(ret.value.map(v => extractType(v.tpeOpt)).getOrElse(ESUnit))
+      case ret: STMT.Return => Seq(ret.value.map(_.tipe).getOrElse(ESUnit))
       case STMT.If(_, body, orelse) => findReturnTypes(body) ++ findReturnTypes(orelse)
       case STMT.Match(_, branches) => findReturnTypes(branches)
       case STMT.Case(_, body, _) => findReturnTypes(body)
@@ -263,108 +264,109 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
     val scope: ScopedSymbolTable = currentScopeOpt.getOrElse(throw MissedContextException(exp))
 
-    def inferTypeIn(e: EXPR): ESType = e.tpeOpt.getOrElse {
-      exp match {
-        case n: EXPR.Name => scope.lookup(n.id.name)
-          .map(_.tpe).getOrElse(throw NameException(n.id.name, exp))
+    def inferTypeIn(e: EXPR): ESType =
+      if (!e.tipe.isNit) e.tipe
+      else {
+        exp match {
+          case n: EXPR.Name => scope.lookup(n.id.name)
+            .map(_.tpe).getOrElse(throw NameException(n.id.name, exp))
 
-        case attr: EXPR.Attribute =>
-          inferType(attr.value) match {
-            case p: ESProduct =>
-              p.getAttrType(attr.attr.name)
-                .getOrElse(throw NameException(attr.attr.name, exp))
-            case ESFunc(_, retT) => retT
-            case _ => throw IllegalExprException(attr)
-          }
+          case attr: EXPR.Attribute =>
+            inferType(attr.value) match {
+              case p: ESProduct =>
+                p.getAttrType(attr.attr.name)
+                  .getOrElse(throw NameException(attr.attr.name, exp))
+              case ESFunc(_, retT) => retT
+              case _ => throw IllegalExprException(attr)
+            }
 
-        case fc: EXPR.Call =>
-          fc.args.map(inferType)
-          fc.func match {
-            case EXPR.Name(n, _) =>
-              scope.lookup(n.name).map { case Symbol(_, t) => t }
-                .getOrElse(throw IllegalExprException(fc))
+          case fc: EXPR.Call =>
+            fc.args.map(inferType)
+            fc.func match {
+              case EXPR.Name(n, _) =>
+                scope.lookup(n.name).map { case Symbol(_, t) => t }
+                  .getOrElse(throw IllegalExprException(fc))
 
-            // Special handler for `.map()`
-            case EXPR.Attribute(value, n, _)
-              if n.name == "map" && fc.args.size == 1 =>
-              inferType(value) match {
-                case coll: ESCollection =>
-                  coll.getAttrType(n.name) match {
-                    case Some(_: ESFunc) =>
-                      inferType(fc.args.head) match {
-                        case ESFunc(_, retT) => ESList(retT)
-                      }
-                    case _ => throw IllegalExprException(exp)
-                  }
-                case _ => throw IllegalExprException(exp)
-              }
+              // Special handler for `.map()`
+              case EXPR.Attribute(value, n, _)
+                if n.name == "map" && fc.args.size == 1 =>
+                inferType(value) match {
+                  case coll: ESCollection =>
+                    coll.getAttrType(n.name) match {
+                      case Some(_: ESFunc) =>
+                        inferType(fc.args.head) match {
+                          case ESFunc(_, retT) => ESList(retT)
+                        }
+                      case _ => throw IllegalExprException(exp)
+                    }
+                  case _ => throw IllegalExprException(exp)
+                }
 
-            case EXPR.Attribute(value, n, _) =>
-              inferType(value) match {
-                case pt: ESProduct =>
-                  pt.getAttrType(n.name) match {
-                    case Some(funcT: ESFunc) => funcT
-                    case _ => throw IllegalExprException(exp)
-                  }
-                case _ => throw IllegalExprException(exp)
-              }
+              case EXPR.Attribute(value, n, _) =>
+                inferType(value) match {
+                  case pt: ESProduct =>
+                    pt.getAttrType(n.name) match {
+                      case Some(funcT: ESFunc) => funcT
+                      case _ => throw IllegalExprException(exp)
+                    }
+                  case _ => throw IllegalExprException(exp)
+                }
 
-            case _ => throw IllegalExprException(exp)
-          }
+              case _ => throw IllegalExprException(exp)
+            }
 
-        case bop: EXPR.BinOp =>
-          ESMath.ensureZeroDivision(bop.op, bop.right, exp)
-          ESMath.BinaryOperationRuleset.find {
-            case (op, (o1, o2), _) =>
-              bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
-          }.map(_._3).getOrElse(throw IllegalOperandException(exp))
+          case bop: EXPR.BinOp =>
+            ESMath.ensureZeroDivision(bop.op, bop.right, exp)
+            ESMath.BinaryOperationRuleset.find {
+              case (op, (o1, o2), _) =>
+                bop.op == op && o1 == inferType(bop.left) && o2 == inferType(bop.right)
+            }.map(_._3).getOrElse(throw IllegalOperandException(exp))
 
-        case ifExp: EXPR.IfExp =>
-          val bodyT: ESType = inferType(ifExp.body)
-          val elseT: ESType = inferType(ifExp.orelse)
-          if (bodyT != elseT) throw IllegalExprException(exp)
-          bodyT
+          case ifExp: EXPR.IfExp =>
+            val bodyT: ESType = inferType(ifExp.body)
+            val elseT: ESType = inferType(ifExp.orelse)
+            if (bodyT != elseT) throw IllegalExprException(exp)
+            bodyT
 
-        case uop: EXPR.UnaryOp => inferType(uop.operand)
+          case uop: EXPR.UnaryOp => inferType(uop.operand)
 
-        case EXPR.ESList(elts, _) =>
-          val listT: ESType = elts.headOption.map(inferType)
-            .getOrElse(throw IllegalExprException(exp))
-          elts.tail.foreach(e => matchType(listT, inferType(e), exp))
-          ensureNestedColl(elts)
-          ESList(listT)
+          case EXPR.ESList(elts, _) =>
+            val listT: ESType = elts.headOption.map(inferType)
+              .getOrElse(throw IllegalExprException(exp))
+            elts.tail.foreach(e => matchType(listT, inferType(e), exp))
+            ensureNestedColl(elts)
+            ESList(listT)
 
-        case EXPR.ESDictNode(keys, vals, _) =>
-          val keyT: ESType = keys.headOption.map(inferType).getOrElse(ESUnit)
-          val valT: ESType = vals.headOption.map(inferType).getOrElse(ESUnit)
-          keys.tail.foreach(k => matchType(keyT, inferType(k), exp))
-          vals.tail.foreach(v => matchType(valT, inferType(v), exp))
-          ensureNestedColl(vals)
-          ESDict(keyT, valT)
+          case EXPR.ESDictNode(keys, vals, _) =>
+            val keyT: ESType = keys.headOption.map(inferType).getOrElse(ESUnit)
+            val valT: ESType = vals.headOption.map(inferType).getOrElse(ESUnit)
+            keys.tail.foreach(k => matchType(keyT, inferType(k), exp))
+            vals.tail.foreach(v => matchType(valT, inferType(v), exp))
+            ensureNestedColl(vals)
+            ESDict(keyT, valT)
 
-        case EXPR.Subscript(value, SLICE.Index(_), _) =>
-          inferType(value) match {
-            case list: ESList => ESOption(list.valT)
-            case dict: ESDict => ESOption(dict.valT)
-          }
+          case EXPR.Subscript(value, SLICE.Index(_), _) =>
+            inferType(value) match {
+              case list: ESList => ESOption(list.valT)
+              case dict: ESDict => ESOption(dict.valT)
+            }
 
-        case EXPR.Lambda(args, body, _) =>
-          ESFunc(args.args.map { case (argId, typeId) =>
-            argId.name -> typeSystem.typeByIdent(typeId.ident).get }, inferType(body))
+          case EXPR.Lambda(args, body, _) =>
+            ESFunc(args.args.map { case (argId, typeId) =>
+              argId.name -> typeSystem.typeByIdent(typeId.ident).get
+            }, inferType(body))
 
-        case _ => throw IllegalExprException(exp)
+          case _ => throw IllegalExprException(exp)
+        }
       }
-    }
 
     val tpe: ESType = inferTypeIn(exp)
-    if (exp.tpeOpt.isEmpty) exp.tpeOpt = Some(tpe)
+    if (exp.tipe.isNit) exp.tipe = tpe
     tpe
   }
 
-  private def extractType(opt: Option[ESType]): ESType = opt.getOrElse(throw new Exception("Type extraction failed"))
-
   private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
-    val expT = exp.tpeOpt.get
+    val expT = exp.tipe
     if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict])
       throw NestedCollectionException(exps.last)
   }

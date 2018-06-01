@@ -1,10 +1,12 @@
 package encrywm.ast
 
+import encrywm.lib.Types.ESType
+
 object Ast {
 
   import encrywm.lib.Types._
 
-  type Hash =  Array[Byte]
+  type Hash = Array[Byte]
   type VariableName = String
 
   trait VariableContainable {
@@ -155,14 +157,14 @@ object Ast {
   }
 
   sealed trait EXPR extends VariableContainable with AST_NODE {
-    var tpeOpt: Option[ESType]
+    var tipe: ESType
   }
 
   object EXPR {
 
     case class BoolOp(op: BOOL_OP, values: List[EXPR]) extends EXPR {
 
-      var tpeOpt: Option[ESType] = Some(ESBoolean)
+      var tipe: ESType = ESBoolean
 
       override def toString: VariableName =
         values.tail.foldLeft(values.head.toString)((str, expr) => str.concat(s" $op $expr"))
@@ -171,21 +173,21 @@ object Ast {
         values.foldLeft(List[String]()){ case (valueVars, value) => valueVars ++ value.variables }
     }
 
-    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class BinOp(left: EXPR, op: OPERATOR, right: EXPR, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$left $op $right"
 
       override val variables: List[VariableName] = left.variables ++ right.variables
     }
 
-    case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class UnaryOp(op: UNARY_OP, operand: EXPR, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$op($operand)"
 
       override val variables: List[VariableName] = operand.variables
     }
 
-    case class Lambda(args: Arguments, body: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Lambda(args: Arguments, body: EXPR, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"lamb ( ${args.args.tail.foldLeft(s"${args.args.head._1}: ${args.args.head._2}")(
@@ -194,7 +196,7 @@ object Ast {
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class IfExp(test: EXPR, body: EXPR, orelse: EXPR, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$body if $test else $orelse"
 
@@ -205,7 +207,7 @@ object Ast {
     // x < 4 < 3 and (x < 4) < 3
     case class Compare(left: EXPR, ops: List[COMP_OP], comparators: List[EXPR]) extends EXPR {
 
-      override var tpeOpt: Option[ESType] = Some(ESBoolean)
+      override var tipe: ESType = ESBoolean
 
       override def toString: VariableName =
         s"$left ${ops.map(_.toString).zip(comparators.map(_.toString)).foldLeft("")((compareStmt, elem) => s"$compareStmt${elem._1} ${elem._2}")}"
@@ -214,8 +216,7 @@ object Ast {
         left.variables ++ comparators.foldLeft(List[String]()){ case (comparatorVars, comparator) => comparatorVars ++ comparator.variables }
     }
 
-    //TODO: Add ESType to hash
-    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"$func (${args.tail.foldLeft(args.head.toString)((arguments, expr) => s"$arguments, $expr")})"
@@ -228,7 +229,7 @@ object Ast {
 
     case class IntConst(n: Int) extends EXPR with Num {
 
-      var tpeOpt: Option[ESType] = Some(ESInt)
+      var tipe: ESType = ESInt
 
       override def toString: VariableName = n.toString
 
@@ -237,7 +238,7 @@ object Ast {
 
     case class LongConst(n: Long) extends EXPR with Num {
 
-      var tpeOpt: Option[ESType] = Some(ESLong)
+      var tipe: ESType = ESLong
 
       override def toString: VariableName = n.toString
 
@@ -248,7 +249,7 @@ object Ast {
 
     case object True extends EXPR with Bool {
 
-      override var tpeOpt: Option[ESType] = Some(ESBoolean)
+      override var tipe: ESType = ESBoolean
 
       override def toString: VariableName = true.toString
 
@@ -257,7 +258,7 @@ object Ast {
 
     case object False extends EXPR with Bool {
 
-      override var tpeOpt: Option[ESType] = Some(ESBoolean)
+      override var tipe: ESType = ESBoolean
 
       override def toString: VariableName = false.toString
 
@@ -266,7 +267,7 @@ object Ast {
 
     case class Str(s: String) extends EXPR {
 
-      override var tpeOpt: Option[ESType] = Some(ESString)
+      override var tipe: ESType = ESString
 
       override def toString: VariableName = '\"' + s + '\"'
 
@@ -275,7 +276,7 @@ object Ast {
 
     case class Base58Str(s: String) extends EXPR {
 
-      override var tpeOpt: Option[ESType] = Some(ESByteVector)
+      override var tipe: ESType = ESByteVector
 
       override def toString: VariableName = s"base58{$s}"
 
@@ -283,28 +284,28 @@ object Ast {
     }
 
     // The following expression can appear in assignment context
-    case class Attribute(value: EXPR, attr: Identifier, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Attribute(value: EXPR, attr: Identifier, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$value.${attr.name}"
 
       override val variables: List[VariableName] = value.variables
     }
 
-    case class Subscript(value: EXPR, slice: SLICE, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Subscript(value: EXPR, slice: SLICE, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = "<subscript_expr>"
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Name(id: Identifier, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Name(id: Identifier, override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = id.name
 
       override val variables: List[VariableName] = List(id.name)
     }
 
-    case class ESDictNode(keys: List[EXPR], values: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESDictNode(keys: List[EXPR], values: List[EXPR], override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = super.toString
 
@@ -312,87 +313,87 @@ object Ast {
         values.foldLeft(List[String]()){ case (valueVars, value) => valueVars ++ value.variables }
     }
 
-    case class ESSet(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESSet(elts: List[EXPR], override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"{${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")}}"
 
-      override val variables: List[VariableName] = elts.foldLeft(List[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
+      override val variables: List[VariableName] = elts.foldLeft(List[String]()) { case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESList(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESList(elts: List[EXPR], override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"[${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")}]"
 
-      override val variables: List[VariableName] = elts.foldLeft(List[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
+      override val variables: List[VariableName] = elts.foldLeft(List[String]()) { case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESTuple(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESTuple(elts: List[EXPR], override var tipe: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"(${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")})"
 
-      override val variables: List[VariableName] = elts.foldLeft(List[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
+      override val variables: List[VariableName] = elts.foldLeft(List[String]()) { case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
     sealed trait Transformer extends EXPR
 
     case class SizeOf(coll: EXPR) extends EXPR with Transformer {
 
-      override var tpeOpt: Option[ESType] = Some(ESInt)
+      override var tipe: ESType = ESInt
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
     case class Exists(coll: EXPR, predicate: EXPR) extends EXPR with Transformer {
 
-      override var tpeOpt: Option[ESType] = Some(ESBoolean)
+      override var tipe: ESType = ESBoolean
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Sum(coll: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
+    case class Sum(coll: EXPR, override var tipe: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Map(coll: EXPR, func: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
+    case class Map(coll: EXPR, func: EXPR, override var tipe: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
     case class IsDefined(opt: EXPR) extends EXPR with Transformer {
 
-      override var tpeOpt: Option[ESType] = Some(ESBoolean)
+      override var tipe: ESType = ESBoolean
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Get(opt: EXPR, override var tpeOpt: Option[ESType] = None) extends EXPR with Transformer {
+    case class Get(opt: EXPR, override var tipe: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
     case class Declaration(target: EXPR, typeOpt: Option[TypeIdentifier]) extends EXPR {
 
-      var tpeOpt: Option[ESType] = Some(ESUnit)
+      override var tipe: ESType = ESUnit
 
       override def toString: VariableName = s"$target${typeOpt.map(ti => s": ${ti.ident.name}").getOrElse("")}"
 
       override val variables: List[VariableName] = target.variables
     }
 
-    case class TypeMatching(name: Identifier, tipe: TypeIdentifier) extends EXPR {
+    case class TypeMatching(name: Identifier, typeId: TypeIdentifier) extends EXPR {
 
-      var tpeOpt: Option[ESType] = Some(ESUnit)
+      override var tipe: ESType = ESUnit
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
     case class SchemaMatching(name: Identifier, schemaId: Identifier) extends EXPR {
 
-      var tpeOpt: Option[ESType] = Some(ESUnit)
+      override var tipe: ESType = ESUnit
 
       override val variables: List[VariableName] = List.empty[String]
     }
@@ -402,7 +403,7 @@ object Ast {
 
       override def toString: VariableName = "_"
 
-      override var tpeOpt: Option[ESType] = Some(ESUnit)
+      override var tipe: ESType = ESUnit
 
       override val variables: List[VariableName] = List.empty[String]
     }

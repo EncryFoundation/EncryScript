@@ -45,9 +45,9 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
           }.getOrElse(throw UnresolvedReferenceException(id.name))
 
         case EXPR.BinOp(l, op, r, tpeOpt) =>
-          val opT: ESType = tpeOpt.get
-          val leftT: ESType = l.tpeOpt.get
-          val rightT: ESType = r.tpeOpt.get
+          val opT: ESType = tpeOpt
+          val leftT: ESType = l.tipe
+          val rightT: ESType = r.tipe
           val leftV: leftT.Underlying = eval[leftT.Underlying](l)
           val rightV: rightT.Underlying = eval[rightT.Underlying](r)
           op match {
@@ -69,23 +69,23 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
         }
 
         case EXPR.Compare(left, ops, comps) =>
-          val leftT: ESType = left.tpeOpt.get
+          val leftT: ESType = left.tipe
           val leftV: leftT.Underlying = eval[leftT.Underlying](left)
           ops.zip(comps).forall {
             case (COMP_OP.Eq, comp) =>
-              val compT: ESType = comp.tpeOpt.get
+              val compT: ESType = comp.tipe
               Compare.eq(leftV, eval[compT.Underlying](comp))
             case (COMP_OP.Gt, comp) =>
-              val compT: ESType = comp.tpeOpt.get
+              val compT: ESType = comp.tipe
               Compare.gt(leftV, eval[compT.Underlying](comp))
             case (COMP_OP.GtE, comp) =>
-              val compT: ESType = comp.tpeOpt.get
+              val compT: ESType = comp.tipe
               Compare.gte(leftV, eval[compT.Underlying](comp))
             case (COMP_OP.Lt, comp) =>
-              val compT: ESType = comp.tpeOpt.get
+              val compT: ESType = comp.tipe
               Compare.lt(leftV, eval[compT.Underlying](comp))
             case (COMP_OP.LtE, comp) =>
-              val compT: ESType = comp.tpeOpt.get
+              val compT: ESType = comp.tipe
               Compare.lte(leftV, eval[compT.Underlying](comp))
           }
 
@@ -94,7 +94,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
           getFromEnv(id.name).map {
             case ESFunc(_, fnArgs, _, body) =>
               val argMap: Map[String, ESValue] = args.zip(fnArgs).map { case (exp, (argN, _)) =>
-                val expT: ESType = exp.tpeOpt.get
+                val expT: ESType = exp.tipe
                 val expV: expT.Underlying = eval[expT.Underlying](exp)
                 ESValue(argN, expT)(expV)
               }.map(v => v.id -> v).toMap
@@ -112,7 +112,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
               if (PredefFunctions.heavyFunctions.map(_.name).contains(name))
                 stepsCount += 29
               val fnArgs: List[(String, ESValue)] = args.zip(dArgs).map { case (arg, (n, _)) =>
-                val argT: ESType = arg.tpeOpt.get
+                val argT: ESType = arg.tipe
                 val argV: argT.Underlying = eval[argT.Underlying](arg)
                 n -> ESValue(n, argT)(argV)
               }
@@ -124,21 +124,21 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
             case other => throw NotAFunctionException(other.toString)
           }.getOrElse(throw UnresolvedReferenceException(id.name))
 
-        case EXPR.Attribute(value, attr, Some(_)) =>
-          val valT: ESType = value.tpeOpt.get
+        case EXPR.Attribute(value, attr, _) =>
+          val valT: ESType = value.tipe
           eval[valT.Underlying](value) match {
             case obj: ESObject => obj.getAttr(attr.name).get.value
             case _ => throw IllegalOperationException
           }
 
-        case EXPR.IfExp(test, body, orelse, Some(tpe)) =>
+        case EXPR.IfExp(test, body, orelse, tpe) =>
           if (eval[Boolean](test)) {
             eval[tpe.Underlying](body)
           } else {
             eval[tpe.Underlying](orelse)
           }
 
-        case EXPR.UnaryOp(op, operand, Some(_)) =>
+        case EXPR.UnaryOp(op, operand, _) =>
           op match {
             case UNARY_OP.Not => !eval[Boolean](operand)
             case UNARY_OP.Invert => operand match {
@@ -148,11 +148,11 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
             case _ => throw IllegalOperationException
           }
 
-        case EXPR.Subscript(exp, slice, Some(_)) =>
-          val expT: ESType = exp.tpeOpt.get
+        case EXPR.Subscript(exp, slice, _) =>
+          val expT: ESType = exp.tipe
           slice match {
             case SLICE.Index(idx) =>
-              val idxT: ESType = idx.tpeOpt.get
+              val idxT: ESType = idx.tipe
               eval[expT.Underlying](exp) match {
                 case lst: List[idxT.Underlying@unchecked] =>
                   val idxV: Int = eval[Int](idx)
@@ -166,28 +166,28 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
             case _ => throw IllegalOperationException
           }
 
-        case EXPR.ESList(elts, Some(ESList(valT))) =>
+        case EXPR.ESList(elts, ESList(valT)) =>
           if (elts.size > 50) throw IllegalOperationException
           elts.foldLeft(List[valT.Underlying]()) { case (acc, exp) =>
             acc :+ eval[valT.Underlying](exp)
           }
 
-        case EXPR.ESDictNode(keys, values, Some(ESDict(keyT, valT))) =>
+        case EXPR.ESDictNode(keys, values, ESDict(keyT, valT)) =>
           if (keys.size > 50) throw IllegalOperationException
           keys.zip(values).foldLeft(Map[keyT.Underlying, valT.Underlying]()) { case (acc, (k, v)) =>
             acc.updated(eval[keyT.Underlying](k), eval[valT.Underlying](v))
           }
 
         case EXPR.SizeOf(coll) =>
-          coll.tpeOpt.get match {
+          coll.tipe match {
             case ESList(valT) =>
               eval[List[valT.Underlying]](coll).size
             case ESDict(keyT, valT) =>
               eval[Map[keyT.Underlying, valT.Underlying]](coll).size
           }
 
-        case EXPR.Sum(coll, Some(_)) =>
-          coll.tpeOpt.get match {
+        case EXPR.Sum(coll, _) =>
+          coll.tipe match {
             case ESList(_: ESInt.type) =>
               eval[List[Int]](coll).sum
             case ESList(_: ESLong.type) =>
@@ -195,23 +195,23 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
           }
 
         case EXPR.IsDefined(opt) =>
-          opt.tpeOpt.get match {
+          opt.tipe match {
             case ESOption(inT) =>
               eval[Option[inT.Underlying]](opt).isDefined
           }
 
-        case EXPR.Get(opt, Some(_)) =>
-          opt.tpeOpt.get match {
+        case EXPR.Get(opt, _) =>
+          opt.tipe match {
             case ESOption(inT) =>
               eval[Option[inT.Underlying]](opt).get
             case Types.ESFunc(_, ESOption(inT)) =>
               eval[Option[inT.Underlying]](opt).get
           }
 
-        case EXPR.Map(coll, func, Some(ESList(inT))) =>
-          func.tpeOpt.get match {
+        case EXPR.Map(coll, func, ESList(inT)) =>
+          func.tipe match {
             case Types.ESFunc(args, _) =>
-              coll.tpeOpt.get match {
+              coll.tipe match {
                 case ESList(valT) if args.size == 1 =>
                   val localN: String = args.head._1
                   eval[List[valT.Underlying]](coll).map { elt =>
@@ -245,9 +245,9 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
           }
 
         case EXPR.Exists(coll, predicate) =>
-          predicate.tpeOpt.get match {
+          predicate.tipe match {
             case Types.ESFunc(args, _) =>
-              coll.tpeOpt.get match {
+              coll.tipe match {
                 case ESList(tpe) if args.size == 1 =>
                   val localN: String = args.head._1
                   def untilTrue: Boolean = {
@@ -306,7 +306,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
       case STMT.Let(EXPR.Declaration(EXPR.Name(id, _), _), value, global) =>
-        val valT: ESType = value.tpeOpt.get
+        val valT: ESType = value.tipe
         val esVal: ESValue = ESValue(id.name, valT)(eval[valT.Underlying](value))
         if (global) {
           globalEnv = globalEnv.updated(esVal)
@@ -329,7 +329,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
         Right(Nothing)
 
       case STMT.Match(target, branches) =>
-        val targetT: ESType = target.tpeOpt.get
+        val targetT: ESType = target.tipe
         val targetV: targetT.Underlying = eval[targetT.Underlying](target)
         for (branch <- branches) branch match {
           case STMT.Case(_, body, isDefault) if isDefault =>
@@ -353,7 +353,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
             }
 
           case STMT.Case(cond, body, _) =>
-            val condT = cond.tpeOpt.get
+            val condT = cond.tipe
             val condV = eval[condT.Underlying](cond)
             if (Compare.eq(condV, targetV)) {
               val nestedCtx = currentEnv.emptyChild(s"match_stmt_$randCode")
@@ -382,7 +382,7 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
       case STMT.Return(None) => Right(Return(Nothing))
 
       case STMT.Return(Some(v)) =>
-        val valT: ESType = v.tpeOpt.get
+        val valT: ESType = v.tipe
         Right(Return(Val(eval[valT.Underlying](v))))
     }
 

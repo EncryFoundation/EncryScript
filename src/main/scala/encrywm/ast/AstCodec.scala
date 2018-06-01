@@ -35,7 +35,7 @@ object AstCodec {
   implicit def dAbx = dT.bind[Types.AssetBox.type](19)
   implicit def dUnlc = dT.bind[Types.ESUnlocker.type](20)
   implicit def dFn = dT.bind[Types.ESFunc](21)
-  implicit def dNi = dT.bind[Types.NIType.type](22)
+  implicit def dNi = dT.bind[Types.Nit.type](22)
   implicit def dAny = dT.bind[Types.ESAny.type](23)
   implicit def dScr = dT.bind[Types.ESScript.type](24)
   implicit def dMuls = dT.bind[Types.MultiSig.type](25)

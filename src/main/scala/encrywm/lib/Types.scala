@@ -20,6 +20,8 @@ object Types {
 
     def isFunc: Boolean = this.isInstanceOf[ESFunc]
 
+    def isNit: Boolean = this.isInstanceOf[Nit.type]
+
     def isSubtypeOf(thatT: ESType): Boolean = thatT match {
       case _: ESAny.type => true
       case _ => false
@@ -360,10 +362,15 @@ object Types {
     }
   }
 
-  // Placeholder for not inferred type.
-  case object NIType extends ESType {
+  /** Special type to represent untyped values.
+    * Interpreter raises an error when encounter a Value with this type.
+    * All Value nodes with this type should be elimitanted during typing.
+    * If no specific type can be assigned statically during typing,
+    * then either error should be raised or type SAny should be assigned
+    * which is interpreted as dynamic typing. */
+  case object Nit extends ESType {
     override type Underlying = Nothing
-    override val ident: String = "NotInferred"
+    override val ident: String = "Nit"
   }
 
   lazy val primitiveTypes: Seq[ESPrimitive] = Seq(
@@ -392,12 +399,12 @@ object Types {
     ContractProposition,
     HeightProposition,
     SDObject,
-    ESOption(NIType)
+    ESOption(Nit)
   )
 
   lazy val collTypes: Seq[ESCollection] = Seq(
-    ESDict(NIType, NIType),
-    ESList(NIType)
+    ESDict(Nit, Nit),
+    ESList(Nit)
   )
 
   lazy val numericTypes: Seq[ESType] = Seq(
@@ -414,11 +421,11 @@ object Types {
   }
 }
 
-case class TypeSystem(dynamicTypes: Seq[Types.ESTypedObject]) {
+case class TypeSystem(externalTypes: Seq[Types.ESTypedObject]) {
 
   import Types._
 
-  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes ++ dynamicTypes :+ ESFunc(List.empty, NIType)
+  lazy val allTypes: Seq[ESType] = primitiveTypes ++ productTypes ++ collTypes ++ externalTypes :+ ESFunc(List.empty, Nit)
 
   lazy val typesMap: Map[String, ESType] = allTypes.map(t => t.ident -> t).toMap
 

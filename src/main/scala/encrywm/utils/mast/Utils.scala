@@ -15,5 +15,6 @@ object Utils {
     if (hashList.length != 1) listRootHash(hashList) else hashList.head
   }
 
-  def getContractHash(contract: Contract): Hash = codec.encode(contract).map(vector => Blake2b256(vector.toByteArray)).getOrElse(Array.emptyByteArray)
+  def getContractHash(contract: Contract): Hash = codec.encode(contract).map(vector =>
+    Blake2b256(vector.toByteArray)).getOrElse(Array.emptyByteArray)
 }
