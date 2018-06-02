@@ -1,7 +1,7 @@
 package encrywm.lang.frontend.semantics
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
-import encrywm.lang.backend.ESCompiler
+import encrywm.lang.ESCompiler
 import encrywm.lang.backend.executor.Execution
 import org.scalatest.{Matchers, PropSpec}
 

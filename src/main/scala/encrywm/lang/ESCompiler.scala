@@ -1,4 +1,4 @@
-package encrywm.lang.backend
+package encrywm.lang
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.lang.frontend.parser.{Lexer, Parser}

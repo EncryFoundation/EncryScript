@@ -1,6 +1,6 @@
 package encrywm.common
 
-import encrywm.lang.backend.ESCompiler
+import encrywm.lang.ESCompiler
 import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Failure

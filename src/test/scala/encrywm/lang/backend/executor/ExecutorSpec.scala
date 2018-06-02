@@ -1,6 +1,6 @@
 package encrywm.lang.backend.executor
 
-import encrywm.lang.backend.ESCompiler
+import encrywm.lang.ESCompiler
 import org.scalatest.{Matchers, PropSpec}
 
 class ExecutorSpec extends PropSpec with Matchers with Execution {

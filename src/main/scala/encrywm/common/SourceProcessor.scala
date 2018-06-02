@@ -1,7 +1,7 @@
 package encrywm.common
 
 import encrywm.ast.AstCodec._
-import encrywm.lang.backend.ESCompiler
+import encrywm.lang.ESCompiler
 import encrywm.lang.frontend.semantics.ComplexityAnalyzer
 import scorex.crypto.hash.Blake2b256
 
