@@ -1,6 +1,7 @@
 package encrywm.lang.frontend.semantics
 
 import encrywm.ast.Ast._
+import encrywm.lang.frontend.semantics.exceptions.NameException
 import encrywm.lib.predef.PredefFunctions
 
 import scala.collection.immutable.HashMap
@@ -57,11 +58,10 @@ object ComplexityAnalyzer {
     case EXPR.Compare(left, ops, comparators) =>
       scanExpr(left, functionsComplexity)._1 + ops.length + comparators.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
     case EXPR.Call(EXPR.Name(Identifier(n), _, _), args, _, _) => args.map(scanExpr(_, functionsComplexity)._1).sum + {
-      // TODO: Move complexity of predef function from here and replace 99999999
       if (PredefFunctions.hashFunctions.map(_.name).contains(n)) 10
       else if (PredefFunctions.middleFunctions.map(_.name).contains(n)) 15
       else if (PredefFunctions.heavyFunctions.map(_.name).contains(n)) 20
-      else functionsComplexity.find(_._1 == n).map(_._2).getOrElse(99999999)
+      else functionsComplexity.find(_._1 == n).map(_._2).getOrElse(throw NameException(n, expr))
     } -> functionsComplexity
     case EXPR.IntConst(_) => 1 -> functionsComplexity
     case EXPR.LongConst(_) => 1 -> functionsComplexity
