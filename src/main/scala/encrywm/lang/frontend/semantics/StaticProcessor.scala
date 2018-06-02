@@ -381,5 +381,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
 object StaticProcessor {
 
+  def apply(typeSystem: TypeSystem): StaticProcessor = new StaticProcessor(typeSystem)
+
   def default: StaticProcessor = new StaticProcessor(TypeSystem.default)
 }

@@ -1,5 +1,7 @@
 package encrywm.common
 
+import encrywm.lang.backend.ESCompiler
+
 import scala.util.{Failure, Success}
 
 object SourceValidator {
@@ -11,7 +13,7 @@ object SourceValidator {
   type ValidationResult = Either[ValidationFailure, ValidationSuccess.type]
 
   def validateSource(source: String): ValidationResult = {
-    SourceProcessor.process(source) match {
+    ESCompiler.compile(source) match {
       case Failure(e) =>
         Left(ValidationFailure(e.getMessage))
       case Success(_) =>
@@ -22,7 +24,7 @@ object SourceValidator {
   def validateFromFile(path: String): ValidationResult = {
     if (!path.endsWith(".esc")) return Left(ValidationFailure("Wrong file extension."))
     val source = scala.io.Source.fromFile(path).mkString
-    SourceProcessor.process(source) match {
+    ESCompiler.compile(source) match {
       case Failure(e) =>
         Left(ValidationFailure(e.getMessage))
       case Success(_) =>
