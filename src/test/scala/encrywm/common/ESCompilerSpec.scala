@@ -5,7 +5,7 @@ import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Failure
 
-class SourceProcessorSpec extends PropSpec with Matchers {
+class ESCompilerSpec extends PropSpec with Matchers {
 
   property("Script source processing") {
     val s =
