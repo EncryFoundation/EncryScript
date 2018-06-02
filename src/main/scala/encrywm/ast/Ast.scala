@@ -68,22 +68,6 @@ object Ast {
       override val variables: List[VariableName] = value.variables
     }
 
-    // Reassignment could be introduced later.
-    case class AugAssign(target: EXPR, op: OPERATOR, value: EXPR) extends STMT {
-
-      override def toString: VariableName = "<+=>"
-
-      override val variables: List[VariableName] = List.empty[String]
-    }
-
-    // For loop could be introduced later.
-    case class For(target: EXPR, iter: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT {
-
-      override def toString: VariableName = "<for_stmt>"
-
-      override val variables: List[VariableName] = List.empty[String]
-    }
-
     case class If(test: EXPR, body: List[STMT], orelse: List[STMT]) extends STMT {
 
       override def toString: VariableName =
@@ -92,15 +76,15 @@ object Ast {
         } ++
           (
             if (orelse.nonEmpty)
-                  orelse.foldLeft("else:"){
-                    case (orElseBody, orElseStmtBody) => s"$orElseBody\n$orElseStmtBody"
-                  }
+              orelse.foldLeft("else:"){
+                case (orElseBody, orElseStmtBody) => s"$orElseBody\n$orElseStmtBody"
+              }
             else ""
-          )
+            )
 
       override val variables: List[VariableName] = test.variables ++
-        body.foldLeft(List[String]()){ case (bodyVars, bodyElem) => bodyVars ++ bodyElem.variables } ++
-          orelse.foldLeft(List[String]()){ case (orElseVars, bodyElem) => orElseVars ++ bodyElem.variables }
+        body.foldLeft(List[String]()) { case (bodyVars, bodyElem) => bodyVars ++ bodyElem.variables } ++
+          orelse.foldLeft(List[String]()) { case (orElseVars, bodyElem) => orElseVars ++ bodyElem.variables }
     }
 
     case class Match(target: EXPR, branches: List[STMT]) extends STMT {
