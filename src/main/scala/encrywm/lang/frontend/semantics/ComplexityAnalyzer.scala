@@ -22,7 +22,7 @@ object ComplexityAnalyzer {
   private def scanStmt(stmt: STMT): ScriptComplexityScore = stmt match {
     case STMT.FunctionDef(_, _, body, _) => 1 + body.map(scanStmt).sum
     case STMT.Return(value) => value.map(scanExpr).getOrElse(0)
-    case STMT.Let(_, value, _) => scanExpr(value)
+    case STMT.Let(_, value) => scanExpr(value)
     case STMT.If(test, body, orelse) => 1 + scanExpr(test) + Math.max(body.map(scanStmt).sum, orelse.map(scanStmt).sum)
     case STMT.Assert(test, msg) => scanExpr(test) + msg.map(scanExpr).getOrElse(0)
     case STMT.Expr(value) => scanExpr(value)
