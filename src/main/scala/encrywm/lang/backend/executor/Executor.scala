@@ -305,14 +305,10 @@ class Executor private[encrywm](scopedRuntimeEnv: ScopedRuntimeEnv,
 
     def exec(stmt: STMT): ExecOutcome = stmt match {
 
-      case STMT.Let(EXPR.Declaration(EXPR.Name(id, _), _), value, global) =>
+      case STMT.Let(EXPR.Declaration(EXPR.Name(id, _), _), value) =>
         val valT: ESType = value.tipe
         val esVal: ESValue = ESValue(id.name, valT)(eval[valT.Underlying](value))
-        if (global) {
-          globalEnv = globalEnv.updated(esVal)
-        } else {
-          currentEnv = currentEnv.updated(esVal)
-        }
+        currentEnv = currentEnv.updated(esVal)
         Right(Nothing)
 
       case STMT.Expr(_) =>

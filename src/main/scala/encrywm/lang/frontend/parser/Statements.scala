@@ -64,14 +64,10 @@ class Statements(indent: Int){
   val exprStmt: P[Ast.STMT] = {
     val testsStm = P( testlist )
     val letStm = P( kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
-    val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
     val caseStm = P( kwd("case") ~/ ( schemaMatching | typeMatching | genericCond | expr ) ~ ":" ~~ block )
 
     P(
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
-        globalLetStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a), t), b, global = true)
-        } |
         letStm.map { case (a, t, b) =>
           Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a), t), b)
         } |

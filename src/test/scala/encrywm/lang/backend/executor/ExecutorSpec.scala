@@ -323,26 +323,6 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
     didUnlock(excR) shouldBe true
   }
 
-  property("Global value declaration") {
-
-    val tree = ESCompiler.compile(
-      """
-        |let a = true
-        |
-        |match a:
-        |    case true:
-        |        global let unlockFlag = true
-        |    case _:
-        |        pass
-        |
-        |unlock if unlockFlag
-      """.stripMargin)
-
-    val excR = exc.executeContract(tree.get)
-
-    didUnlock(excR) shouldBe true
-  }
-
   property("Executor scoping (Referencing from inner scope)") {
 
     val tree = ESCompiler.compile(

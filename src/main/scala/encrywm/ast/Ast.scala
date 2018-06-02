@@ -1,7 +1,5 @@
 package encrywm.ast
 
-import encrywm.lib.Types.ESType
-
 object Ast {
 
   import encrywm.lib.Types._
@@ -59,7 +57,7 @@ object Ast {
       override val variables: List[VariableName] = value.map(_.variables).getOrElse(List.empty[String])
     }
 
-    case class Let(target: EXPR, value: EXPR, global: Boolean = false) extends STMT {
+    case class Let(target: EXPR, value: EXPR) extends STMT {
 
       val variableName: String = target.variables.head
 

@@ -57,8 +57,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
             case (otherT, tps) if tps.isEmpty => matchType(otherT, valueType, asg)
             case _ => throw TypeException(asg)
           }
-          if (asg.global) addNameToGlobalScope(name, valueType)
-          else addNameToScope(name, valueType)
+          addNameToScope(name, valueType)
         case _ => throw IllegalExprException(asg)
       }
 

@@ -38,16 +38,6 @@ class ParsingTest extends PropSpec with Matchers with ExprChecker {
     parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
   }
 
-  property("Global let") {
-    val source =
-      """
-        |global let a = 13
-      """.stripMargin
-    val parsed = (Statements.fileInput ~ End).parse(source)
-
-    parsed.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-  }
-
   property("Base58 string") {
     val source =
       """

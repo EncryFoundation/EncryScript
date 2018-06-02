@@ -24,12 +24,12 @@ object Lexer {
 
   val keywords = Set(
     "and",       "not",       "true",      "return",
-    "elif",      "abort",     "or",        "pass",
+    "elif",      "abort",     "or",
     "assert",    "else",      "if",
     "case",      "unlock",    "print",
     "match",     "exec",      "in",
-    "global",    "let",       "is",
-    "def",       "lamb",      "false",
+    "let",       "is",        "false",
+    "def",       "lamb",      "pass",
   )
 
   val stringliteral: P[String] = P( stringprefix.? ~ (longstring | shortstring) )
