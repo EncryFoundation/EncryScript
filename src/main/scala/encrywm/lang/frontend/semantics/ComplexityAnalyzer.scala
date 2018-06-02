@@ -9,7 +9,7 @@ object ComplexityAnalyzer {
 
   type ScriptComplexityScore = Int
   type FunctionName = String
-  type ComplexityMap = HashMap[FunctionName, ScriptComplexityScore]
+  type ComplexityMap = Map[FunctionName, ScriptComplexityScore]
 
   def complexityOfScript(node: AST_NODE): ScriptComplexityScore = complexityOf(node)._1
 
@@ -21,16 +21,17 @@ object ComplexityAnalyzer {
   }
 
   private def scanRoot(root: TREE_ROOT, functionsComplexity: ComplexityMap): (ScriptComplexityScore, ComplexityMap) = root match {
-    case c: TREE_ROOT.Contract => c.body.foldLeft(0, HashMap[FunctionName, ScriptComplexityScore]()) {
+    case c: TREE_ROOT.Contract => c.body.foldLeft(0, Map[FunctionName, ScriptComplexityScore]()) {
       case (contractInfo, stmt) =>
-        val stmtComplexityInfo = complexityOf(stmt, functionsComplexity)
-        contractInfo._1 + stmtComplexityInfo._1 -> stmtComplexityInfo._2
+        val stmtComplexityInfo = complexityOf(stmt, contractInfo._2)
+        contractInfo._1 + stmtComplexityInfo._1 -> (stmtComplexityInfo._2 ++ functionsComplexity)
     }
     case _ => 0 -> functionsComplexity
   }
 
   private def scanStmt(stmt: STMT, functionsComplexity: ComplexityMap): (ScriptComplexityScore, ComplexityMap) = stmt match {
-    case STMT.FunctionDef(name, _, body, _) => 0 -> (functionsComplexity + (name.name -> body.map( scanStmt( _, functionsComplexity )._1).sum))
+    case STMT.FunctionDef(name, _, body, _) =>
+      0 -> (functionsComplexity ++ Map(name.name -> body.map( scanStmt( _, functionsComplexity )._1).sum))
     case STMT.Return(value) => value.map(value => scanExpr(value, functionsComplexity)._1).getOrElse(0) -> functionsComplexity
     case STMT.Let(_, value, _) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity
     case STMT.AugAssign(_, _, value) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity

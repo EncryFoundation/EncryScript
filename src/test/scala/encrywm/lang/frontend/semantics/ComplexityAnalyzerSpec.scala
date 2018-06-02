@@ -79,6 +79,6 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     analyzeTry.isSuccess shouldBe true
 
-    analyzeTry.get shouldEqual 7
+    analyzeTry.get shouldEqual 4
   }
 }
