@@ -763,22 +763,4 @@ class StaticProcessorSpec extends PropSpec with Matchers {
 
     processR.isSuccess shouldBe false
   }
-
-  property("Scoping with global modifier") {
-    val AstRoot = (Statements.contract ~ End).parse(
-      """
-        |if true:
-        |   global let a = 5
-        |
-        |a
-      """.stripMargin)
-
-    val sp = new StaticProcessor(TypeSystem.default)
-
-    AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
-
-    val processR = sp.process(AstRoot.get.value)
-
-    processR.isSuccess shouldBe true
-  }
 }

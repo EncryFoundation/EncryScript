@@ -12,12 +12,12 @@ class Optimizer {
   private var replacements = Seq.empty[(String, String)]
 
   def optimize(node: Ast.AST_NODE): Ast.AST_NODE = rewrite(manytd(strategy[Ast.AST_NODE]({
-    case STMT.Let(EXPR.Declaration(EXPR.Name(Identifier(n), ctx, t), to), v, g) if n.length > 3 =>
+    case STMT.Let(EXPR.Declaration(EXPR.Name(Identifier(n), t), to), v) if n.length > 3 =>
       val name = Base58.encode(Blake2b256.hash(n)).take(3)
       replacements = replacements :+ (n, name)
-      Some(STMT.Let(EXPR.Declaration(EXPR.Name(name, ctx, t), to), v, g))
-    case EXPR.Name(Identifier(n), ctx, t) if replacements.exists(_._1 == n) =>
-      Some(EXPR.Name(Identifier(replacements.find(_._1 == n).get._2), ctx, t))
+      Some(STMT.Let(EXPR.Declaration(EXPR.Name(name, t), to), v))
+    case EXPR.Name(Identifier(n), t) if replacements.exists(_._1 == n) =>
+      Some(EXPR.Name(Identifier(replacements.find(_._1 == n).get._2), t))
     case _ => None
   })))(node)
 }

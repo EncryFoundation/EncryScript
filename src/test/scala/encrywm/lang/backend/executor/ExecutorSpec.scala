@@ -1,14 +1,13 @@
 package encrywm.lang.backend.executor
 
+import encrywm.lang.ESCompiler
 import org.scalatest.{Matchers, PropSpec}
 
 class ExecutorSpec extends PropSpec with Matchers with Execution {
 
-  import encrywm.common.SourceProcessor._
-
   property("Simple script") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 999
         |let b = 9
@@ -24,7 +23,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Binary operations") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 999
         |let b = 9
@@ -42,7 +41,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Contract with UnlockIf-stmt") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 30
         |let b = 30
@@ -57,7 +56,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Boolean operation in UnlockIf-stmt test (||)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 10
         |let b = 30
@@ -74,7 +73,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Boolean operation in UnlockIf-stmt test (&&)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 10
         |let b = 30
@@ -91,7 +90,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Contract with fn call in If-stmt test") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 10
         |let b = 30
@@ -109,7 +108,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Return stmt in function body") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 10
         |let b = 30
@@ -128,7 +127,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("If-expression in assignment") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = 0
         |let b = 30
@@ -145,7 +144,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("List subscription") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let lst = [0, 1, 2, 3, 4]
         |let a = lst[3]
@@ -160,7 +159,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Dict subscription") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let map = {"2" : 2, "1" : 1}
         |let a = map["2"]
@@ -175,7 +174,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Object attribute reference") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a: Long = context.state.height
         |
@@ -189,7 +188,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Unary operation in test expr") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |unlock if not false
       """.stripMargin)
@@ -201,7 +200,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("SizeOf list") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -215,7 +214,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Sum list") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -229,7 +228,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("list.Exists(lambda) (true case)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -243,7 +242,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("list.Exists(func) (true case)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -260,7 +259,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("list.Exists(predicate) (false case)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -274,7 +273,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("list.Map(func)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5]
         |
@@ -290,7 +289,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Match statement") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = true
         |
@@ -308,7 +307,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Match statement (Default branch execution)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = true
         |
@@ -324,29 +323,9 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
     didUnlock(excR) shouldBe true
   }
 
-  property("Global value declaration") {
-
-    val tree = process(
-      """
-        |let a = true
-        |
-        |match a:
-        |    case true:
-        |        global let unlockFlag = true
-        |    case _:
-        |        pass
-        |
-        |unlock if unlockFlag
-      """.stripMargin)
-
-    val excR = exc.executeContract(tree.get)
-
-    didUnlock(excR) shouldBe true
-  }
-
   property("Executor scoping (Referencing from inner scope)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let a = true
         |
@@ -361,7 +340,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("BuiltIn function (CheckSig)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let msg = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
         |let sig = base58"FRQ91MwL3MV3LVEG8Ej3ZspTLgUJqSLtcHM66Zk11xY1"
@@ -377,7 +356,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("BuiltIn function (Base58Decode)") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let litDec = base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox"
         |let fnDec = decode("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
@@ -392,7 +371,7 @@ class ExecutorSpec extends PropSpec with Matchers with Execution {
 
   property("Max coll size overflow") {
 
-    val tree = process(
+    val tree = ESCompiler.compile(
       """
         |let coll = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5,
         |            5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4,

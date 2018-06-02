@@ -90,9 +90,12 @@ object Expressions {
   val expr: P[Ast.EXPR] = P( arith_expr )
   val arith_expr: P[Ast.EXPR] = P( Chain(term, Add | Sub) )
   val term: P[Ast.EXPR] = P( Chain(factor, Mult | Div | Mod) )
-  // NUMBER appears here and below in `atom` to give it precedence.
-  // This ensures that "-2" will parse as `Num(-2)` rather than
-  // as `UnaryOp(USub, Num(2))`.
+
+  /**
+    * NUMBER appears here and below in `atom` to give it precedence.
+    * This ensures that "-2" will parse as `Num(-2)` rather than
+    * as `UnaryOp(USub, Num(2))`.
+    */
   val factor: P[Ast.EXPR] = P( NUMBER | Unary(factor) | power )
   val power: P[Ast.EXPR] = P( atom ~ trailer.rep ~ (Pow ~ factor).? ).map {
     case (lhs, trailers, rhs) =>
@@ -103,8 +106,8 @@ object Expressions {
       }
   }
   val atom: P[Ast.EXPR] = {
-    val empty_tuple = ("(" ~ ")").map(_ => Ast.EXPR.ESTuple(Nil, Ast.EXPR_CTX.Load))
-    val empty_list = ("[" ~ "]").map(_ => Ast.EXPR.ESList(Nil, Ast.EXPR_CTX.Load))
+    val empty_tuple = ("(" ~ ")").map(_ => Ast.EXPR.ESTuple(Nil))
+    val empty_list = ("[" ~ "]").map(_ => Ast.EXPR.ESList(Nil))
     val empty_dict = ("{" ~ "}").map(_ => Ast.EXPR.ESDictNode(Nil, Nil))
     P(
       empty_tuple  |
@@ -115,22 +118,22 @@ object Expressions {
         "{" ~ dictorsetmaker ~ "}" |
         BASE58STRING.rep(1).map(_.mkString).map(Ast.EXPR.Base58Str) |
         STRING.rep(1).map(_.mkString).map(Ast.EXPR.Str) |
-        NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Load)) |
+        NAME.map(Ast.EXPR.Name(_)) |
         NUMBER |
         BOOL
     )
   }
   val listContents: noApi.Parser[Seq[EXPR]] = P( test.rep(1, ",") ~ ",".? )
-  val list: core.Parser[EXPR.ESList, Char, String] = P( listContents ).map(exps => Ast.EXPR.ESList(exps.toList, Ast.EXPR_CTX.Load))
+  val list: core.Parser[EXPR.ESList, Char, String] = P( listContents ).map(exps => Ast.EXPR.ESList(exps.toList))
   val tupleContents: core.Parser[Seq[EXPR], Char, String] = P( test ~ "," ~ listContents.?).map { case (head, rest)  => head +: rest.getOrElse(Seq.empty) }
-  val tuple: core.Parser[EXPR.ESTuple, Char, String] = P( tupleContents ).map(tcs => Ast.EXPR.ESTuple(tcs.toList, Ast.EXPR_CTX.Load))
+  val tuple: core.Parser[EXPR.ESTuple, Char, String] = P( tupleContents ).map(tcs => Ast.EXPR.ESTuple(tcs.toList))
 
   val lambdef: P[Ast.EXPR.Lambda] = P( kwd("lamb") ~ "(" ~ varargslist ~ ")" ~ "=" ~ test ).map { case (args, exp) => Ast.EXPR.Lambda(args, exp) }
 
   val trailer: P[Ast.EXPR => Ast.EXPR] = {
     val call = P("(" ~ arglist ~ ")").map { case (args, keywords) => (lhs: Ast.EXPR) => Ast.EXPR.Call(lhs, args.toList, keywords.toList) }
-    val slice = P("[" ~ subscriptlist ~ "]").map(args => (lhs: Ast.EXPR) => Ast.EXPR.Subscript(lhs, args, Ast.EXPR_CTX.Load))
-    val attr = P("." ~ NAME).map(id => (lhs: Ast.EXPR) => Ast.EXPR.Attribute(lhs, id, Ast.EXPR_CTX.Load))
+    val slice = P("[" ~ subscriptlist ~ "]").map(args => (lhs: Ast.EXPR) => Ast.EXPR.Subscript(lhs, args))
+    val attr = P("." ~ NAME).map(id => (lhs: Ast.EXPR) => Ast.EXPR.Attribute(lhs, id))
     P(call | slice | attr)
   }
 
@@ -141,7 +144,7 @@ object Expressions {
       Ast.SLICE.Slice(
         lower,
         upper,
-        step.map(_.getOrElse(Ast.EXPR.Name(Ast.Identifier("None"), Ast.EXPR_CTX.Load)))
+        step.map(_.getOrElse(Ast.EXPR.Name(Ast.Identifier("None"))))
       )
     }
     P( ellipses | multi | single )
@@ -193,15 +196,15 @@ object Expressions {
   val varargslist: P[Ast.Arguments] = {
     val named_arg = P( fpdef )
     val x = P( (named_arg ~/ Statements.typeDeclarationSemi).rep(sep = ",") ).map(args => Ast.Arguments(args.toList.map {
-      case (EXPR.Name(id, _, _), tId) => id -> tId }))
+      case (EXPR.Name(id, _), tId) => id -> tId }))
     P( x )
   }
 
-  val fpdef: P[Ast.EXPR] = P(NAME.map(Ast.EXPR.Name(_, Ast.EXPR_CTX.Param)) | "(" ~ fplist ~ ")")
-  val fplist: P[Ast.EXPR] = P(fpdef.rep(sep = ",") ~ ",".? ).map(defs => Ast.EXPR.ESTuple(defs.toList, Ast.EXPR_CTX.Param))
+  val fpdef: P[Ast.EXPR] = P(NAME.map(Ast.EXPR.Name(_)) | "(" ~ fplist ~ ")")
+  val fplist: P[Ast.EXPR] = P(fpdef.rep(sep = ",") ~ ",".? ).map(defs => Ast.EXPR.ESTuple(defs.toList))
 
   def tuplize(exprs: Seq[Ast.EXPR]): Ast.EXPR = exprs match {
     case Seq(x) => x
-    case xs => Ast.EXPR.ESTuple(xs.toList, Ast.EXPR_CTX.Load)
+    case xs => Ast.EXPR.ESTuple(xs.toList)
   }
 }

@@ -1,8 +1,8 @@
 package encrywm.lang.frontend.semantics
 
 import encrywm.ast.Ast.TREE_ROOT.Contract
+import encrywm.lang.ESCompiler
 import encrywm.lang.backend.executor.Execution
-import encrywm.common.SourceProcessor
 import org.scalatest.{Matchers, PropSpec}
 
 class OptimizerTest extends PropSpec with Matchers with Execution {
@@ -11,7 +11,7 @@ class OptimizerTest extends PropSpec with Matchers with Execution {
 
     def sample(i: Int) = s"let longName$i = 999\n"
 
-    val tree = SourceProcessor.process((0 to 100).map(sample).reduce(_ + _))
+    val tree = ESCompiler.compile((0 to 100).map(sample).reduce(_ + _))
 
     val optimized = new Optimizer().optimize(tree.get)
 
@@ -48,7 +48,7 @@ class OptimizerTest extends PropSpec with Matchers with Execution {
         |            return false
       """.stripMargin
 
-    val tree = SourceProcessor.process(source)
+    val tree = ESCompiler.compile(source)
 
     val optimized = new Optimizer().optimize(tree.get)
 

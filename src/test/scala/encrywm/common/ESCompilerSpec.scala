@@ -1,10 +1,11 @@
 package encrywm.common
 
+import encrywm.lang.ESCompiler
 import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Failure
 
-class SourceProcessorSpec extends PropSpec with Matchers {
+class ESCompilerSpec extends PropSpec with Matchers {
 
   property("Script source processing") {
     val s =
@@ -12,7 +13,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |let a = 10
       """.stripMargin
 
-    val procTry = SourceProcessor.process(s)
+    val procTry = ESCompiler.compile(s)
 
     procTry.isSuccess shouldBe true
   }
@@ -26,7 +27,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |)
       """.stripMargin
 
-    val procTry = SourceProcessor.process(s)
+    val procTry = ESCompiler.compile(s)
 
     procTry.isSuccess shouldBe false
   }
@@ -53,7 +54,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |           return false
       """.stripMargin
 
-    val procTry = SourceProcessor.process(s)
+    val procTry = ESCompiler.compile(s)
 
     procTry.isSuccess shouldBe true
   }
@@ -76,7 +77,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |           return false
       """.stripMargin
 
-    val procTry = SourceProcessor.process(s)
+    val procTry = ESCompiler.compile(s)
 
     procTry.isSuccess shouldBe false
 
@@ -104,7 +105,7 @@ class SourceProcessorSpec extends PropSpec with Matchers {
         |           return false
       """.stripMargin
 
-    val procTry = SourceProcessor.process(s)
+    val procTry = ESCompiler.compile(s)
 
     procTry.isSuccess shouldBe false
 

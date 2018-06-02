@@ -31,12 +31,15 @@ class Statements(indent: Int){
   val contract: P[Ast.TREE_ROOT.Contract] = P( fileInput ).map(stmts => Ast.TREE_ROOT.Contract(stmts.toList))
 
   def collapse_dotted_name(name: Seq[Ast.Identifier]): Ast.EXPR = {
-    name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head, Ast.EXPR_CTX.Load))(
-      (x, y) => Ast.EXPR.Attribute(x, y, Ast.EXPR_CTX.Load)
+    name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head))(
+      (x, y) => Ast.EXPR.Attribute(x, y)
     )
   }
 
+  val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
+
   val retTypeDecl: P[Ast.Identifier] = P( "->" ~/ NAME )
+
   val funcDef: P[Ast.STMT.FunctionDef] = P( kwd("def") ~/ NAME ~ fnParameters ~/ retTypeDecl ~ ":" ~~ block ).map {
     case (name, args, tpe, blc) => Ast.STMT.FunctionDef(name, args, blc.toList, tpe)
   }
@@ -53,26 +56,20 @@ class Statements(indent: Int){
 
   val schemaDeclarationArrow: P[Ast.Identifier] = P( "->" ~ "@" ~ NAME )
 
-  val fnParameters: P[Ast.Arguments] = P( "(" ~ varargslist ~ ")" )
+  def stmt: P[Seq[Ast.STMT]] = P( compoundStmt.map(Seq(_)) | simpleStmt )
 
-  val stmt: P[Seq[Ast.STMT]] = P( compoundStmt.map(Seq(_)) | simpleStmt )
-
-  val simpleStmt: P[Seq[Ast.STMT]] = P( smallStmt.rep(1, sep = ";") ~ ";".? )
-  val smallStmt: P[Ast.STMT] = P( flowStmt | assertStmt | exprStmt)
+  def simpleStmt: P[Seq[Ast.STMT]] = P( smallStmt.rep(1, sep = ";") ~ ";".? )
+  def smallStmt: P[Ast.STMT] = P( flowStmt | assertStmt | exprStmt)
 
   val exprStmt: P[Ast.STMT] = {
     val testsStm = P( testlist )
     val letStm = P( kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
-    val globalLetStm = P( kwd("global") ~/ kwd("let") ~/ NAME ~ typeDeclarationSemi.? ~ ("=" ~ test) )
     val caseStm = P( kwd("case") ~/ ( schemaMatching | typeMatching | genericCond | expr ) ~ ":" ~~ block )
 
     P(
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
-        globalLetStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b, global = true)
-        } |
         letStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a), t), b)
         } |
         caseStm.map {
           case (cond: Ast.EXPR.TypeMatching, body) => Ast.STMT.Case(cond, body.toList)
@@ -90,14 +87,14 @@ class Statements(indent: Int){
 
   val flowStmt: P[Ast.STMT] = P( returnStmt | abortStmt | passStmt)
 
-  val dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
+  def dotted_as_name: P[Ast.Alias] = P( dotted_name.map(x => Ast.Identifier(x.map(_.name).mkString("."))) ~ (kwd("as") ~ NAME).? )
     .map(Ast.Alias.tupled)
   val dotted_as_names: P[Seq[Ast.Alias]] = P( dotted_as_name.rep(1, ",") )
   val dotted_name: P[Seq[Ast.Identifier]] = P( NAME.rep(1, ".") )
 
   val assertStmt: P[Ast.STMT.Assert] = P( kwd("assert") ~ test ~ ("," ~ test).? ).map(Ast.STMT.Assert.tupled)
 
-  val compoundStmt: P[Ast.STMT] = P( ifStmt | forStmt | funcDef | unlockIfStmt | matchStmt )
+  def compoundStmt: P[Ast.STMT] = P( ifStmt | funcDef | unlockIfStmt | matchStmt )
   val ifStmt: P[Ast.STMT.If] = {
     val firstIf = P( kwd("if") ~/ test ~ ":" ~~ block )
     val elifs = P( (spaceIndents ~~ kwd("elif") ~/ test ~ ":" ~~ block).repX )
@@ -123,14 +120,7 @@ class Statements(indent: Int){
     }
   }
 
-  // TODO: Remove?
-  val forStmt: P[Ast.STMT.For] = P( kwd("for") ~/ exprlist ~ kwd("in") ~ testlist ~ ":" ~~ block
-    ~~ (spaceIndents ~ kwd("else") ~/ ":" ~~ block).? ).map {
-      case (itervars, generator, body, orelse) =>
-        Ast.STMT.For(tuplize(itervars), tuplize(generator), body.toList, orelse.toList.flatten)
-    }
-
-  val block: P[Seq[Ast.STMT]] = {
+  def block: P[Seq[Ast.STMT]] = {
     val deeper: P[Int] = {
       val commentLine = P( "\n" ~~ Lexer.nnlWsComment.?.map(_ => 0) ).map((_, Some("")))
       val endLine = P( "\n" ~~ (" " | "\t").repX(indent + 1).!.map(_.length) ~~ Lexer.comment.!.? )
