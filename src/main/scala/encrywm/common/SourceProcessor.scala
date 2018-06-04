@@ -3,6 +3,7 @@ package encrywm.common
 import encrywm.ast.Ast.TREE_ROOT.Contract
 import encrywm.ast.AstCodec._
 import encrywm.lang.frontend.parser.{Lexer, Parser}
+import encrywm.lang.frontend.semantics.ComplexityAnalyzer.ScriptComplexityScore
 import encrywm.lang.frontend.semantics.{ComplexityAnalyzer, Optimizer, SchemaBinder, StaticProcessor, Transformer}
 import encrywm.lib.TypeSystem
 import encrywm.typelang.Converter
@@ -54,9 +55,9 @@ object SourceProcessor {
   }
 
   def source2Contract(s: String): Try[EncryContract] = process(s).map { c =>
-    val complexityScore = ComplexityAnalyzer.complexityOfScript(c)
-    val serializedScript = ScriptSerializer.serialize(c)
-    val fingerprint = getScriptFingerprint(serializedScript)
+    val complexityScore: ScriptComplexityScore = ComplexityAnalyzer.complexityOfScript(c)
+    val serializedScript: SerializedScript = ScriptSerializer.serialize(c)
+    val fingerprint: ScriptFingerprint = getScriptFingerprint(serializedScript)
     EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
   }
 
