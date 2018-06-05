@@ -11,8 +11,7 @@ object Utils {
 }
 import Utils._
 
-object CodeSource {
-  def base58const = Base58("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
+object ScriptGenerator {
   trait Expression {
     def render: String = this match {
       case BracesBlock(expr@_*) => s"{${expr.map(_.render).mkString("\n")}}"
@@ -43,29 +42,28 @@ object CodeSource {
   case class Let(name: Name, value: Expression) extends Expression
   case class Str(value: String) extends Expression
   case class Raw(value: String) extends Expression
-
-  def lets(n: Int): String = (0 to n).map(i => Let(s"x$i", base58const).render).mkString("\n")
 }
 
-import CodeSource._
+object ScriptSamples {
+  import ScriptGenerator._
+  def base58const = Base58("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
+  def lets(n: Int): String = (0 to n).map(i => Let(s"x$i", base58const).render).mkString("\n")
+  val funcInvokeExample = Func.invoke("foo",
+    Func.invoke("bar", "10", Base58("asddd")),
+    Func.invoke("baz", "15")
+  ).render
+
+  val funcDefineExample = Func.define("foo", "Unit","a" -> "Int", "b" -> "String")(
+    Let("x", Base58("11")),
+    Let("x", Base58("11"))
+  ).render
+}
 
 class ComplexTest extends PropSpec with Matchers {
+  import ScriptSamples._
   property("*") {
-    val codeSource = lets(100)
-    //val codeSource = lets(1000) //при этом значении тест падает со StackOverflowException
-
-    val funcDefineExample = Func.define("foo", "Unit","a" -> "Int", "b" -> "String")(
-      Let("x", Base58("11")),
-      Let("x", Base58("11"))
-    ).render
-
-    val funcInvokeExample = Func.invoke("foo",
-      Func.invoke("bar", "10", Base58("asddd")),
-      Func.invoke("baz", "15")
-    ).render.trace
-
-    val validated1 = SourceValidator.validateSource(codeSource.trace).trace
-    val validated2 = SourceValidator.validateSource(funcDefineExample.trace).trace
-    val validated3 = SourceValidator.validateSource(funcInvokeExample.trace).trace
+    val validated1 = SourceValidator.validateSource(lets(100))
+    val validated2 = SourceValidator.validateSource(funcDefineExample)
+    val validated3 = SourceValidator.validateSource(funcInvokeExample)
   }
 }
