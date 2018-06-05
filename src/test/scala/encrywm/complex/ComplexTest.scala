@@ -12,17 +12,26 @@ object Utils {
 import Utils._
 
 object CodeSource {
-  val example1= """
-    |// Constant definition
-    |let a: Int = 10                     // Explicit type declaration
-    |let b = 100                         // Type will be inferred automatically
-    |let c = true if a < b else false    // Conditional assignment
-  """.stripMargin
+  def base58const = """base58"11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox""""
+  trait Expression {
+    def render: String
+  }
+  case class BracesBlock(expr: Expression) extends Expression {
+    override def render: String = s"{${expr.render}}"
+  }
+  case class Let(name: String, value: String) extends Expression {
+    override def render: String = s"""let $name = $value"""
+  }
+  def lets(n: Int) = (0 to n).map(i => Let(s"x$i", base58const).render).mkString("\n")
 }
+
+import CodeSource._
 
 class ComplexTest extends PropSpec with Matchers {
   property("*") {
-    val validated = SourceValidator.validateSource(CodeSource.example1)
+    val codeSource = lets(100)
+    //val codeSource = lets(1000) //при этом значении тест падает со StackOverflowException
+    val validated = SourceValidator.validateSource(codeSource)
     validated.isRight shouldBe true
   }
 
