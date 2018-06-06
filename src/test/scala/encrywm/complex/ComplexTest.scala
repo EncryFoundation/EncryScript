@@ -1,7 +1,11 @@
 package encrywm.complex
 
 import encrywm.common.SourceValidator
+import encrywm.common.SourceValidator.{ValidationFailure, ValidationResult}
+import encrywm.lang.backend.executor.{Execution, Executor}
 import org.scalatest.{Matchers, PropSpec}
+
+import scala.util.Try
 
 object Utils {
   implicit class Traceable[T](val obj: T) extends AnyVal {
@@ -11,9 +15,13 @@ object Utils {
 }
 import Utils._
 
+import encrywm.common.SourceProcessor._
+
 object ScriptGenerator {
   trait Expression {
     def render: String = this match {
+      case Padding(padding) => Seq.fill(padding)("  ").mkString
+      case Block(padding, expr) => expr.map(padding.render + _.render).mkString("\n")
       case BracesBlock(expr@_*) => s"{${expr.map(_.render).mkString("\n")}}"
       case Let(name, value) => s"let $name = ${value.render}"
       case Str(value) => s""""$value""""
@@ -21,7 +29,7 @@ object ScriptGenerator {
       case Raw(value) => value
       case TypedArg(name, tp) => s"$name: $tp"
       case FuncDefinition(name, rt, args, body) =>
-        s"def $name( ${args.map(_.render).mkString(", ")}) -> $rt: \n${body.map(_.render).mkString("\n")} \n"
+        s"def $name( ${args.map(_.render).mkString(", ")}) -> $rt: \n${body.map(_.render).mkString("\n")}"
       case FuncInvoke(name, args) => s"$name(${args.map(_.render).mkString(", ")})"
     }
   }
@@ -39,9 +47,12 @@ object ScriptGenerator {
   case class FuncInvoke(name: Name, args: Seq[Expression]) extends Expression
   case class Base58(value: String) extends Expression
   case class BracesBlock(expr: Expression*) extends Expression
+  case class Block(padding: Padding, expr: Seq[Expression]) extends Expression
   case class Let(name: Name, value: Expression) extends Expression
   case class Str(value: String) extends Expression
   case class Raw(value: String) extends Expression
+  case class Padding(value: Int = 0) extends Expression
+  def block(expr: Expression*) = Block(Padding(0), expr)
 }
 
 object ScriptSamples {
@@ -57,13 +68,56 @@ object ScriptSamples {
     Let("x", Base58("11")),
     Let("x", Base58("11"))
   ).render
+
+  val example1 = block(
+    Func.define("f", "Int", "a" -> "Int")("return (a + 1)"),
+    Func.define("g", "Unit", "a" -> "Int")("unlock if f(a) == 1"),
+//    Func.invoke("f", "0")
+    Func.invoke("f", "0")
+  ).render
+
+  val example2 = block(
+    Func.define("f", "Int", "a" -> "Int")("  return (a + 1)"),
+    //    Func.invoke("f", "0")
+    Func.invoke("f", "0")
+  ).render
+
+  val example3 = block(
+    Func.define("f", "Unit", "a" -> "Int")("  unlock if a + 1 == 1", "  return"),
+    //    Func.invoke("f", "0")
+    Func.invoke("f", "0")
+  ).render
+
+  val loooongInt = block(
+    Let("a", Seq.fill(100)("1").mkString).render
+  ).render
+
+  val loooongString = block(
+    Let("a", Str(Seq.fill(10000)("a").mkString)).render,
+    "a"
+  ).render
+
+  def samplesFromFile(path: String, separator: String = "\n\n\n"): Seq[String] =
+    Try(scala.io.Source.fromFile(path).mkString.split(separator).toSeq).getOrElse(Seq.empty)
 }
 
-class ComplexTest extends PropSpec with Matchers {
+class ComplexTest extends PropSpec with Matchers with Execution {
   import ScriptSamples._
-  property("*") {
-    val validated1 = SourceValidator.validateSource(lets(100))
-    val validated2 = SourceValidator.validateSource(funcDefineExample)
-    val validated3 = SourceValidator.validateSource(funcInvokeExample)
+
+  property("samples validation") {
+    samplesFromFile("test/samples.esc")
+      .++(Seq(example1, example2, example3, loooongString, base58const.render, funcDefineExample, funcInvokeExample))
+      .map(SourceValidator.validateSource)
+      //.traceWith(_.mkString("\n"))
+      .count(_.isRight) shouldEqual 5
+  }
+
+  property("execute valid samples") {
+    samplesFromFile("test/samples.esc")
+      .++(Seq(example1, example2, example3, loooongString))
+      .filter(SourceValidator.validateSource(_).isRight)
+      .map(process)
+      .map(_.map(exc.executeContract))
+      .forall(_.isSuccess) shouldBe true
   }
 }
