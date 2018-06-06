@@ -284,21 +284,21 @@ object Ast {
     }
 
     // The following expression can appear in assignment context
-    case class Attribute(value: EXPR, attr: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Attribute(value: EXPR, attr: Identifier, override var tpeOpt: Option[ESType] = None) extends EXPR {
 
       override def toString: VariableName = s"$value.${attr.name}"
 
       override val variables: List[VariableName] = value.variables
     }
 
-    case class Subscript(value: EXPR, slice: SLICE, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Subscript(value: EXPR, slice: SLICE, override var tpeOpt: Option[ESType] = None) extends EXPR {
 
       override def toString: VariableName = "<subscript_expr>"
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Name(id: Identifier, ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class Name(id: Identifier, override var tpeOpt: Option[ESType] = None) extends EXPR {
 
       override def toString: VariableName = id.name
 
@@ -321,7 +321,7 @@ object Ast {
       override val variables: List[VariableName] = elts.foldLeft(List[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESList(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESList(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
 
       override def toString: VariableName =
         s"[${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")}]"
@@ -329,7 +329,7 @@ object Ast {
       override val variables: List[VariableName] = elts.foldLeft(List[String]()){ case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESTuple(elts: List[EXPR], ctx: EXPR_CTX, override var tpeOpt: Option[ESType] = None) extends EXPR {
+    case class ESTuple(elts: List[EXPR], override var tpeOpt: Option[ESType] = None) extends EXPR {
 
       override def toString: VariableName =
         s"(${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")})"
@@ -411,21 +411,6 @@ object Ast {
 
   // col_offset is the byte offset in the utf8 string the parser uses
   case class Attributes(lineno: Int, col_offset: Int)
-
-  sealed trait EXPR_CTX
-
-  object EXPR_CTX {
-
-    case object Load extends EXPR_CTX
-
-    case object Store extends EXPR_CTX
-
-    case object Param extends EXPR_CTX
-
-    case object AugLoad extends EXPR_CTX
-
-    case object AugStore extends EXPR_CTX
-  }
 
   sealed trait SLICE
 
@@ -568,14 +553,6 @@ object Ast {
 
       override def toString: VariableName = "not in"
     }
-  }
-
-  // not sure what to call the first argument for raise and except
-  sealed trait EXCP_HANDLER extends AST_NODE
-
-  object EXCP_HANDLER {
-
-    case class ExceptHandler(`type`: Option[EXPR], name: Option[EXPR], body: List[STMT]) extends EXCP_HANDLER
   }
 
   case class Identifier(name: String)

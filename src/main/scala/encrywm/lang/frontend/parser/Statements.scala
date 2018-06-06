@@ -31,8 +31,8 @@ class Statements(indent: Int){
   val contract: P[Ast.TREE_ROOT.Contract] = P( fileInput ).map(stmts => Ast.TREE_ROOT.Contract(stmts.toList))
 
   def collapse_dotted_name(name: Seq[Ast.Identifier]): Ast.EXPR = {
-    name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head, Ast.EXPR_CTX.Load))(
-      (x, y) => Ast.EXPR.Attribute(x, y, Ast.EXPR_CTX.Load)
+    name.tail.foldLeft[Ast.EXPR](Ast.EXPR.Name(name.head))(
+      (x, y) => Ast.EXPR.Attribute(x, y)
     )
   }
 
@@ -69,10 +69,10 @@ class Statements(indent: Int){
     P(
         testsStm.map(a => Ast.STMT.Expr(tuplize(a))) |
         globalLetStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b, global = true)
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a), t), b, global = true)
         } |
         letStm.map { case (a, t, b) =>
-          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a, Ast.EXPR_CTX.Store), t), b)
+          Ast.STMT.Let(Ast.EXPR.Declaration(Ast.EXPR.Name(a), t), b)
         } |
         caseStm.map {
           case (cond: Ast.EXPR.TypeMatching, body) => Ast.STMT.Case(cond, body.toList)
