@@ -174,7 +174,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
       case EXPR.Call(func: EXPR.Attribute, args, keywords, _) =>
         scanMany(Seq(func, func.value) ++ args ++ keywords.map(_.value))
-        func.value.tipe match {
+        func.value.esType match {
           case coll: ESCollection if args.size == 1 =>
             coll.getAttrType(func.attr.name) match {
               case Some(f: ESFunc) =>
@@ -205,7 +205,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
 
       case dct: EXPR.ESDictNode =>
         dct.keys.foreach(scanExpr)
-        if (!dct.keys.forall(k => k.tipe.isPrimitive)) throw IllegalExprException(node)
+        if (!dct.keys.forall(k => k.esType.isPrimitive)) throw IllegalExprException(node)
         dct.values.foreach(scanExpr)
 
       case lst: EXPR.ESList => lst.elts.foreach(scanExpr)
@@ -215,8 +215,8 @@ class StaticProcessor(typeSystem: TypeSystem) {
         sub.slice match {
           case SLICE.Index(idx) =>
             scanExpr(idx)
-            val idxT: ESType = idx.tipe
-            sub.value.tipe match {
+            val idxT: ESType = idx.esType
+            sub.value.esType match {
               case ESList(_) => matchType(idxT, ESInt, sub)
               case ESDict(keyT, _) => matchType(idxT, keyT, sub)
               case _ => throw IllegalExprException(sub)
@@ -248,7 +248,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
   private def findReturnTypes(stmts: Seq[STMT]): Seq[ESType] = {
 
     def findReturnsIn(stmt: STMT): Seq[ESType] = stmt match {
-      case ret: STMT.Return => Seq(ret.value.map(_.tipe).getOrElse(ESUnit))
+      case ret: STMT.Return => Seq(ret.value.map(_.esType).getOrElse(ESUnit))
       case STMT.If(_, body, orelse) => findReturnTypes(body) ++ findReturnTypes(orelse)
       case STMT.Match(_, branches) => findReturnTypes(branches)
       case STMT.Case(_, body, _) => findReturnTypes(body)
@@ -265,7 +265,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
     val scope: ScopedSymbolTable = currentScopeOpt.getOrElse(throw MissedContextException(exp))
 
     def inferTypeIn(e: EXPR): ESType =
-      if (!e.tipe.isNit) e.tipe
+      if (!e.esType.isNit) e.esType
       else {
         exp match {
           case n: EXPR.Name => scope.lookup(n.id.name)
@@ -361,12 +361,12 @@ class StaticProcessor(typeSystem: TypeSystem) {
       }
 
     val tpe: ESType = inferTypeIn(exp)
-    if (exp.tipe.isNit) exp.tipe = tpe
+    if (exp.esType.isNit) exp.esType = tpe
     tpe
   }
 
   private def ensureNestedColl(exps: Seq[EXPR]): Unit = exps.foreach { exp =>
-    val expT = exp.tipe
+    val expT = exp.esType
     if (expT.isInstanceOf[ESList] || expT.isInstanceOf[ESDict])
       throw NestedCollectionException(exps.last)
   }
