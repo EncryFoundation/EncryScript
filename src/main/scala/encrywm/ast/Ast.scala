@@ -8,12 +8,13 @@ object Ast {
 
   type Hash = Array[Byte]
   type VariableName = String
+  type ScriptComplexityScore = Int
 
   trait VariableContainable {
 
     val variables: List[VariableName]
   }
-
+  
   sealed trait AST_NODE
 
   sealed trait TREE_ROOT extends AST_NODE
