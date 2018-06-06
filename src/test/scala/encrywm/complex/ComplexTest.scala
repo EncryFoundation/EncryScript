@@ -1,8 +1,7 @@
 package encrywm.complex
 
 import encrywm.common.SourceValidator
-import encrywm.common.SourceValidator.{ValidationFailure, ValidationResult}
-import encrywm.lang.backend.executor.{Execution, Executor}
+import encrywm.lang.backend.executor.Execution
 import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Try
@@ -13,8 +12,6 @@ object Utils {
     def traceWith[S](reader: T => S ): T = { println(reader(obj)); obj}
   }
 }
-import Utils._
-
 import encrywm.common.SourceProcessor._
 
 object ScriptGenerator {
@@ -52,47 +49,47 @@ object ScriptGenerator {
   case class Str(value: String) extends Expression
   case class Raw(value: String) extends Expression
   case class Padding(value: Int = 0) extends Expression
-  def block(expr: Expression*) = Block(Padding(0), expr)
+  def block(expr: Expression*): Block = Block(Padding(0), expr)
 }
 
 object ScriptSamples {
   import ScriptGenerator._
-  def base58const = Base58("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
+  def base58const: Base58 = Base58("11BviJihxpMNf35SBy8e5SmWARsWCqJuRmLWk4NaFox")
   def lets(n: Int): String = (0 to n).map(i => Let(s"x$i", base58const).render).mkString("\n")
-  val funcInvokeExample = Func.invoke("foo",
+  val funcInvokeExample: String = Func.invoke("foo",
     Func.invoke("bar", "10", Base58("asddd")),
     Func.invoke("baz", "15")
   ).render
 
-  val funcDefineExample = Func.define("foo", "Unit","a" -> "Int", "b" -> "String")(
+  val funcDefineExample: String = Func.define("foo", "Unit","a" -> "Int", "b" -> "String")(
     Let("x", Base58("11")),
     Let("x", Base58("11"))
   ).render
 
-  val example1 = block(
+  val example1: String = block(
     Func.define("f", "Int", "a" -> "Int")("return (a + 1)"),
     Func.define("g", "Unit", "a" -> "Int")("unlock if f(a) == 1"),
 //    Func.invoke("f", "0")
     Func.invoke("f", "0")
   ).render
 
-  val example2 = block(
+  val example2: String = block(
     Func.define("f", "Int", "a" -> "Int")("  return (a + 1)"),
     //    Func.invoke("f", "0")
     Func.invoke("f", "0")
   ).render
 
-  val example3 = block(
+  val example3: String = block(
     Func.define("f", "Unit", "a" -> "Int")("  unlock if a + 1 == 1", "  return"),
     //    Func.invoke("f", "0")
     Func.invoke("f", "0")
   ).render
 
-  val loooongInt = block(
+  val loooongInt: String = block(
     Let("a", Seq.fill(100)("1").mkString).render
   ).render
 
-  val loooongString = block(
+  val loooongString: String = block(
     Let("a", Str(Seq.fill(10000)("a").mkString)).render,
     "a"
   ).render
