@@ -20,11 +20,9 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyze = analyzer.complexityOfScript(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
-
-    analyzeTry.get shouldEqual 2
+    analyze shouldEqual 2
   }
 
   property("Conditional assignment complexity calculation") {
@@ -37,11 +35,9 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyze = analyzer.complexityOfScript(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
-
-    analyzeTry.get shouldEqual 3
+    analyze shouldEqual 3
 
   }
 
@@ -55,11 +51,9 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyze = analyzer.complexityOfScript(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
-
-    analyzeTry.get shouldEqual 4
+    analyze shouldEqual 4
   }
 
   property("Function call complexity calculation") {
@@ -75,10 +69,8 @@ class ComplexityAnalyzerSpec extends PropSpec with Matchers {
 
     AstRoot.isInstanceOf[Parsed.Success[Ast.STMT]] shouldBe true
 
-    val analyzeTry = Try(analyzer.complexityOf(AstRoot.get.value))
+    val analyze = analyzer.complexityOfScript(AstRoot.get.value)
 
-    analyzeTry.isSuccess shouldBe true
-
-    analyzeTry.get shouldEqual 7
+    analyze shouldEqual 4
   }
 }
