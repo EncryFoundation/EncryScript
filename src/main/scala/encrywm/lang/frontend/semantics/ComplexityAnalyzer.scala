@@ -35,8 +35,6 @@ object ComplexityAnalyzer {
       0 -> (functionsComplexity ++ Map(name.name -> body.map( scanStmt( _, functionsComplexity )._1).sum))
     case STMT.Return(value) => value.map(value => scanExpr(value, functionsComplexity)._1).getOrElse(0) -> functionsComplexity
     case STMT.Let(_, value, _) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity
-    case STMT.AugAssign(_, _, value) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity
-    case STMT.For(_, _, body, orelse) => 1 + body.map(scanStmt(_, functionsComplexity)._1).sum + orelse.map(scanStmt(_, functionsComplexity)._1).sum -> functionsComplexity
     case STMT.If(test, body, orelse) =>
       1 + scanExpr(test, functionsComplexity)._1 + Math.max(body.map(scanStmt(_, functionsComplexity)._1).sum, orelse.map(scanStmt(_, functionsComplexity)._1).sum) -> functionsComplexity
     case STMT.Assert(test, msg) => scanExpr(test, functionsComplexity)._1 + msg.map(scanExpr(_, functionsComplexity)._1).getOrElse(0) -> functionsComplexity
@@ -57,7 +55,7 @@ object ComplexityAnalyzer {
       scanExpr(test, functionsComplexity)._1 + Math.max(scanExpr(body, functionsComplexity)._1, scanExpr(orelse, functionsComplexity)._1) -> functionsComplexity
     case EXPR.Compare(left, ops, comparators) =>
       scanExpr(left, functionsComplexity)._1 + ops.length + comparators.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
-    case EXPR.Call(EXPR.Name(Identifier(n), _, _), args, _, _) => args.map(scanExpr(_, functionsComplexity)._1).sum + {
+    case EXPR.Call(EXPR.Name(Identifier(n), _), args, _, _) => args.map(scanExpr(_, functionsComplexity)._1).sum + {
       if (PredefFunctions.hashFunctions.map(_.name).contains(n)) 10
       else if (PredefFunctions.middleFunctions.map(_.name).contains(n)) 15
       else if (PredefFunctions.heavyFunctions.map(_.name).contains(n)) 20
@@ -69,12 +67,12 @@ object ComplexityAnalyzer {
     case EXPR.False => 1 -> functionsComplexity
     case EXPR.Str(_) => 1 -> functionsComplexity
     case EXPR.Base58Str(_) => 1 -> functionsComplexity
-    case EXPR.Attribute(value, _, _, _) => scanExpr(value, functionsComplexity)
-    case EXPR.Subscript(value, _, _, _) => scanExpr(value, functionsComplexity)
+    case EXPR.Attribute(value, _, _) => scanExpr(value, functionsComplexity)
+    case EXPR.Subscript(value, _, _) => scanExpr(value, functionsComplexity)
     case EXPR.ESDictNode(keys, values, _) => keys.map(scanExpr(_, functionsComplexity)._1).sum + values.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
     case EXPR.ESSet(elts, _) => elts.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
-    case EXPR.ESList(elts, _, _) => elts.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
-    case EXPR.ESTuple(elts, _, _) => elts.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
+    case EXPR.ESList(elts, _) => elts.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
+    case EXPR.ESTuple(elts, _) => elts.map(scanExpr(_, functionsComplexity)._1).sum -> functionsComplexity
     case EXPR.Declaration(target, _) => scanExpr(target, functionsComplexity)
     case EXPR.TypeMatching(_, tipe) => 2 + tipe.typeParams.length -> functionsComplexity
     case EXPR.GenericCond => 1 -> functionsComplexity

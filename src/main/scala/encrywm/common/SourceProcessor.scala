@@ -1,5 +1,6 @@
 package encrywm.common
 
+import encrywm.ast.Ast.ScriptComplexityScore
 import encrywm.ast.AstCodec._
 import encrywm.lang.ESCompiler
 import encrywm.lang.frontend.semantics.ComplexityAnalyzer
@@ -12,9 +13,9 @@ object SourceProcessor {
   type SerializedContract = Array[Byte]
 
   def source2Contract(s: String): Try[EncryContract] = ESCompiler.compile(s).map { c =>
-    val complexityScore = ComplexityAnalyzer.complexityOf(c)
-    val serializedScript = ScriptSerializer.serialize(c)
-    val fingerprint = getScriptFingerprint(serializedScript)
+    val complexityScore: ScriptComplexityScore = ComplexityAnalyzer.complexityOfScript(c)
+    val serializedScript: SerializedScript = ScriptSerializer.serialize(c)
+    val fingerprint: ScriptFingerprint = getScriptFingerprint(serializedScript)
     EncryContract(serializedScript, ScriptMeta(complexityScore, fingerprint))
   }
 
