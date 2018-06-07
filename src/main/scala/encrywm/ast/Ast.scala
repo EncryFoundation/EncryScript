@@ -198,10 +198,10 @@ object Ast {
         s"$left ${ops.map(_.toString).zip(comparators.map(_.toString)).foldLeft("")((compareStmt, elem) => s"$compareStmt${elem._1} ${elem._2}")}"
 
       override val variables: List[VariableName] =
-        left.variables ++ comparators.foldLeft(List[String]()){ case (comparatorVars, comparator) => comparatorVars ++ comparator.variables }
+        left.variables ++ comparators.foldLeft(List[String]()) { case (comparatorVars, comparator) => comparatorVars ++ comparator.variables }
     }
 
-    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], override var esType: ESType = Nit) extends EXPR {
+    case class Call(func: EXPR, args: List[EXPR], keywords: List[Keyword], var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"$func (${args.tail.foldLeft(args.head.toString)((arguments, expr) => s"$arguments, $expr")})"
@@ -269,21 +269,21 @@ object Ast {
     }
 
     // The following expression can appear in assignment context
-    case class Attribute(value: EXPR, attr: Identifier, override var esType: ESType = Nit) extends EXPR {
+    case class Attribute(value: EXPR, attr: Identifier, var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$value.${attr.name}"
 
       override val variables: List[VariableName] = value.variables
     }
 
-    case class Subscript(value: EXPR, slice: SLICE, override var esType: ESType = Nit) extends EXPR {
+    case class Subscript(value: EXPR, slice: SLICE, var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = "<subscript_expr>"
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Name(id: Identifier, override var esType: ESType = Nit) extends EXPR {
+    case class Name(id: Identifier, var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = id.name
 
@@ -298,7 +298,7 @@ object Ast {
         values.foldLeft(List[String]()){ case (valueVars, value) => valueVars ++ value.variables }
     }
 
-    case class ESSet(elts: List[EXPR], override var esType: ESType = Nit) extends EXPR {
+    case class ESSet(elts: List[EXPR], var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"{${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")}}"
@@ -306,7 +306,7 @@ object Ast {
       override val variables: List[VariableName] = elts.foldLeft(List[String]()) { case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESList(elts: List[EXPR], override var esType: ESType = Nit) extends EXPR {
+    case class ESList(elts: List[EXPR], var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"[${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")}]"
@@ -314,7 +314,7 @@ object Ast {
       override val variables: List[VariableName] = elts.foldLeft(List[String]()) { case (eltsVars, elt) => eltsVars ++ elt.variables }
     }
 
-    case class ESTuple(elts: List[EXPR], override var esType: ESType = Nit) extends EXPR {
+    case class ESTuple(elts: List[EXPR], var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName =
         s"(${elts.drop(1).foldLeft(elts.head.toString)((str, expr) => s"$str, $expr")})"
@@ -338,12 +338,12 @@ object Ast {
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Sum(coll: EXPR, override var esType: ESType = Nit) extends EXPR with Transformer {
+    case class Sum(coll: EXPR, var esType: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Map(coll: EXPR, func: EXPR, override var esType: ESType = Nit) extends EXPR with Transformer {
+    case class Map(coll: EXPR, func: EXPR, var esType: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
@@ -355,7 +355,7 @@ object Ast {
       override val variables: List[VariableName] = List.empty[String]
     }
 
-    case class Get(opt: EXPR, override var esType: ESType = Nit) extends EXPR with Transformer {
+    case class Get(opt: EXPR, var esType: ESType = Nit) extends EXPR with Transformer {
 
       override val variables: List[VariableName] = List.empty[String]
     }
