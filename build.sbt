@@ -15,6 +15,8 @@ resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repos
   "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
 
 libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-stream" % "2.5.12",
+  "com.lightbend.akka" %% "akka-stream-alpakka-file" % "0.19",
   "com.lihaoyi" %% "fastparse" % "1.0.0",
   "com.google.guava" % "guava" % "19.+",
   "org.scorexfoundation" %% "scrypto" % "2.1.1",
