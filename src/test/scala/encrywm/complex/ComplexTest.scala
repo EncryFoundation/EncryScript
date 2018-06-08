@@ -1,7 +1,7 @@
 package encrywm.complex
 
-import encrywm.common.SourceProcessor._
 import encrywm.common.SourceValidator
+import encrywm.lang.ESCompiler
 import encrywm.lang.backend.executor.Execution
 import org.scalatest.{Matchers, PropSpec}
 
@@ -20,7 +20,7 @@ class ComplexTest extends PropSpec with Matchers with Execution {
     samplesFromFile("test/samples.esc")
       .++(Seq(example1, example2, example3, loooongString))
       .filter(SourceValidator.validateSource(_).isRight)
-      .map(process)
+      .map(ESCompiler.compile)
       .map(_.map(exc.executeContract))
       .forall(_.isSuccess) shouldBe true
   }

@@ -90,9 +90,12 @@ object Expressions {
   val expr: P[Ast.EXPR] = P( arith_expr )
   val arith_expr: P[Ast.EXPR] = P( Chain(term, Add | Sub) )
   val term: P[Ast.EXPR] = P( Chain(factor, Mult | Div | Mod) )
-  // NUMBER appears here and below in `atom` to give it precedence.
-  // This ensures that "-2" will parse as `Num(-2)` rather than
-  // as `UnaryOp(USub, Num(2))`.
+
+  /**
+    * NUMBER appears here and below in `atom` to give it precedence.
+    * This ensures that "-2" will parse as `Num(-2)` rather than
+    * as `UnaryOp(USub, Num(2))`.
+    */
   val factor: P[Ast.EXPR] = P( NUMBER | Unary(factor) | power )
   val power: P[Ast.EXPR] = P( atom ~ trailer.rep ~ (Pow ~ factor).? ).map {
     case (lhs, trailers, rhs) =>

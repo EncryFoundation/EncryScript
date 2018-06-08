@@ -35,8 +35,6 @@ object ComplexityAnalyzer {
       0 -> (functionsComplexity ++ Map(name.name -> body.map( scanStmt( _, functionsComplexity )._1).sum))
     case STMT.Return(value) => value.map(value => scanExpr(value, functionsComplexity)._1).getOrElse(0) -> functionsComplexity
     case STMT.Let(_, value, _) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity
-    case STMT.AugAssign(_, _, value) => scanExpr(value, functionsComplexity)._1 -> functionsComplexity
-    case STMT.For(_, _, body, orelse) => 1 + body.map(scanStmt(_, functionsComplexity)._1).sum + orelse.map(scanStmt(_, functionsComplexity)._1).sum -> functionsComplexity
     case STMT.If(test, body, orelse) =>
       1 + scanExpr(test, functionsComplexity)._1 + Math.max(body.map(scanStmt(_, functionsComplexity)._1).sum, orelse.map(scanStmt(_, functionsComplexity)._1).sum) -> functionsComplexity
     case STMT.Assert(test, msg) => scanExpr(test, functionsComplexity)._1 + msg.map(scanExpr(_, functionsComplexity)._1).getOrElse(0) -> functionsComplexity

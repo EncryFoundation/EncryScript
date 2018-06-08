@@ -3,7 +3,7 @@ import sbt._
 
 name := "EncryScript"
 
-version := "0.3.1"
+version := "0.3.3"
 
 scalaVersion := "2.12.4"
 
