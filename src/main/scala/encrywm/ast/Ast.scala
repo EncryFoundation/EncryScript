@@ -269,6 +269,7 @@ object Ast {
     }
 
     // The following expression can appear in assignment context
+
     case class Attribute(value: EXPR, attr: Identifier, var esType: ESType = Nit) extends EXPR {
 
       override def toString: VariableName = s"$value.${attr.name}"

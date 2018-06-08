@@ -127,7 +127,7 @@ class StaticProcessor(typeSystem: TypeSystem) {
       body.foreach(scanStmt)
       scopes = scopes.tail
 
-    case ui@STMT.UnlockIf(test) =>
+    case ui @ STMT.UnlockIf(test) =>
       if (currentScopeOpt.exists(_.isFunc)) throw IllegalUnlockIfScopeException(ui)
       scanExpr(test)
 
