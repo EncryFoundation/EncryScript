@@ -175,5 +175,5 @@ Time-window lock:
 State height lock:
 
     let unlockedFrom: Int = 100000
-    
+
     unlock if context.state.height >= unlockedFrom
